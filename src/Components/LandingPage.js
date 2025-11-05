@@ -20,9 +20,19 @@ import {
   Close,
   Business,
   TrendingUp,
-  People
+  People,
+  LocationOn,
+  Notifications,
+  Chat,
+  VerifiedUser,
+  Analytics,
+  AttachMoney,
+  Security,
+  FilterList,
+  Share
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { supabase } from '../config/supabase';
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
@@ -44,27 +54,44 @@ const LandingPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/waitlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      // Check if email already exists
+      const { data: existing } = await supabase
+        .from('waitlist')
+        .select('email')
+        .eq('email', email.toLowerCase())
+        .single();
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (existing) {
         setStatus('success');
-        setMessage(data.message || 'Successfully joined the waitlist!');
+        setMessage("You're already on the waitlist!");
         setEmail('');
+        setLoading(false);
+        return;
+      }
+
+      // Insert email into waitlist
+      const { error } = await supabase
+        .from('waitlist')
+        .insert([{ email: email.toLowerCase() }]);
+
+      if (error) {
+        // Handle unique constraint violation
+        if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
+          setStatus('success');
+          setMessage("You're already on the waitlist!");
+        } else {
+          setStatus('error');
+          setMessage(error.message || 'Something went wrong. Please try again.');
+        }
       } else {
-        setStatus('error');
-        setMessage(data.error || 'Something went wrong. Please try again.');
+        setStatus('success');
+        setMessage('Successfully joined the waitlist!');
+        setEmail('');
       }
     } catch (error) {
       setStatus('error');
-      setMessage('Failed to connect. Please check your connection and try again.');
+      setMessage('Something went wrong. Please try again.');
+      console.error('Waitlist error:', error);
     } finally {
       setLoading(false);
     }
@@ -92,7 +119,7 @@ const LandingPage = () => {
           width: '600px',
           height: '600px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)',
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
           filter: 'blur(80px)',
           zIndex: 0,
         }}
@@ -105,7 +132,7 @@ const LandingPage = () => {
           width: '500px',
           height: '500px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)',
+          background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(99, 102, 241, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
           filter: 'blur(80px)',
           zIndex: 0,
         }}
@@ -132,7 +159,7 @@ const LandingPage = () => {
                 borderRadius: '50%',
                 bgcolor: 'primary.main',
                 mb: 3,
-                boxShadow: '0 8px 32px rgba(139, 92, 246, 0.3)',
+                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.4)',
               }}>
                 <AutoAwesome sx={{ fontSize: 40, color: 'white' }} />
               </Box>
@@ -140,13 +167,10 @@ const LandingPage = () => {
 
             <Typography 
               variant="h2" 
+              className="gradient-text"
               sx={{ 
-                fontWeight: 700,
+                fontWeight: 800,
                 mb: 2,
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
                 fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem', lg: '5rem' },
                 lineHeight: 1.2,
               }}
@@ -246,12 +270,12 @@ const LandingPage = () => {
                   fontWeight: 600,
                   bgcolor: 'primary.main',
                   color: 'white',
-                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+                  boxShadow: '0 4px 20px rgba(99, 102, 241, 0.5)',
                   minWidth: { xs: '100%', sm: '180px' },
                   whiteSpace: 'nowrap',
                   '&:hover': {
                     bgcolor: 'primary.dark',
-                    boxShadow: '0 6px 25px rgba(139, 92, 246, 0.5)',
+                    boxShadow: '0 6px 25px rgba(99, 102, 241, 0.6)',
                     transform: 'translateY(-1px)',
                   },
                   '&:disabled': {
@@ -292,13 +316,13 @@ const LandingPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
-          <Box sx={{ mt: 10, mb: 8, textAlign: 'center' }}>
+          <Box sx={{ mt: 10, mb: 12, textAlign: 'center' }}>
             <Typography 
               variant="h4" 
               sx={{ 
                 fontWeight: 700,
                 mb: 1,
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)',
+                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -316,35 +340,36 @@ const LandingPage = () => {
               maxWidth: { xs: '400px', md: '500px', lg: '600px' },
               mx: 'auto',
               height: { xs: '500px', md: '600px' },
-              mb: 6
+              mb: 8
             }}>
               <SwipeCardDemo />
             </Box>
 
             {/* Steps */}
             <Box sx={{ 
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-              gap: { xs: 3, md: 4, lg: 5 },
-              maxWidth: '1200px',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'center',
+              alignItems: { xs: 'stretch', md: 'flex-start' },
+              gap: { xs: 3, md: 4 },
+              maxWidth: '1000px',
               mx: 'auto',
-              mt: 8
             }}>
               {[
                 { 
-                  icon: <Business sx={{ fontSize: 40 }} />, 
-                  title: 'Create Your Profile', 
+                  icon: <Business sx={{ fontSize: 32 }} />, 
+                  title: 'Create Profile', 
                   desc: 'Showcase your projects, skills, and what you\'re looking for in a co-founder',
                   color: 'primary'
                 },
                 { 
-                  icon: <SwipeRight sx={{ fontSize: 40 }} />, 
+                  icon: <SwipeRight sx={{ fontSize: 32 }} />, 
                   title: 'Swipe & Discover', 
                   desc: 'Browse through founder profiles. Swipe right if interested, left to pass',
                   color: 'secondary'
                 },
                 { 
-                  icon: <Favorite sx={{ fontSize: 40 }} />, 
+                  icon: <Favorite sx={{ fontSize: 32 }} />, 
                   title: 'Match & Connect', 
                   desc: 'When both founders swipe right, it\'s a match! Start collaborating',
                   color: 'error'
@@ -354,7 +379,8 @@ const LandingPage = () => {
                   key={step.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 + index * 0.2, duration: 0.5 }}
+                  transition={{ delay: 1 + index * 0.15, duration: 0.5 }}
+                  style={{ flex: 1 }}
                 >
                   <Box sx={{
                     textAlign: 'center',
@@ -363,10 +389,14 @@ const LandingPage = () => {
                     bgcolor: 'background.paper',
                     border: '1px solid',
                     borderColor: 'divider',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 12px 32px rgba(0,0,0,0.1)',
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
+                      borderColor: `${step.color}.main`,
                     },
                   }}>
                     <Box sx={{ 
@@ -376,14 +406,15 @@ const LandingPage = () => {
                       bgcolor: `${step.color}.main`,
                       color: 'white',
                       mb: 2,
-                      boxShadow: `0 4px 20px rgba(139, 92, 246, 0.3)`,
+                      mx: 'auto',
+                      boxShadow: `0 4px 16px rgba(99, 102, 241, 0.3)`,
                     }}>
                       {step.icon}
                     </Box>
-                    <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5 }}>
                       {step.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, flex: 1 }}>
                       {step.desc}
                     </Typography>
                   </Box>
@@ -393,63 +424,131 @@ const LandingPage = () => {
           </Box>
         </motion.div>
 
-        {/* Features section */}
+        {/* Features Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.4, duration: 0.6 }}
         >
-          <Box sx={{ 
-            mt: 10,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-            gap: { xs: 3, md: 4, lg: 5 },
-            maxWidth: '1200px',
-            mx: 'auto',
-          }}>
-            {[
-              { 
-                icon: <TrendingUp sx={{ fontSize: 32 }} />,
-                title: 'Smart Matching', 
-                desc: 'AI-powered compatibility for perfect founder pairs' 
-              },
-              { 
-                icon: <People sx={{ fontSize: 32 }} />,
-                title: 'Secure Platform', 
-                desc: 'Privacy-first design with end-to-end encryption' 
-              },
-              { 
-                icon: <AutoAwesome sx={{ fontSize: 32 }} />,
-                title: 'Easy Discovery', 
-                desc: 'Swipe through profiles to find your ideal match' 
-              },
-            ].map((feature, index) => (
-              <Grow in={true} timeout={1600 + index * 200} key={feature.title}>
-                <Box sx={{
-                  textAlign: 'center',
-                  p: 4,
-                  borderRadius: 3,
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                  },
-                }}>
-                  <Box sx={{ color: 'primary.main', mb: 2 }}>
-                    {feature.icon}
+          <Box sx={{ mt: 12, mb: 8, textAlign: 'center' }}>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700,
+                mb: 1,
+                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Powerful Features
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 6, maxWidth: '800px', mx: 'auto', fontSize: { xs: '1rem', md: '1.125rem' } }}>
+              Everything you need to find and connect with your perfect co-founder
+            </Typography>
+
+            <Box sx={{ 
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+              gap: { xs: 3, md: 4 },
+              maxWidth: '1200px',
+              mx: 'auto',
+            }}>
+              {[
+                { 
+                  icon: <Business sx={{ fontSize: 32 }} />,
+                  title: 'Multiple Projects', 
+                  desc: 'Showcase multiple projects and find partners for each',
+                  color: 'success'
+                },
+                { 
+                  icon: <LocationOn sx={{ fontSize: 32 }} />,
+                  title: 'Location Matching', 
+                  desc: 'Find founders in your city or connect globally',
+                  color: 'primary'
+                },
+                { 
+                  icon: <Chat sx={{ fontSize: 32 }} />,
+                  title: 'Secure Messaging', 
+                  desc: 'Chat directly with your matches securely',
+                  color: 'secondary'
+                },
+                { 
+                  icon: <Security sx={{ fontSize: 32 }} />,
+                  title: 'Privacy First', 
+                  desc: 'End-to-end encryption for all your data',
+                  color: 'error'
+                },
+              ].map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.5 + index * 0.1, duration: 0.5 }}
+                >
+                  <Box sx={{
+                    textAlign: 'center',
+                    p: 3.5,
+                    borderRadius: 3,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
+                      borderColor: `${feature.color}.main`,
+                    },
+                  }}>
+                    <Box sx={{ 
+                      display: 'inline-flex',
+                      p: 2,
+                      borderRadius: '50%',
+                      bgcolor: `${feature.color}.main`,
+                      color: 'white',
+                      mb: 2,
+                      mx: 'auto',
+                      boxShadow: `0 4px 16px rgba(99, 102, 241, 0.3)`,
+                    }}>
+                      {feature.icon}
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: '1rem' }}>
+                      {feature.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                      {feature.desc}
+                    </Typography>
                   </Box>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    {feature.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {feature.desc}
-                  </Typography>
-                </Box>
-              </Grow>
-            ))}
+                </motion.div>
+              ))}
+            </Box>
+          </Box>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.8, duration: 0.6 }}
+        >
+          <Box sx={{ 
+            mt: 12,
+            pt: 6,
+            pb: 4,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            textAlign: 'center'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
+              FounderMatch
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              © {new Date().getFullYear()} FounderMatch. All rights reserved.
+            </Typography>
           </Box>
         </motion.div>
       </Container>
@@ -542,18 +641,18 @@ const SwipeCardDemo = () => {
                   Looking for a technical co-founder with experience in healthcare technology and product design.
                 </Typography>
                 <Box sx={{ display: 'inline-block' }}>
-                  <Box sx={{
-                    display: 'inline-block',
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 2,
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                  }}>
-                    {card.stage}
-                  </Box>
+                <Box sx={{
+                  display: 'inline-block',
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 2,
+                  bgcolor: 'secondary.main',
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}>
+                  {card.stage}
+                </Box>
                 </Box>
               </Box>
 
@@ -582,7 +681,7 @@ const SwipeCardDemo = () => {
                       justifyContent: 'center',
                       color: 'white',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
                     }}>
                       <Close sx={{ fontSize: 28 }} />
                     </Box>
@@ -595,13 +694,13 @@ const SwipeCardDemo = () => {
                       width: 56,
                       height: 56,
                       borderRadius: '50%',
-                      bgcolor: 'success.main',
+                      bgcolor: 'secondary.main',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'white',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                      boxShadow: '0 4px 12px rgba(236, 72, 153, 0.4)',
                     }}>
                       <Favorite sx={{ fontSize: 28 }} />
                     </Box>

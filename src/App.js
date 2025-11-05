@@ -16,14 +16,14 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#8b5cf6', // Purple-violet
-      light: '#a78bfa',
-      dark: '#7c3aed',
+      main: '#6366f1', // Vibrant Indigo
+      light: '#818cf8',
+      dark: '#4f46e5',
     },
     secondary: {
-      main: '#06b6d4', // Cyan
-      light: '#22d3ee',
-      dark: '#0891b2',
+      main: '#ec4899', // Hot Pink
+      light: '#f472b6',
+      dark: '#db2777',
     },
     success: {
       main: '#10b981', // Emerald
@@ -32,16 +32,20 @@ const theme = createTheme({
       main: '#f59e0b', // Amber
     },
     background: {
-      default: '#fafafa',
+      default: '#ffffff',
       paper: '#ffffff',
     },
     text: {
-      primary: '#111827',
-      secondary: '#6b7280',
+      primary: '#1e293b',
+      secondary: '#64748b',
     },
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Poppins", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h2: {
+      fontWeight: 800,
+      letterSpacing: '-0.03em',
+    },
     h4: {
       fontWeight: 700,
       letterSpacing: '-0.02em',
@@ -52,17 +56,26 @@ const theme = createTheme({
     },
     h6: {
       fontWeight: 600,
+      letterSpacing: '-0.01em',
+    },
+    body1: {
+      fontWeight: 400,
+      letterSpacing: '0.01em',
+    },
+    body2: {
+      fontWeight: 400,
+      letterSpacing: '0.01em',
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 16,
   },
   shadows: [
     'none',
-    '0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
-    '0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.06)',
-    '0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.05)',
-    '0 20px 25px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.04)',
+    '0 1px 3px rgba(99, 102, 241, 0.12), 0 1px 2px rgba(236, 72, 153, 0.08)',
+    '0 4px 6px rgba(99, 102, 241, 0.15), 0 2px 4px rgba(236, 72, 153, 0.1)',
+    '0 10px 15px rgba(99, 102, 241, 0.18), 0 4px 6px rgba(236, 72, 153, 0.12)',
+    '0 20px 25px rgba(99, 102, 241, 0.2), 0 10px 10px rgba(236, 72, 153, 0.15)',
   ],
 });
 
@@ -179,7 +192,7 @@ function App() {
             flexShrink: 0
           }}>
             <Typography variant="h4" component="h1" sx={{ color: 'primary.main' }}>
-              Founders
+              FounderMatch
             </Typography>
             <SignedIn>
               <UserButton />
