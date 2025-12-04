@@ -1,14 +1,7 @@
 import React from 'react';
-// import { useState, useEffect } from 'react';
-import { ClerkProvider } from '@clerk/clerk-react';
-// import { SignedIn, SignedOut, SignIn, UserButton, useUser } from '@clerk/clerk-react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
-// import { Typography, CircularProgress, Tabs, Tab, Button } from '@mui/material';
-// import SwipeInterface from './Components/SwipeInterface';
-// import ProfileSetup from './Components/ProfileSetup';
-// import MatchesPage from './Components/MatchesPage';
 import LandingPage from './Components/LandingPage';
 import './App.css';
 
@@ -16,34 +9,41 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#6366f1', // Vibrant Indigo
-      light: '#818cf8',
-      dark: '#4f46e5',
+      main: '#0ea5e9', // Trust Blue - Sky blue
+      light: '#38bdf8',
+      dark: '#0284c7',
     },
     secondary: {
-      main: '#ec4899', // Hot Pink
-      light: '#f472b6',
-      dark: '#db2777',
+      main: '#14b8a6', // Warm Teal
+      light: '#2dd4bf',
+      dark: '#0d9488',
     },
     success: {
       main: '#10b981', // Emerald
+      light: '#34d399',
     },
     error: {
+      main: '#ef4444', // Modern Red
+      light: '#f87171',
+    },
+    warning: {
       main: '#f59e0b', // Amber
+      light: '#fbbf24',
     },
     background: {
-      default: '#ffffff',
+      default: '#f8fafc', // Cooler gray
       paper: '#ffffff',
     },
     text: {
-      primary: '#1e293b',
+      primary: '#0f172a',
       secondary: '#64748b',
     },
+    divider: '#e2e8f0',
   },
   typography: {
-    fontFamily: '"Poppins", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
     h2: {
-      fontWeight: 800,
+      fontWeight: 700,
       letterSpacing: '-0.03em',
     },
     h4: {
@@ -51,8 +51,8 @@ const theme = createTheme({
       letterSpacing: '-0.02em',
     },
     h5: {
-      fontWeight: 600,
-      letterSpacing: '-0.01em',
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
     },
     h6: {
       fontWeight: 600,
@@ -60,11 +60,13 @@ const theme = createTheme({
     },
     body1: {
       fontWeight: 400,
-      letterSpacing: '0.01em',
+      letterSpacing: '-0.01em',
+      lineHeight: 1.6,
     },
     body2: {
       fontWeight: 400,
-      letterSpacing: '0.01em',
+      letterSpacing: '-0.01em',
+      lineHeight: 1.6,
     },
   },
   shape: {
@@ -72,172 +74,72 @@ const theme = createTheme({
   },
   shadows: [
     'none',
-    '0 1px 3px rgba(99, 102, 241, 0.12), 0 1px 2px rgba(236, 72, 153, 0.08)',
-    '0 4px 6px rgba(99, 102, 241, 0.15), 0 2px 4px rgba(236, 72, 153, 0.1)',
-    '0 10px 15px rgba(99, 102, 241, 0.18), 0 4px 6px rgba(236, 72, 153, 0.12)',
-    '0 20px 25px rgba(99, 102, 241, 0.2), 0 10px 10px rgba(236, 72, 153, 0.15)',
+    '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+    '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   ],
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+          borderRadius: 12,
+          padding: '10px 20px',
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
+          },
+        },
+        contained: {
+          background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
+          borderRadius: 8,
+        },
+      },
+    },
+  },
 });
-
-const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "pk_test_Y2hlZXJmdWwtd2hpcHBldC03My5jbGVyay5hY2NvdW50cy5kZXYk";
-
-// function AppContent() {
-//   const { user } = useUser();
-//   const [hasProfile, setHasProfile] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [activeTab, setActiveTab] = useState(0);
-
-//   useEffect(() => {
-//     if (user) {
-//       checkProfile();
-//     }
-//   }, [user]);
-
-//   const checkProfile = async () => {
-//     try {
-//       const response = await fetch('http://localhost:5000/api/profile/check', {
-//         headers: {
-//           'X-Clerk-User-Id': user.id,
-//         },
-//       });
-//       const data = await response.json();
-//       setHasProfile(data.has_profile);
-//     } catch (error) {
-//       console.error('Error checking profile:', error);
-//       setHasProfile(false);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleProfileComplete = () => {
-//     setHasProfile(true);
-//   };
-
-//   const handleTabChange = (event, newValue) => {
-//     setActiveTab(newValue);
-//   };
-
-//   if (loading) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-//         <CircularProgress />
-//       </Box>
-//     );
-//   }
-
-//   if (!hasProfile) {
-//     return <ProfileSetup onProfileComplete={handleProfileComplete} />;
-//   }
-
-//   return (
-//     <Box sx={{ 
-//       height: '100%',
-//       display: 'flex',
-//       flexDirection: 'column',
-//       overflow: 'hidden'
-//     }}>
-//       <Box sx={{ mb: 2, flexShrink: 0 }}>
-//         <Tabs 
-//           value={activeTab} 
-//           onChange={handleTabChange} 
-//           aria-label="navigation tabs"
-//           sx={{
-//             '& .MuiTab-root': {
-//               textTransform: 'none',
-//               fontSize: '1rem',
-//               fontWeight: 500,
-//               minHeight: 48,
-//             },
-//             '& .Mui-selected': {
-//               color: 'primary.main',
-//             },
-//             '& .MuiTabs-indicator': {
-//               height: 3,
-//               borderRadius: '3px 3px 0 0',
-//             },
-//           }}
-//         >
-//           <Tab label="Discover" />
-//           <Tab label="Matches" />
-//         </Tabs>
-//       </Box>
-//       <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-//         {activeTab === 0 ? <SwipeInterface /> : <MatchesPage />}
-//       </Box>
-//     </Box>
-//   );
-// }
 
 function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ 
-          height: '100vh', 
-          bgcolor: 'background.default',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-          {/* <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            px: { xs: 2, sm: 4, md: 6 },
-            py: 2,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            flexShrink: 0
-          }}>
-            <Typography variant="h4" component="h1" sx={{ color: 'primary.main' }}>
-              FounderMatch
-            </Typography>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <SignIn mode="modal">
-                <Button 
-                  variant="outlined" 
-                  sx={{ 
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    px: 3,
-                    borderColor: 'primary.main',
-                    color: 'primary.main',
-                    '&:hover': {
-                      borderColor: 'primary.dark',
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                    },
-                  }}
-                >
-                  Sign In
-                </Button>
-              </SignIn>
-            </SignedOut>
-          </Box> */}
-          
-          <Box sx={{ 
-            flex: 1, 
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* <SignedIn>
-              <AppContent />
-            </SignedIn>
-            
-            <SignedOut>
-              <LandingPage />
-            </SignedOut> */}
-            <LandingPage />
-          </Box>
-        </Box>
-      </ThemeProvider>
-    </ClerkProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ 
+        minHeight: '100vh',
+        bgcolor: '#f8fafc',
+        width: '100%',
+        position: 'relative'
+      }}>
+        <LandingPage />
+      </Box>
+    </ThemeProvider>
   );
 }
 
