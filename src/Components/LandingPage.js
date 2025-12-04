@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -6,33 +6,201 @@ import {
   Button, 
   Container,
   Alert,
-  Fade,
-  Grow
+  Grid,
+  Card,
+  CardContent,
+  Divider
 } from '@mui/material';
 import { 
   Email,
   ArrowForward,
   CheckCircle,
-  AutoAwesome,
-  SwipeRight,
-  SwipeLeft,
-  Favorite,
-  Close,
   Business,
+  SwipeRight,
+  Favorite,
+  LocationOn,
+  Chat,
+  Security,
   TrendingUp,
   People,
-  LocationOn,
-  Notifications,
-  Chat,
-  VerifiedUser,
-  Analytics,
-  AttachMoney,
-  Security,
-  FilterList,
-  Share
+  VerifiedUser
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import { supabase } from '../config/supabase';
+
+const NetworkBackground = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    // Configuration for the network look - updated colors to match mesh gradient
+    const config = {
+      particleColor: 'rgba(199, 240, 255, 0.7)', // #C7F0FF with higher opacity
+      lineColor: 'rgba(218, 223, 255, 0.5)', // #DADFFF with higher opacity
+      particleAmount: 80, // More particles for visibility
+      defaultSpeed: 0.2, // Slow movement for subtlety
+      variantSpeed: 0.4,
+      linkRadius: 150, // Larger connection radius
+    };
+
+    let w, h;
+    let particles = [];
+
+    // Resize canvas to fit container
+    const resizeReset = () => {
+      const container = canvas.parentElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        // Use device pixel ratio for crisp rendering
+        const dpr = window.devicePixelRatio || 1;
+        const logicalWidth = rect.width;
+        const logicalHeight = rect.height;
+        
+        // Set canvas size in physical pixels
+        canvas.width = logicalWidth * dpr;
+        canvas.height = logicalHeight * dpr;
+        
+        // Scale context to match device pixel ratio
+        ctx.scale(dpr, dpr);
+        
+        // Use logical dimensions for particle calculations
+        w = logicalWidth;
+        h = logicalHeight;
+      } else {
+        // Fallback to viewport if parent not found
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight * 0.5;
+      }
+    };
+
+    // Particle class
+    class Particle {
+      constructor() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.vx = config.defaultSpeed + Math.random() * config.variantSpeed * (Math.random() < 0.5 ? -1 : 1);
+        this.vy = config.defaultSpeed + Math.random() * config.variantSpeed * (Math.random() < 0.5 ? -1 : 1);
+        this.radius = 2 + Math.random() * 2; // radius between 2 and 4
+      }
+
+      update() {
+        // Move particle
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Bounce off edges
+        if (this.x < 0 || this.x > w) this.vx *= -1;
+        if (this.y < 0 || this.y > h) this.vy *= -1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = config.particleColor;
+        ctx.fill();
+      }
+    }
+
+    // Initialize particles
+    const init = () => {
+      resizeReset();
+      particles = [];
+      for (let i = 0; i < config.particleAmount; i++) {
+        particles.push(new Particle());
+      }
+    };
+
+    // The main drawing loop
+    const animate = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      // Loop through particles to draw them and connect lines
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+
+        // Check connections to other particles
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < config.linkRadius) {
+            const opacity = (1 - distance / config.linkRadius) * 0.5; // Fade line based on distance, more visible
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(218, 223, 255, ${opacity})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.closePath();
+          }
+        }
+      }
+
+      animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    // Start hooks - use requestAnimationFrame to ensure DOM is ready
+    const startAnimation = () => {
+      init();
+      animate();
+    };
+    
+    requestAnimationFrame(startAnimation);
+    
+    const handleResize = () => {
+      resizeReset();
+      // Reinitialize particles with new dimensions
+      particles = [];
+      for (let i = 0; i < config.particleAmount; i++) {
+        particles.push(new Particle());
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Use ResizeObserver for container size changes
+    let resizeObserver;
+    if (canvas.parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      resizeObserver.observe(canvas.parentElement);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      style={{
+        display: 'block',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }} 
+    />
+  );
+};
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
@@ -99,125 +267,88 @@ const LandingPage = () => {
 
   return (
     <Box sx={{ 
-      minHeight: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
+      minHeight: '100vh',
+      bgcolor: '#f8fafc',
       position: 'relative',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      px: { xs: 2, sm: 4 },
-      py: 6
+      width: '100%',
+      pb: 4
     }}>
-      {/* Background gradient elements */}
+      {/* Network Background - Top Section */}
       <Box
         sx={{
           position: 'absolute',
-          top: '-20%',
-          right: '-10%',
-          width: '600px',
-          height: '600px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
-          filter: 'blur(80px)',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '50%',
+          bgcolor: '#F8FBFF',
           zIndex: 0,
+          overflow: 'hidden',
         }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '-20%',
-          left: '-10%',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(99, 102, 241, 0.15) 50%, rgba(245, 158, 11, 0.1) 100%)',
-          filter: 'blur(80px)',
-          zIndex: 0,
-        }}
-      />
+      >
+        <NetworkBackground />
+        {/* Gradient fade overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '100%',
+            background: 'linear-gradient(180deg, rgba(248, 251, 255, 1) 0%, rgba(248, 251, 255, 0) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+      </Box>
 
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, width: '100%' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <Box sx={{ 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                bgcolor: 'primary.main',
-                mb: 3,
-                boxShadow: '0 8px 32px rgba(99, 102, 241, 0.4)',
-              }}>
-                <AutoAwesome sx={{ fontSize: 40, color: 'white' }} />
-              </Box>
-            </motion.div>
-
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: { xs: 8, md: 12 } }}>
+        {/* Hero Section */}
+        <Box sx={{ textAlign: 'center', mb: { xs: 8, md: 12 } }}>
             <Typography 
-              variant="h2" 
-              className="gradient-text"
+              variant="h1" 
               sx={{ 
-                fontWeight: 800,
-                mb: 2,
-                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem', lg: '5rem' },
-                lineHeight: 1.2,
+                fontWeight: 700,
+                mb: 3,
+                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem' },
+                lineHeight: 1.1,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
               }}
             >
-              Find Your Perfect
+              Co‑founder partnership platform
               <br />
-              Co-Founder Match
+              <Box component="span" sx={{ 
+                background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}>
+                Beyond matching.
+              </Box>
             </Typography>
 
             <Typography 
-              variant="h6" 
+              variant="h5" 
               sx={{ 
-                color: 'text.secondary',
+                color: '#475569',
                 fontWeight: 400,
-                maxWidth: '800px',
+                maxWidth: '700px',
                 mx: 'auto',
-                mb: 1,
-                fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                mb: 6,
+                fontSize: { xs: '1.1rem', md: '1.25rem' },
                 lineHeight: 1.6,
               }}
             >
-              Swipe through talented founders and discover your ideal collaboration partner.
+              Stop ghosting. Avoid equity fights. Make the partnership work.
             </Typography>
 
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: 'text.secondary',
-                fontSize: { xs: '0.875rem', sm: '1rem' },
-                opacity: 0.8,
-              }}
-            >
-              Coming soon. Join the waitlist to be notified when we launch.
-            </Typography>
-          </Box>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
+          {/* Email Form */}
           <Box 
             component="form" 
             onSubmit={handleSubmit}
             sx={{ 
-              maxWidth: '700px',
+              maxWidth: '560px',
               mx: 'auto',
             }}
           >
@@ -226,7 +357,6 @@ const LandingPage = () => {
               gap: 0,
               flexDirection: { xs: 'column', sm: 'row' },
               mb: 2,
-              alignItems: 'stretch',
             }}>
               <TextField
                 fullWidth
@@ -236,22 +366,32 @@ const LandingPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 sx={{
-                  flex: 1,
                   '& .MuiOutlinedInput-root': {
-                    bgcolor: 'background.paper',
-                    borderRadius: { xs: 2, sm: '8px 0 0 8px' },
+                    bgcolor: '#ffffff',
+                    borderRadius: { xs: '12px', sm: '12px 0 0 12px' },
                     height: '56px',
-                    '&:hover fieldset': {
-                      borderColor: 'primary.main',
+                    color: '#0f172a',
+                    border: '1px solid #e2e8f0',
+                    '& fieldset': {
+                      border: 'none',
                     },
-                    '&.Mui-focused fieldset': {
-                      borderColor: 'primary.main',
+                    '&:hover': {
+                      bgcolor: '#ffffff',
+                      borderColor: '#0ea5e9',
                     },
+                    '&.Mui-focused': {
+                      bgcolor: '#ffffff',
+                      borderColor: '#0ea5e9',
+                    },
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#94a3b8',
+                    opacity: 1,
                   },
                 }}
                 InputProps={{
                   startAdornment: (
-                    <Email sx={{ mr: 1, color: 'text.secondary' }} />
+                    <Email sx={{ mr: 1.5, color: '#64748b', fontSize: 20 }} />
                   ),
                 }}
               />
@@ -261,456 +401,590 @@ const LandingPage = () => {
                 disabled={loading || !email}
                 endIcon={loading ? null : <ArrowForward />}
                 sx={{
-                  px: { xs: 4, sm: 5 },
+                  px: 4,
                   py: 0,
                   height: '56px',
-                  borderRadius: { xs: 2, sm: '0 8px 8px 0' },
+                  borderRadius: { xs: '12px', sm: '0 12px 12px 0' },
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  boxShadow: '0 4px 20px rgba(99, 102, 241, 0.5)',
-                  minWidth: { xs: '100%', sm: '180px' },
+                  bgcolor: '#0ea5e9 !important',
+                  backgroundColor: '#0ea5e9 !important',
+                  color: 'white !important',
+                  minWidth: { xs: '100%', sm: '160px' },
                   whiteSpace: 'nowrap',
                   '&:hover': {
-                    bgcolor: 'primary.dark',
-                    boxShadow: '0 6px 25px rgba(99, 102, 241, 0.6)',
-                    transform: 'translateY(-1px)',
+                    bgcolor: '#0284c7 !important',
+                    backgroundColor: '#0284c7 !important',
                   },
                   '&:disabled': {
-                    bgcolor: 'grey.300',
-                    color: 'grey.500',
+                    bgcolor: '#94a3b8 !important',
+                    backgroundColor: '#94a3b8 !important',
+                    color: '#ffffff !important',
                   },
-                  transition: 'all 0.2s ease',
                 }}
               >
-                {loading ? 'Joining...' : 'Join Waitlist'}
+                {loading ? 'Joining...' : 'Get Early Access'}
               </Button>
             </Box>
 
-            <Fade in={status !== null}>
-              <Box>
-                {status && (
-                  <Alert 
-                    severity={status}
-                    icon={status === 'success' ? <CheckCircle /> : null}
-                    sx={{
-                      borderRadius: 2,
-                      '& .MuiAlert-message': {
-                        width: '100%',
-                      },
-                    }}
-                  >
-                    {message}
-                  </Alert>
-                )}
-              </Box>
-            </Fade>
+            {status && (
+              <Alert 
+                severity={status}
+                icon={status === 'success' ? <CheckCircle /> : null}
+                sx={{
+                  borderRadius: '12px',
+                  bgcolor: status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  color: status === 'success' ? '#10b981' : '#ef4444',
+                  border: `1px solid ${status === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                  '& .MuiAlert-icon': {
+                    color: status === 'success' ? '#10b981' : '#ef4444',
+                  },
+                }}
+              >
+                {message}
+              </Alert>
+            )}
           </Box>
-        </motion.div>
+        </Box>
 
-        {/* How It Works - Visual Demo */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-        >
-          <Box sx={{ mt: 10, mb: 12, textAlign: 'center' }}>
+        {/* Why Cofounder Matching is Broken */}
+        <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 14 } }}>
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
-              variant="h4" 
+              variant="h3" 
               sx={{ 
                 fontWeight: 700,
-                mb: 1,
-                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                mb: 2,
+                color: '#0f172a',
+                fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              How It Works
+              Why Cofounder Matching is Broken
             </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 6, maxWidth: '800px', mx: 'auto', fontSize: { xs: '1rem', md: '1.125rem' } }}>
-              Discover potential co-founders through an intuitive swipe-based interface
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#475569', 
+                maxWidth: '600px', 
+                mx: 'auto',
+                fontSize: '1rem',
+                mb: 6,
+              }}
+            >
+              The problems every founder faces
             </Typography>
+          </Box>
 
-            {/* Animated Card Demo */}
-            <Box sx={{ 
-              position: 'relative',
-              maxWidth: { xs: '400px', md: '500px', lg: '600px' },
-              mx: 'auto',
-              height: { xs: '500px', md: '600px' },
-              mb: 8
-            }}>
-              <SwipeCardDemo />
-            </Box>
-
-            {/* Steps */}
-            <Box sx={{ 
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              justifyContent: 'center',
-              alignItems: { xs: 'stretch', md: 'flex-start' },
-              gap: { xs: 3, md: 4 },
-              maxWidth: '1000px',
-              mx: 'auto',
-            }}>
-              {[
-                { 
-                  icon: <Business sx={{ fontSize: 32 }} />, 
-                  title: 'Create Profile', 
-                  desc: 'Showcase your projects, skills, and what you\'re looking for in a co-founder',
-                  color: 'primary'
-                },
-                { 
-                  icon: <SwipeRight sx={{ fontSize: 32 }} />, 
-                  title: 'Swipe & Discover', 
-                  desc: 'Browse through founder profiles. Swipe right if interested, left to pass',
-                  color: 'secondary'
-                },
-                { 
-                  icon: <Favorite sx={{ fontSize: 32 }} />, 
-                  title: 'Match & Connect', 
-                  desc: 'When both founders swipe right, it\'s a match! Start collaborating',
-                  color: 'error'
-                },
-              ].map((step, index) => (
-                <motion.div
-                  key={step.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 + index * 0.15, duration: 0.5 }}
-                  style={{ flex: 1 }}
-                >
-                  <Box sx={{
-                    textAlign: 'center',
-                    p: 4,
-                    borderRadius: 3,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-6px)',
-                      boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-                      borderColor: `${step.color}.main`,
-                    },
-                  }}>
-                    <Box sx={{ 
-                      display: 'inline-flex',
-                      p: 2,
-                      borderRadius: '50%',
-                      bgcolor: `${step.color}.main`,
-                      color: 'white',
-                      mb: 2,
-                      mx: 'auto',
-                      boxShadow: `0 4px 16px rgba(99, 102, 241, 0.3)`,
-                    }}>
-                      {step.icon}
+          <Grid container spacing={3} sx={{ maxWidth: '1400px', mx: 'auto' }}>
+            {[
+              { 
+                icon: <People sx={{ fontSize: 28 }} />, 
+                title: 'Ghosting & Flakiness', 
+                desc: 'They match, exchange messages, then disappear. No explanation.',
+                number: '01'
+              },
+              { 
+                icon: <TrendingUp sx={{ fontSize: 28 }} />, 
+                title: 'Equity Confusion', 
+                desc: 'No clear splits or vesting. Months later, you\'re arguing about ownership.',
+                number: '02'
+              },
+              { 
+                icon: <VerifiedUser sx={{ fontSize: 28 }} />, 
+                title: 'Personality Clashes', 
+                desc: 'Work styles don\'t align. You realize you\'re incompatible after weeks.',
+                number: '03'
+              },
+              { 
+                icon: <Chat sx={{ fontSize: 28 }} />, 
+                title: 'No Structure', 
+                desc: 'Scattered across Zoom, WhatsApp, Docs. No decisions. No accountability.',
+                number: '04'
+              },
+            ].map((step) => (
+              <Grid item xs={12} sm={6} lg={3} key={step.title}>
+                <Card sx={{
+                  height: '100%',
+                  bgcolor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  p: 4,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: '#ffffff',
+                    borderColor: '#0ea5e9',
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 12px 24px rgba(14, 165, 233, 0.1)',
+                  },
+                }}>
+                  <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Box sx={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 56,
+                        height: 56,
+                        borderRadius: '12px',
+                        bgcolor: 'rgba(14, 165, 233, 0.1)',
+                        color: '#0ea5e9',
+                        mr: 2,
+                      }}>
+                        {step.icon}
+                      </Box>
+                      <Typography 
+                        variant="h2" 
+                        sx={{ 
+                          fontWeight: 700,
+                          color: '#cbd5e1',
+                          fontSize: '3rem',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {step.number}
+                      </Typography>
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        mb: 2,
+                        color: '#0f172a',
+                        fontSize: '1.25rem',
+                      }}
+                    >
                       {step.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, flex: 1 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: '#475569', 
+                        lineHeight: 1.7,
+                        fontSize: '0.95rem',
+                      }}
+                    >
                       {step.desc}
                     </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* What Founder Match Does Differently */}
+        <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 12 } }}>
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700,
+                mb: 2,
+                color: '#0f172a',
+                fontSize: { xs: '2rem', md: '2.5rem' },
+              }}
+            >
+              What Founder Match Does Differently
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#475569', 
+                maxWidth: '600px', 
+                mx: 'auto',
+                fontSize: '1rem',
+              }}
+            >
+              How we fix it
+            </Typography>
+          </Box>
+
+          <Grid container spacing={4} sx={{ maxWidth: '1200px', mx: 'auto', mb: 8 }}>
+            {[
+              { 
+                icon: <VerifiedUser sx={{ fontSize: 28 }} />,
+                title: 'Serious Founders Only', 
+                desc: 'Reliability scores and verified badges. Filter by 4.5★+ only.',
+                features: [
+                  'Reliability Score (response rate, consistency)',
+                  'Verified badges for serious founders',
+                  'Smart filters to avoid flaky matches'
+                ]
+              },
+              { 
+                icon: <TrendingUp sx={{ fontSize: 28 }} />,
+                title: 'Clear Equity & Expectations', 
+                desc: 'Equity calculator, decision log, and agreement templates.',
+                features: [
+                  'Interactive equity split calculator',
+                  'Auto-timestamped decision log',
+                  'Cofounder agreement templates'
+                ]
+              },
+              { 
+                icon: <People sx={{ fontSize: 28 }} />,
+                title: 'Personality Matching', 
+                desc: 'Compatibility reports show strengths and potential friction points.',
+                features: [
+                  'Personality assessment',
+                  'Compatibility report',
+                  'Communication style tips'
+                ]
+              },
+              { 
+                icon: <Chat sx={{ fontSize: 28 }} />,
+                title: 'Stay Aligned', 
+                desc: 'Commitment contracts and joint KPI dashboard.',
+                features: [
+                  'Commitment contracts',
+                  'Joint KPI dashboard',
+                  'Advisor network (coming soon)'
+                ]
+              },
+            ].map((feature) => (
+              <Grid item xs={12} sm={6} lg={3} key={feature.title}>
+                <Card sx={{
+                  height: '100%',
+                  bgcolor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  p: 4,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: '#ffffff',
+                    borderColor: '#0ea5e9',
+                    boxShadow: '0 8px 16px rgba(14, 165, 233, 0.1)',
+                  },
+                }}>
+                  <Box sx={{ 
+                    display: 'inline-flex',
+                    p: 1.5,
+                    borderRadius: '10px',
+                    bgcolor: 'rgba(14, 165, 233, 0.1)',
+                    color: '#0ea5e9',
+                    mb: 2.5,
+                  }}>
+                    {feature.icon}
                   </Box>
-                </motion.div>
-              ))}
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      mb: 1,
+                      color: '#0f172a',
+                      fontSize: '1.3rem',
+                    }}
+                  >
+                    {feature.title}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: '#0ea5e9',
+                      fontWeight: 600,
+                      mb: 2.5,
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    {feature.desc}
+                  </Typography>
+                  <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
+                    {feature.features.map((item, idx) => (
+                      <Typography
+                        key={idx}
+                        component="li"
+                        variant="body2"
+                        sx={{
+                          color: '#475569',
+                          lineHeight: 1.8,
+                          fontSize: '0.9rem',
+                          mb: 1.5,
+                        }}
+                      >
+                        {item}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Social Proof Section */}
+        <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 8, md: 10 }, textAlign: 'center' }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700,
+              mb: 4,
+              color: '#0f172a',
+              fontSize: { xs: '1.75rem', md: '2rem' },
+            }}
+          >
+            Built for Serious Founders
+          </Typography>
+          <Box sx={{ maxWidth: '700px', mx: 'auto' }}>
+            <Box sx={{ 
+              bgcolor: '#f8fafc', 
+              p: 4, 
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+            }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: '#0f172a',
+                  fontStyle: 'italic',
+                  mb: 2,
+                  fontSize: '1rem',
+                  lineHeight: 1.6,
+                }}
+              >
+                "The reliability scores alone saved me weeks of wasted time."
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#64748b',
+                  fontWeight: 500,
+                }}
+              >
+                — Early beta user
+              </Typography>
             </Box>
           </Box>
-        </motion.div>
+        </Box>
 
-        {/* Features Section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4, duration: 0.6 }}
-        >
-          <Box sx={{ mt: 12, mb: 8, textAlign: 'center' }}>
+        {/* Roadmap Section */}
+        <Box sx={{ mt: { xs: 8, md: 12 }, mb: { xs: 8, md: 10 } }}>
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
             <Typography 
               variant="h4" 
               sx={{ 
                 fontWeight: 700,
-                mb: 1,
-                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                mb: 2,
+                color: '#0f172a',
+                fontSize: { xs: '1.75rem', md: '2rem' },
               }}
             >
-              Powerful Features
+              What's Coming Next
             </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 6, maxWidth: '800px', mx: 'auto', fontSize: { xs: '1rem', md: '1.125rem' } }}>
-              Everything you need to find and connect with your perfect co-founder
-            </Typography>
-
-            <Box sx={{ 
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-              gap: { xs: 3, md: 4 },
-              maxWidth: '1200px',
-              mx: 'auto',
-            }}>
-              {[
-                { 
-                  icon: <Business sx={{ fontSize: 32 }} />,
-                  title: 'Multiple Projects', 
-                  desc: 'Showcase multiple projects and find partners for each',
-                  color: 'success'
-                },
-                { 
-                  icon: <LocationOn sx={{ fontSize: 32 }} />,
-                  title: 'Location Matching', 
-                  desc: 'Find founders in your city or connect globally',
-                  color: 'primary'
-                },
-                { 
-                  icon: <Chat sx={{ fontSize: 32 }} />,
-                  title: 'Secure Messaging', 
-                  desc: 'Chat directly with your matches securely',
-                  color: 'secondary'
-                },
-                { 
-                  icon: <Security sx={{ fontSize: 32 }} />,
-                  title: 'Privacy First', 
-                  desc: 'End-to-end encryption for all your data',
-                  color: 'error'
-                },
-              ].map((feature, index) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.5 + index * 0.1, duration: 0.5 }}
-                >
-                  <Box sx={{
-                    textAlign: 'center',
-                    p: 3.5,
-                    borderRadius: 3,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-6px)',
-                      boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-                      borderColor: `${feature.color}.main`,
-                    },
-                  }}>
-                    <Box sx={{ 
-                      display: 'inline-flex',
-                      p: 2,
-                      borderRadius: '50%',
-                      bgcolor: `${feature.color}.main`,
-                      color: 'white',
-                      mb: 2,
-                      mx: 'auto',
-                      boxShadow: `0 4px 16px rgba(99, 102, 241, 0.3)`,
-                    }}>
-                      {feature.icon}
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: '1rem' }}>
-                      {feature.title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                      {feature.desc}
-                    </Typography>
-                  </Box>
-                </motion.div>
-              ))}
-            </Box>
-          </Box>
-        </motion.div>
-
-        {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.8, duration: 0.6 }}
-        >
-          <Box sx={{ 
-            mt: 12,
-            pt: 6,
-            pb: 4,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            textAlign: 'center'
-          }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-              FounderMatch
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              © {new Date().getFullYear()} FounderMatch. All rights reserved.
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#475569', 
+                maxWidth: '500px', 
+                mx: 'auto',
+                fontSize: '0.95rem',
+              }}
+            >
+              Coming soon
             </Typography>
           </Box>
-        </motion.div>
-      </Container>
-    </Box>
-  );
-};
-
-// Animated Swipe Card Demo Component
-const SwipeCardDemo = () => {
-  const [currentCard, setCurrentCard] = useState(0);
-  const cards = [
-    { name: 'Sarah Chen', project: 'AI Health Platform', stage: 'MVP' },
-    { name: 'Alex Rodriguez', project: 'Sustainable E-commerce', stage: 'Early Stage' },
-    { name: 'Emma Thompson', project: 'EdTech Learning App', stage: 'Growth' },
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentCard((prev) => (prev + 1) % 3);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      {cards.map((card, index) => {
-        const isActive = index === currentCard;
-        const offset = index - currentCard;
-        
-        return (
-          <motion.div
-            key={index}
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-            }}
-            animate={{
-              x: offset * 20,
-              y: Math.abs(offset) * 10,
-              scale: isActive ? 1 : 0.9,
-              opacity: Math.abs(offset) > 1 ? 0 : 1,
-              rotate: offset * 5,
-              zIndex: cards.length - Math.abs(offset),
-            }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          >
-            <Box sx={{
-              width: '100%',
-              height: '100%',
-              bgcolor: 'background.paper',
-              borderRadius: 4,
-              boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.15)' : '0 8px 24px rgba(0,0,0,0.1)',
-              border: '1px solid',
-              borderColor: 'divider',
-              p: 4,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              overflow: 'hidden',
-            }}>
-              {/* Card Header */}
-              <Box>
-                <Box sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  borderRadius: '50%', 
-                  bgcolor: 'primary.main',
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '2rem',
-                  fontWeight: 700,
-                }}>
-                  {card.name.split(' ').map(n => n[0]).join('')}
-                </Box>
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                  {card.name}
-                </Typography>
-              </Box>
-
-              {/* Card Content */}
-              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <Typography variant="h6" sx={{ color: 'primary.main', mb: 1, fontWeight: 600 }}>
-                  {card.project}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                  Looking for a technical co-founder with experience in healthcare technology and product design.
-                </Typography>
-                <Box sx={{ display: 'inline-block' }}>
-                <Box sx={{
-                  display: 'inline-block',
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: 2,
-                  bgcolor: 'secondary.main',
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}>
-                  {card.stage}
-                </Box>
-                </Box>
-              </Box>
-
-              {/* Swipe Actions */}
-              {isActive && (
+          
+          <Grid container spacing={3} sx={{ maxWidth: '900px', mx: 'auto' }}>
+            {[
+              'Advisory circle and mentor network',
+              'Built-in conflict mediation support',
+              'Deeper integrations (calendar, tools, etc.)',
+              'Advanced compatibility matching',
+            ].map((item, idx) => (
+              <Grid item xs={12} sm={6} key={idx}>
                 <Box sx={{ 
                   display: 'flex', 
-                  justifyContent: 'center', 
-                  gap: 3,
-                  mt: 3,
-                  pt: 3,
-                  borderTop: '1px solid',
-                  borderColor: 'divider'
+                  alignItems: 'center',
+                  p: 2,
+                  bgcolor: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
                 }}>
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Box sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '50%',
-                      bgcolor: 'error.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
-                    }}>
-                      <Close sx={{ fontSize: 28 }} />
-                    </Box>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Box sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '50%',
-                      bgcolor: 'secondary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(236, 72, 153, 0.4)',
-                    }}>
-                      <Favorite sx={{ fontSize: 28 }} />
-                    </Box>
-                  </motion.div>
+                  <Box sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: '#0ea5e9',
+                    mr: 2,
+                  }} />
+                  <Typography variant="body1" sx={{ color: '#475569', fontSize: '0.95rem' }}>
+                    {item}
+                  </Typography>
                 </Box>
-              )}
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Final CTA Section */}
+        <Box sx={{ 
+          mt: { xs: 12, md: 16 }, 
+          mb: { xs: 8, md: 10 },
+          textAlign: 'center',
+          bgcolor: '#ffffff',
+          p: { xs: 4, md: 6 },
+          borderRadius: '24px',
+          border: '1px solid #e2e8f0',
+          maxWidth: '800px',
+          mx: 'auto',
+        }}>
+          <Typography 
+            variant="h3" 
+            sx={{ 
+              fontWeight: 700,
+              mb: 2,
+              color: '#0f172a',
+              fontSize: { xs: '2rem', md: '2.5rem' },
+            }}
+          >
+            Ready to Find a Cofounder Who Actually Shows Up?
+          </Typography>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: '#475569', 
+              maxWidth: '500px', 
+              mx: 'auto',
+              fontSize: '1rem',
+              mb: 4,
+            }}
+          >
+            Join the early access waitlist
+          </Typography>
+          
+          {/* Email Form - Reuse the same form from hero */}
+          <Box 
+            component="form" 
+            onSubmit={handleSubmit}
+            sx={{ 
+              maxWidth: '560px',
+              mx: 'auto',
+            }}
+          >
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 0,
+              flexDirection: { xs: 'column', sm: 'row' },
+              mb: 2,
+            }}>
+              <TextField
+                fullWidth
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: '#ffffff',
+                    borderRadius: { xs: '12px', sm: '12px 0 0 12px' },
+                    height: '56px',
+                    color: '#0f172a',
+                    border: '1px solid #e2e8f0',
+                    '& fieldset': {
+                      border: 'none',
+                    },
+                    '&:hover': {
+                      bgcolor: '#ffffff',
+                      borderColor: '#0ea5e9',
+                    },
+                    '&.Mui-focused': {
+                      bgcolor: '#ffffff',
+                      borderColor: '#0ea5e9',
+                    },
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#94a3b8',
+                    opacity: 1,
+                  },
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Email sx={{ mr: 1.5, color: '#64748b', fontSize: 20 }} />
+                  ),
+                }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading || !email}
+                endIcon={loading ? null : <ArrowForward />}
+                sx={{
+                  px: 4,
+                  py: 0,
+                  height: '56px',
+                  borderRadius: { xs: '12px', sm: '0 12px 12px 0' },
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  bgcolor: '#0ea5e9 !important',
+                  backgroundColor: '#0ea5e9 !important',
+                  color: 'white !important',
+                  minWidth: { xs: '100%', sm: '160px' },
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    bgcolor: '#0284c7 !important',
+                    backgroundColor: '#0284c7 !important',
+                  },
+                  '&:disabled': {
+                    bgcolor: '#94a3b8 !important',
+                    backgroundColor: '#94a3b8 !important',
+                    color: '#ffffff !important',
+                  },
+                }}
+              >
+                {loading ? 'Joining...' : 'Get Early Access'}
+              </Button>
             </Box>
-          </motion.div>
-        );
-      })}
+
+            {status && (
+              <Alert 
+                severity={status}
+                icon={status === 'success' ? <CheckCircle /> : null}
+                sx={{
+                  borderRadius: '12px',
+                  bgcolor: status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  color: status === 'success' ? '#10b981' : '#ef4444',
+                  border: `1px solid ${status === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                  '& .MuiAlert-icon': {
+                    color: status === 'success' ? '#10b981' : '#ef4444',
+                  },
+                }}
+              >
+                {message}
+              </Alert>
+            )}
+          </Box>
+        </Box>
+
+        {/* Footer */}
+        <Divider sx={{ borderColor: '#e2e8f0', my: { xs: 8, md: 10 } }} />
+        <Box sx={{ 
+          textAlign: 'center',
+          pb: 4,
+        }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 700, 
+              color: '#0f172a', 
+              mb: 1,
+              fontSize: '1.25rem',
+            }}
+          >
+            Founder Match
+          </Typography>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#64748b',
+              fontSize: '0.9rem',
+            }}
+          >
+            © {new Date().getFullYear()} Founder Match. All rights reserved.
+          </Typography>
+        </Box>
+      </Container>
     </Box>
   );
 };
