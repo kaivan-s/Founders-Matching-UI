@@ -1,8 +1,10 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
-import LandingPage from './Components/LandingPage';
+import AccountabilityPartnerLanding from './Components/AccountabilityPartnerLanding';
 import './App.css';
 
 const theme = createTheme({
@@ -41,43 +43,41 @@ const theme = createTheme({
     divider: '#e2e8f0',
   },
   typography: {
-    fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 800,
+      letterSpacing: '-0.02em',
+    },
     h2: {
       fontWeight: 700,
-      letterSpacing: '-0.03em',
+      letterSpacing: '-0.01em',
+    },
+    h3: {
+      fontWeight: 700,
     },
     h4: {
-      fontWeight: 700,
-      letterSpacing: '-0.02em',
+      fontWeight: 600,
     },
     h5: {
-      fontWeight: 700,
-      letterSpacing: '-0.02em',
+      fontWeight: 600,
     },
     h6: {
       fontWeight: 600,
-      letterSpacing: '-0.01em',
     },
-    body1: {
-      fontWeight: 400,
-      letterSpacing: '-0.01em',
-      lineHeight: 1.6,
-    },
-    body2: {
-      fontWeight: 400,
-      letterSpacing: '-0.01em',
-      lineHeight: 1.6,
+    button: {
+      fontWeight: 600,
+      textTransform: 'none',
     },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 12,
   },
   shadows: [
     'none',
-    '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-    '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)',
+    '0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23)',
+    '0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23)',
+    '0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22)',
     '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
     '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   ],
@@ -127,20 +127,64 @@ const theme = createTheme({
   },
 });
 
+const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "pk_test_Y2hlZXJmdWwtd2hpcHBldC03My5jbGVyay5hY2NvdW50cy5kZXYk";
+
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ 
-        minHeight: '100vh',
-        bgcolor: '#f8fafc',
-        width: '100%',
-        position: 'relative'
-      }}>
-        <LandingPage />
-      </Box>
-    </ThemeProvider>
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <BrowserRouter>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Routes>
+            <Route path="*" element={
+              <Box sx={{ 
+                minHeight: '100vh',
+                bgcolor: '#f8fafc',
+                width: '100%',
+                position: 'relative',
+                overflowY: 'auto',
+                overflowX: 'hidden'
+              }}>
+                <AccountabilityPartnerLanding />
+              </Box>
+            } />
+          </Routes>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ClerkProvider>
   );
 }
 
 export default App;
+
+/* 
+===========================================
+TEMPORARY MINIMAL VERSION - FOR TESTING ACCOUNTABLE PARTNER ONBOARDING
+===========================================
+
+All other routes and components have been commented out.
+This version only shows the AccountabilityPartnerLanding component.
+
+To restore full functionality, uncomment the code below:
+
+// import { useState, useEffect, useCallback } from 'react';
+// import { SignedIn, SignedOut, SignIn, UserButton, useNavigate, useLocation, Navigate } from 'react-router-dom';
+// import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge } from '@mui/material';
+// import { AccountBalanceWallet, AddCircleOutline } from '@mui/icons-material';
+// import SwipeInterface from './Components/SwipeInterface';
+// import InterestedPage from './Components/InterestedPage';
+// import LandingPage from './Components/LandingPage';
+// import PaymentHistory from './Components/PaymentHistory';
+// import PurchaseSuccess from './Components/PurchaseSuccess';
+// import WorkspacePage from './Components/WorkspacePage';
+// import WorkspacesList from './Components/WorkspacesList';
+// import MyProjects from './Components/MyProjects';
+// import OnboardingDialog from './Components/OnboardingDialog';
+// import PartnerOnboardingWizard from './Components/PartnerOnboardingWizard';
+// import PartnerDashboard from './Components/PartnerDashboard';
+// import PartnerWorkspaceView from './Components/PartnerWorkspaceView';
+// import NewProjectDialog from './Components/NewProjectDialog';
+// import PricingPage from './Components/PricingPage';
+
+// ... rest of the original App.js code ...
+*/
