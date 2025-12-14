@@ -127,7 +127,7 @@ const theme = createTheme({
   },
 });
 
-const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "pk_test_Y2hlZXJmdWwtd2hpcHBldC03My5jbGVyay5hY2NvdW50cy5kZXYk";
+const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY
 
 function App() {
   return (
