@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,8 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
     skills: [],
     projects: [],
     location: '',
+    name: '',
+    email: '',
   });
   
   // Temporary states for input
@@ -53,6 +55,17 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
 
   const totalSteps = 3;
   const progress = userType ? ((currentStep + 1) / totalSteps) * 100 : 0;
+
+  // Pre-fill name and email from Clerk user object when dialog opens
+  useEffect(() => {
+    if (open && user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.fullName || user.firstName || '',
+        email: prev.email || user.primaryEmailAddress?.emailAddress || '',
+      }));
+    }
+  }, [open, user]);
 
   const purposes = [
     {
@@ -148,6 +161,17 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
   };
 
   const handleComplete = async () => {
+    // Validate required fields
+    if (!formData.name || !formData.name.trim()) {
+      alert('Please enter your full name');
+      return;
+    }
+    
+    if (!formData.email || !formData.email.trim() || !formData.email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
     setLoading(true);
     try {
       // Save onboarding data to backend
@@ -158,8 +182,8 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
           'X-Clerk-User-Id': user.id,
         },
         body: JSON.stringify({
-          name: user.fullName || user.firstName || '',
-          email: user.primaryEmailAddress?.emailAddress || '',
+          name: formData.name.trim(),
+          email: formData.email.trim(),
           purpose: formData.purpose,
           location: formData.location,
           skills: formData.skills,
@@ -400,6 +424,36 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
           <Fade in timeout={300}>
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
+                Tell us about yourself
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+                We need some basic information to get started
+              </Typography>
+              
+              <TextField
+                fullWidth
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                sx={{ mb: 2 }}
+              />
+              
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                placeholder="Enter your email address"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                error={formData.email && !formData.email.includes('@')}
+                helperText={formData.email && !formData.email.includes('@') ? 'Please enter a valid email address' : ''}
+                sx={{ mb: 4 }}
+              />
+              
+              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1, mt: 2 }}>
                 Where are you located?
               </Typography>
               <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
