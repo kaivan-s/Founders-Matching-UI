@@ -1,3 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://founder-match.in/sitemap.xml
+
+# Disallow admin/private routes if any
+# Disallow: /admin/
+# Disallow: /api/

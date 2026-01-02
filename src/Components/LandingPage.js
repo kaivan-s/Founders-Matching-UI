@@ -1,18 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
-  TextField, 
   Button, 
   Container,
-  Alert,
   Grid,
   Card,
   CardContent,
-  Divider
+  Divider,
+  Chip
 } from '@mui/material';
 import { 
-  Email,
   ArrowForward,
   CheckCircle,
   Business,
@@ -23,9 +22,18 @@ import {
   Security,
   TrendingUp,
   People,
-  VerifiedUser
+  VerifiedUser,
+  Assignment,
+  CheckCircleOutline,
+  Notifications,
+  Dashboard,
+  Message,
+  Group
 } from '@mui/icons-material';
+import { SignInButton, useUser } from '@clerk/clerk-react';
 import { supabase } from '../config/supabase';
+import PartnerOnboardingWizard from './PartnerOnboardingWizard';
+import FeedbackDialog from './FeedbackDialog';
 
 const NetworkBackground = () => {
   const canvasRef = useRef(null);
@@ -37,14 +45,14 @@ const NetworkBackground = () => {
     const ctx = canvas.getContext('2d');
     let animationFrameId;
 
-    // Configuration for the network look - updated colors to match mesh gradient
+    // Configuration for the network look - updated colors to match Navy/Teal theme
     const config = {
-      particleColor: 'rgba(199, 240, 255, 0.7)', // #C7F0FF with higher opacity
-      lineColor: 'rgba(218, 223, 255, 0.5)', // #DADFFF with higher opacity
-      particleAmount: 80, // More particles for visibility
-      defaultSpeed: 0.2, // Slow movement for subtlety
+      particleColor: 'rgba(30, 58, 138, 0.1)', // Navy with low opacity
+      lineColor: 'rgba(13, 148, 136, 0.15)', // Teal with low opacity
+      particleAmount: 80,
+      defaultSpeed: 0.2,
       variantSpeed: 0.4,
-      linkRadius: 150, // Larger connection radius
+      linkRadius: 150,
     };
 
     let w, h;
@@ -203,67 +211,20 @@ const NetworkBackground = () => {
 };
 
 const LandingPage = () => {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // 'success' | 'error' | null
-  const [message, setMessage] = useState('');
+  const { user, isSignedIn } = useUser();
+  const navigate = useNavigate();
+  const [partnerWizardOpen, setPartnerWizardOpen] = useState(false);
+  const [pendingPartnerOnboarding, setPendingPartnerOnboarding] = useState(false);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!email || !email.includes('@')) {
-      setStatus('error');
-      setMessage('Please enter a valid email address');
-      return;
+  // Redirect to partner onboarding after sign-in if user clicked "Become a Partner" before signing in
+  useEffect(() => {
+    if (isSignedIn && pendingPartnerOnboarding) {
+      navigate('/partner/onboarding');
+      setPendingPartnerOnboarding(false);
     }
+  }, [isSignedIn, pendingPartnerOnboarding, navigate]);
 
-    setLoading(true);
-    setStatus(null);
-    setMessage('');
-
-    try {
-      // Check if email already exists
-      const { data: existing } = await supabase
-        .from('waitlist')
-        .select('email')
-        .eq('email', email.toLowerCase())
-        .single();
-
-      if (existing) {
-        setStatus('success');
-        setMessage("You're already on the waitlist!");
-        setEmail('');
-        setLoading(false);
-        return;
-      }
-
-      // Insert email into waitlist
-      const { error } = await supabase
-        .from('waitlist')
-        .insert([{ email: email.toLowerCase() }]);
-
-      if (error) {
-        // Handle unique constraint violation
-        if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
-          setStatus('success');
-          setMessage("You're already on the waitlist!");
-        } else {
-          setStatus('error');
-          setMessage(error.message || 'Something went wrong. Please try again.');
-        }
-      } else {
-        setStatus('success');
-        setMessage('Successfully joined the waitlist!');
-        setEmail('');
-      }
-    } catch (error) {
-      setStatus('error');
-      setMessage('Something went wrong. Please try again.');
-      console.error('Waitlist error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Box sx={{ 
@@ -273,6 +234,61 @@ const LandingPage = () => {
       width: '100%',
       pb: 4
     }}>
+      {/* Header */}
+      <Box sx={{ 
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        px: { xs: 2, sm: 4, md: 6 },
+        py: 3,
+        zIndex: 10,
+        background: 'transparent',
+      }}>
+        <Typography 
+          variant="h5" 
+          component="h1" 
+          sx={{ 
+            color: '#1e3a8a',
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+          }}
+          aria-label="Co-Build - Co-founder Matching Platform"
+        >
+          Co-Build
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {!isSignedIn && (
+            <SignInButton mode="modal" afterSignInUrl="/select-flow">
+              <Button 
+                variant="outlined" 
+                sx={{ 
+                  textTransform: 'none',
+                  borderRadius: '12px',
+                  px: 3,
+                  py: 1,
+                  borderColor: '#e2e8f0',
+                  color: '#1e3a8a',
+                  fontWeight: 600,
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  '&:hover': {
+                    borderColor: '#1e3a8a',
+                    bgcolor: '#1e3a8a',
+                    color: 'white',
+                  },
+                }}
+              >
+                Sign In
+              </Button>
+            </SignInButton>
+          )}
+        </Box>
+      </Box>
+
       {/* Network Background - Top Section */}
       <Box
         sx={{
@@ -280,8 +296,8 @@ const LandingPage = () => {
           top: 0,
           left: 0,
           right: 0,
-          height: '50%',
-          bgcolor: '#F8FBFF',
+          height: '60%', // Extended height
+          bgcolor: '#f0f9ff', // Very light blue tint
           zIndex: 0,
           overflow: 'hidden',
         }}
@@ -295,11 +311,11 @@ const LandingPage = () => {
             left: 0,
             right: 0,
             height: '100%',
-            background: 'linear-gradient(180deg, rgba(248, 251, 255, 1) 0%, rgba(248, 251, 255, 0) 100%)',
+            background: 'linear-gradient(180deg, rgba(240, 249, 255, 0.5) 0%, #f8fafc 100%)', // Smoother transition
             zIndex: 1,
             pointerEvents: 'none',
-          }}
-        />
+        }}
+      />
       </Box>
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: { xs: 8, md: 12 } }}>
@@ -307,24 +323,22 @@ const LandingPage = () => {
         <Box sx={{ textAlign: 'center', mb: { xs: 8, md: 12 } }}>
             <Typography 
               variant="h1" 
+              component="h1"
               sx={{ 
-                fontWeight: 700,
+                fontWeight: 800,
                 mb: 3,
                 fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem' },
                 lineHeight: 1.1,
-                color: '#0f172a',
-                letterSpacing: '-0.02em',
+                color: '#1e3a8a', // Navy
+                letterSpacing: '-0.03em',
               }}
             >
-              Co‑founder partnership platform
+              Co-founder partnership platform
               <br />
               <Box component="span" sx={{ 
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: '#0d9488', // Teal
               }}>
-                Beyond matching.
+                Stop Ghosting, Start Building
               </Box>
             </Typography>
 
@@ -340,110 +354,60 @@ const LandingPage = () => {
                 lineHeight: 1.6,
               }}
             >
-              Stop ghosting. Avoid equity fights. Make the partnership work.
+              Find your perfect co-founder, clarify equity splits, and build successful partnerships that actually work.
             </Typography>
 
-          {/* Email Form */}
-          <Box 
-            component="form" 
-            onSubmit={handleSubmit}
-            sx={{ 
-              maxWidth: '560px',
-              mx: 'auto',
-            }}
-          >
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 0,
-              flexDirection: { xs: 'column', sm: 'row' },
-              mb: 2,
-            }}>
-              <TextField
-                fullWidth
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#ffffff',
-                    borderRadius: { xs: '12px', sm: '12px 0 0 12px' },
-                    height: '56px',
-                    color: '#0f172a',
-                    border: '1px solid #e2e8f0',
-                    '& fieldset': {
-                      border: 'none',
-                    },
-                    '&:hover': {
-                      bgcolor: '#ffffff',
-                      borderColor: '#0ea5e9',
-                    },
-                    '&.Mui-focused': {
-                      bgcolor: '#ffffff',
-                      borderColor: '#0ea5e9',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#94a3b8',
-                    opacity: 1,
-                  },
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <Email sx={{ mr: 1.5, color: '#64748b', fontSize: 20 }} />
-                  ),
-                }}
-              />
+          {/* Sign In Button */}
+          <Box sx={{ 
+            display: 'flex',
+            justifyContent: 'center',
+            mb: 4,
+          }}>
+            {isSignedIn ? (
               <Button
-                type="submit"
                 variant="contained"
-                disabled={loading || !email}
-                endIcon={loading ? null : <ArrowForward />}
+                onClick={() => navigate('/select-flow')}
+                endIcon={<ArrowForward />}
                 sx={{
-                  px: 4,
-                  py: 0,
+                  px: 5,
+                  py: 1.5,
                   height: '56px',
-                  borderRadius: { xs: '12px', sm: '0 12px 12px 0' },
+                  borderRadius: '12px',
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
-                  bgcolor: '#0ea5e9 !important',
-                  backgroundColor: '#0ea5e9 !important',
-                  color: 'white !important',
-                  minWidth: { xs: '100%', sm: '160px' },
-                  whiteSpace: 'nowrap',
+                  bgcolor: '#0d9488',
+                  color: 'white',
                   '&:hover': {
-                    bgcolor: '#0284c7 !important',
-                    backgroundColor: '#0284c7 !important',
-                  },
-                  '&:disabled': {
-                    bgcolor: '#94a3b8 !important',
-                    backgroundColor: '#94a3b8 !important',
-                    color: '#ffffff !important',
+                    bgcolor: '#14b8a6',
                   },
                 }}
               >
-                {loading ? 'Joining...' : 'Get Early Access'}
+                Go to Dashboard
               </Button>
-            </Box>
-
-            {status && (
-              <Alert 
-                severity={status}
-                icon={status === 'success' ? <CheckCircle /> : null}
-                sx={{
-                  borderRadius: '12px',
-                  bgcolor: status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  color: status === 'success' ? '#10b981' : '#ef4444',
-                  border: `1px solid ${status === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-                  '& .MuiAlert-icon': {
-                    color: status === 'success' ? '#10b981' : '#ef4444',
-                  },
-                }}
-              >
-                {message}
-              </Alert>
+            ) : (
+              <SignInButton mode="modal" afterSignInUrl="/select-flow">
+                <Button
+                  variant="contained"
+                  endIcon={<ArrowForward />}
+                  sx={{
+                    px: 5,
+                    py: 1.5,
+                    height: '56px',
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                  bgcolor: '#0d9488',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: '#14b8a6',
+                    },
+                  }}
+                >
+                  Get Started
+                </Button>
+              </SignInButton>
             )}
           </Box>
         </Box>
@@ -453,10 +417,11 @@ const LandingPage = () => {
           <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
               variant="h3" 
+              component="h2"
               sx={{ 
                 fontWeight: 700,
                 mb: 2,
-                color: '#0f172a',
+                color: '#1e3a8a',
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
@@ -513,9 +478,9 @@ const LandingPage = () => {
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     bgcolor: '#ffffff',
-                    borderColor: '#0ea5e9',
+                    borderColor: '#0d9488',
                     transform: 'translateY(-4px)',
-                    boxShadow: '0 12px 24px rgba(14, 165, 233, 0.1)',
+                    boxShadow: '0 12px 24px rgba(13, 148, 136, 0.1)',
                   },
                 }}>
                   <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
@@ -527,8 +492,8 @@ const LandingPage = () => {
                         width: 56,
                         height: 56,
                         borderRadius: '12px',
-                        bgcolor: 'rgba(14, 165, 233, 0.1)',
-                        color: '#0ea5e9',
+                        bgcolor: 'rgba(13, 148, 136, 0.1)',
+                        color: '#0d9488',
                         mr: 2,
                       }}>
                         {step.icon}
@@ -550,7 +515,7 @@ const LandingPage = () => {
                       sx={{ 
                         fontWeight: 600, 
                         mb: 2,
-                        color: '#0f172a',
+                        color: '#1e3a8a',
                         fontSize: '1.25rem',
                       }}
                     >
@@ -573,19 +538,20 @@ const LandingPage = () => {
           </Grid>
         </Box>
 
-        {/* What Founder Match Does Differently */}
+        {/* What Co-Build Does Differently */}
         <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 12 } }}>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
               variant="h3" 
+              component="h2"
               sx={{ 
                 fontWeight: 700,
                 mb: 2,
-                color: '#0f172a',
+                color: '#1e3a8a',
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              What Founder Match Does Differently
+              What Co-Build Does Differently
             </Typography>
             <Typography 
               variant="body1" 
@@ -605,11 +571,12 @@ const LandingPage = () => {
               { 
                 icon: <VerifiedUser sx={{ fontSize: 28 }} />,
                 title: 'Serious Founders Only', 
-                desc: 'Reliability scores and verified badges. Filter by 4.5★+ only.',
+                desc: 'Project-based matching and smart filters to find committed co-founders.',
                 features: [
-                  'Reliability Score (response rate, consistency)',
-                  'Verified badges for serious founders',
-                  'Smart filters to avoid flaky matches'
+                  'Project-based discovery mode',
+                  'Smart filters (skills, location, stage)',
+                  'Preference-based matching',
+                  'Compatibility insights'
                 ]
               },
               { 
@@ -618,17 +585,20 @@ const LandingPage = () => {
                 desc: 'Equity calculator, decision log, and agreement templates.',
                 features: [
                   'Interactive equity split calculator',
+                  'Multiple equity scenarios',
                   'Auto-timestamped decision log',
-                  'Cofounder agreement templates'
+                  'Cofounder agreement templates',
+                  'Equity approval workflow'
                 ]
               },
               { 
                 icon: <People sx={{ fontSize: 28 }} />,
-                title: 'Personality Matching', 
-                desc: 'Compatibility reports show strengths and potential friction points.',
+                title: 'Compatibility Matching', 
+                desc: 'Preference-based matching helps you find aligned co-founders.',
                 features: [
-                  'Personality assessment',
-                  'Compatibility report',
+                  'Preference-based matching',
+                  'Project compatibility quiz',
+                  'Compatibility insights',
                   'Communication style tips'
                 ]
               },
@@ -639,11 +609,34 @@ const LandingPage = () => {
                 features: [
                   'Commitment contracts',
                   'Joint KPI dashboard',
-                  'Advisor network (coming soon)'
+                  'Real-time messaging',
+                  'Weekly check-ins'
+                ]
+              },
+              { 
+                icon: <Assignment sx={{ fontSize: 28 }} />,
+                title: 'Task Management', 
+                desc: 'Organized task board to track progress and accountability.',
+                features: [
+                  'Task assignment and tracking',
+                  'Status management (To-do, In Progress, Done)',
+                  'Task metrics and completion tracking',
+                  'Weekly progress reports'
+                ]
+              },
+              { 
+                icon: <Group sx={{ fontSize: 28 }} />,
+                title: 'Workspace Collaboration', 
+                desc: 'Dedicated workspace for each co-founder partnership.',
+                features: [
+                  'Multi-workspace support',
+                  'Role-based access control',
+                  'Real-time notifications',
+                  'Workspace chat integration'
                 ]
               },
             ].map((feature) => (
-              <Grid item xs={12} sm={6} lg={3} key={feature.title}>
+              <Grid item xs={12} sm={6} lg={4} key={feature.title}>
                 <Card sx={{
                   height: '100%',
                   bgcolor: '#ffffff',
@@ -653,16 +646,16 @@ const LandingPage = () => {
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     bgcolor: '#ffffff',
-                    borderColor: '#0ea5e9',
-                    boxShadow: '0 8px 16px rgba(14, 165, 233, 0.1)',
+                    borderColor: '#0d9488',
+                    boxShadow: '0 8px 16px rgba(13, 148, 136, 0.1)',
                   },
                 }}>
                   <Box sx={{ 
                     display: 'inline-flex',
                     p: 1.5,
                     borderRadius: '10px',
-                    bgcolor: 'rgba(14, 165, 233, 0.1)',
-                    color: '#0ea5e9',
+                    bgcolor: 'rgba(13, 148, 136, 0.1)',
+                    color: '#0d9488',
                     mb: 2.5,
                   }}>
                     {feature.icon}
@@ -672,7 +665,7 @@ const LandingPage = () => {
                     sx={{ 
                       fontWeight: 700, 
                       mb: 1,
-                      color: '#0f172a',
+                      color: '#1e3a8a',
                       fontSize: '1.3rem',
                     }}
                   >
@@ -681,7 +674,7 @@ const LandingPage = () => {
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#0ea5e9',
+                      color: '#0d9488',
                       fontWeight: 600,
                       mb: 2.5,
                       fontSize: '0.95rem',
@@ -719,7 +712,7 @@ const LandingPage = () => {
             sx={{ 
               fontWeight: 700,
               mb: 4,
-              color: '#0f172a',
+              color: '#1e3a8a',
               fontSize: { xs: '1.75rem', md: '2rem' },
             }}
           >
@@ -735,14 +728,14 @@ const LandingPage = () => {
               <Typography 
                 variant="body1" 
                 sx={{ 
-                  color: '#0f172a',
+                  color: '#1e3a8a',
                   fontStyle: 'italic',
                   mb: 2,
                   fontSize: '1rem',
                   lineHeight: 1.6,
                 }}
               >
-                "The reliability scores alone saved me weeks of wasted time."
+                "The project-based matching helped me find someone who's actually serious about building."
               </Typography>
               <Typography 
                 variant="body2" 
@@ -757,6 +750,227 @@ const LandingPage = () => {
           </Box>
         </Box>
 
+        {/* Pricing Section */}
+        <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 8, md: 10 } }}>
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700,
+                mb: 2,
+                color: '#1e3a8a',
+                fontSize: { xs: '2rem', md: '2.5rem' },
+              }}
+            >
+              Simple, Transparent Pricing
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#475569', 
+                maxWidth: '600px', 
+                mx: 'auto',
+                fontSize: '1rem',
+              }}
+            >
+              Start free, upgrade as you grow
+            </Typography>
+          </Box>
+
+          <Grid container spacing={4} sx={{ maxWidth: '1200px', mx: 'auto', mb: 6 }}>
+            {[
+              {
+                name: 'Free',
+                price: '$0',
+                period: 'Forever',
+                popular: false,
+                features: [
+                  '1 lite workspace',
+                  '10 swipes/month',
+                  'Preference-based matching',
+                  'Basic KPIs & decisions',
+                  'Weekly check-ins'
+                ],
+              },
+              {
+                name: 'Pro',
+                price: '$29',
+                period: '/month',
+                popular: true,
+                features: [
+                  'Up to 2 full workspaces',
+                  'Unlimited discovery & matching',
+                  'Compatibility insights',
+                  'Full workspace OS',
+                  'Equity & roles',
+                  'Tasks board',
+                  'Accountability partner marketplace'
+                ]
+              },
+              {
+                name: 'Pro+',
+                price: '$79',
+                period: '/month',
+                popular: false,
+                features: [
+                  'Up to 5 workspaces',
+                  'Everything in Pro',
+                  'Enhanced compatibility insights',
+                  'Investor-facing features',
+                  'Priority partner access',
+                  'Discounted partner rates'
+                ]
+              }
+            ].map((plan) => (
+              <Grid item xs={12} md={4} key={plan.name}>
+                <Card sx={{
+                  height: '100%',
+                  bgcolor: '#ffffff',
+                  border: plan.popular ? '2px solid #0d9488' : '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  p: 4,
+                  position: 'relative',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: plan.popular 
+                      ? '0 12px 24px rgba(13, 148, 136, 0.2)' 
+                      : '0 8px 16px rgba(30, 58, 138, 0.1)',
+                  },
+                }}>
+                  {plan.popular && (
+                    <Chip
+                      label="Most Popular"
+                      sx={{
+                        position: 'absolute',
+                        top: 16,
+                        right: 16,
+                        bgcolor: '#0d9488',
+                        color: 'white',
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 700, 
+                      mb: 1,
+                      color: '#1e3a8a',
+                    }}
+                  >
+                    {plan.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 3 }}>
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        fontWeight: 700,
+                        color: '#1e3a8a',
+                      }}
+                    >
+                      {plan.price}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: '#64748b',
+                        ml: 1,
+                      }}
+                    >
+                      {plan.period}
+                    </Typography>
+                  </Box>
+                  <Box component="ul" sx={{ pl: 2, m: 0, mb: 3 }}>
+                    {plan.features.map((feature, idx) => (
+                      <Box component="li" key={idx} sx={{ mb: 1.5, display: 'flex', alignItems: 'flex-start' }}>
+                        <CheckCircleOutline sx={{ fontSize: 18, color: '#10b981', mr: 1, mt: 0.25, flexShrink: 0 }} />
+                        <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.9rem' }}>
+                          {feature}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Accountability Partner Pricing */}
+          <Box sx={{ 
+            bgcolor: '#ffffff',
+            p: { xs: 4, md: 6 },
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            maxWidth: '900px',
+            mx: 'auto',
+            textAlign: 'center',
+          }}>
+            <Box sx={{ 
+              display: 'inline-flex',
+              p: 1.5,
+              borderRadius: '12px',
+              bgcolor: 'rgba(13, 148, 136, 0.1)',
+              color: '#0d9488',
+              mb: 3,
+            }}>
+              <People sx={{ fontSize: 32 }} />
+            </Box>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700,
+                mb: 3,
+                color: '#1e3a8a',
+                fontSize: { xs: '1.75rem', md: '2rem' },
+              }}
+            >
+              For Accountability Partners
+            </Typography>
+            <Grid container spacing={4} sx={{ mb: 3 }}>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center'
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, color: '#1e3a8a' }}>
+                    One-time Onboarding
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#0d9488', mb: 1 }}>
+                    $69
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    Join the marketplace and get listed
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center'
+                }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1.5, color: '#1e3a8a' }}>
+                    Annual Renewal
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#0d9488', mb: 1 }}>
+                    $39/year
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    Keep your dashboard active
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+            <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+              Set your rate: $50–$150/month per workspace
+            </Typography>
+          </Box>
+        </Box>
+
         {/* Roadmap Section */}
         <Box sx={{ mt: { xs: 8, md: 12 }, mb: { xs: 8, md: 10 } }}>
           <Box sx={{ textAlign: 'center', mb: 6 }}>
@@ -765,7 +979,7 @@ const LandingPage = () => {
               sx={{ 
                 fontWeight: 700,
                 mb: 2,
-                color: '#0f172a',
+                color: '#1e3a8a',
                 fontSize: { xs: '1.75rem', md: '2rem' },
               }}
             >
@@ -804,7 +1018,7 @@ const LandingPage = () => {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: '#0ea5e9',
+                    bgcolor: '#0d9488',
                     mr: 2,
                   }} />
                   <Typography variant="body1" sx={{ color: '#475569', fontSize: '0.95rem' }}>
@@ -816,146 +1030,6 @@ const LandingPage = () => {
           </Grid>
         </Box>
 
-        {/* Final CTA Section */}
-        <Box sx={{ 
-          mt: { xs: 12, md: 16 }, 
-          mb: { xs: 8, md: 10 },
-          textAlign: 'center',
-          bgcolor: '#ffffff',
-          p: { xs: 4, md: 6 },
-          borderRadius: '24px',
-          border: '1px solid #e2e8f0',
-          maxWidth: '800px',
-          mx: 'auto',
-        }}>
-          <Typography 
-            variant="h3" 
-            sx={{ 
-              fontWeight: 700,
-              mb: 2,
-              color: '#0f172a',
-              fontSize: { xs: '2rem', md: '2.5rem' },
-            }}
-          >
-            Ready to Find a Cofounder Who Actually Shows Up?
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#475569', 
-              maxWidth: '500px', 
-              mx: 'auto',
-              fontSize: '1rem',
-              mb: 4,
-            }}
-          >
-            Join the early access waitlist
-          </Typography>
-          
-          {/* Email Form - Reuse the same form from hero */}
-          <Box 
-            component="form" 
-            onSubmit={handleSubmit}
-            sx={{ 
-              maxWidth: '560px',
-              mx: 'auto',
-            }}
-          >
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 0,
-              flexDirection: { xs: 'column', sm: 'row' },
-              mb: 2,
-            }}>
-              <TextField
-                fullWidth
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: '#ffffff',
-                    borderRadius: { xs: '12px', sm: '12px 0 0 12px' },
-                    height: '56px',
-                    color: '#0f172a',
-                    border: '1px solid #e2e8f0',
-                    '& fieldset': {
-                      border: 'none',
-                    },
-                    '&:hover': {
-                      bgcolor: '#ffffff',
-                      borderColor: '#0ea5e9',
-                    },
-                    '&.Mui-focused': {
-                      bgcolor: '#ffffff',
-                      borderColor: '#0ea5e9',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#94a3b8',
-                    opacity: 1,
-                  },
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <Email sx={{ mr: 1.5, color: '#64748b', fontSize: 20 }} />
-                  ),
-                }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={loading || !email}
-                endIcon={loading ? null : <ArrowForward />}
-                sx={{
-                  px: 4,
-                  py: 0,
-                  height: '56px',
-                  borderRadius: { xs: '12px', sm: '0 12px 12px 0' },
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  bgcolor: '#0ea5e9 !important',
-                  backgroundColor: '#0ea5e9 !important',
-                  color: 'white !important',
-                  minWidth: { xs: '100%', sm: '160px' },
-                  whiteSpace: 'nowrap',
-                  '&:hover': {
-                    bgcolor: '#0284c7 !important',
-                    backgroundColor: '#0284c7 !important',
-                  },
-                  '&:disabled': {
-                    bgcolor: '#94a3b8 !important',
-                    backgroundColor: '#94a3b8 !important',
-                    color: '#ffffff !important',
-                  },
-                }}
-              >
-                {loading ? 'Joining...' : 'Get Early Access'}
-              </Button>
-            </Box>
-
-            {status && (
-              <Alert 
-                severity={status}
-                icon={status === 'success' ? <CheckCircle /> : null}
-                sx={{
-                  borderRadius: '12px',
-                  bgcolor: status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  color: status === 'success' ? '#10b981' : '#ef4444',
-                  border: `1px solid ${status === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-                  '& .MuiAlert-icon': {
-                    color: status === 'success' ? '#10b981' : '#ef4444',
-                  },
-                }}
-              >
-                {message}
-              </Alert>
-            )}
-          </Box>
-        </Box>
 
         {/* Footer */}
         <Divider sx={{ borderColor: '#e2e8f0', my: { xs: 8, md: 10 } }} />
@@ -967,12 +1041,12 @@ const LandingPage = () => {
             variant="h6" 
             sx={{ 
               fontWeight: 700, 
-              color: '#0f172a', 
+              color: '#1e3a8a', 
               mb: 1,
               fontSize: '1.25rem',
             }}
           >
-            Founder Match
+            Co-Build
           </Typography>
           <Typography 
             variant="body2" 
@@ -981,10 +1055,43 @@ const LandingPage = () => {
               fontSize: '0.9rem',
             }}
           >
-            © {new Date().getFullYear()} Founder Match. All rights reserved.
+            © {new Date().getFullYear()} Co-Build. All rights reserved.
           </Typography>
+          {isSignedIn && (
+            <Button
+              variant="text"
+              onClick={() => setFeedbackDialogOpen(true)}
+              sx={{
+                mt: 2,
+                color: '#64748b',
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                '&:hover': {
+                  color: '#0d9488',
+                },
+              }}
+            >
+              Got an idea? Give feedback
+            </Button>
+          )}
         </Box>
       </Container>
+
+      {/* Partner Onboarding Wizard */}
+      <PartnerOnboardingWizard
+        open={partnerWizardOpen && isSignedIn}
+        onClose={() => setPartnerWizardOpen(false)}
+        onComplete={(profile) => {
+          setPartnerWizardOpen(false);
+          // Partner profile created successfully
+        }}
+      />
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog
+        open={feedbackDialogOpen}
+        onClose={() => setFeedbackDialogOpen(false)}
+      />
     </Box>
   );
 };

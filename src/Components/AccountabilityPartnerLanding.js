@@ -9,6 +9,10 @@ import {
   Grid,
   Chip,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Handshake,
@@ -19,6 +23,7 @@ import {
   Business,
   Schedule,
   VerifiedUser,
+  Pending,
 } from '@mui/icons-material';
 import { useUser, SignInButton } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +34,7 @@ const AccountabilityPartnerLanding = () => {
   const navigate = useNavigate();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [pendingOnboarding, setPendingOnboarding] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   // Open wizard after sign-in if user was trying to apply
   useEffect(() => {
@@ -92,20 +98,20 @@ const AccountabilityPartnerLanding = () => {
         zIndex: 10,
         background: 'transparent',
       }}>
-        <Typography 
-          variant="h5" 
-          component="h1" 
-          sx={{ 
-            background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            fontWeight: 800,
-            letterSpacing: '-0.03em',
-          }}
-        >
-          Founder Match
-        </Typography>
+          <Typography 
+            variant="h5" 
+            component="h1" 
+            sx={{ 
+              background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', // Teal
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+            }}
+          >
+            Co-Build
+          </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {isSignedIn ? (
             <Button 
@@ -173,21 +179,21 @@ const AccountabilityPartnerLanding = () => {
               fontSize: '0.875rem',
             }}
           />
-          <Typography
-            variant="h1"
-            sx={{
-              fontSize: { xs: '2.5rem', md: '4rem' },
-              fontWeight: 800,
-              mb: 3,
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 1.2,
-            }}
-          >
-            Become an Accountability Partner
-          </Typography>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: '2.5rem', md: '4rem' },
+                fontWeight: 800,
+                mb: 3,
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%)', // Navy to Teal
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                lineHeight: 1.2,
+              }}
+            >
+              Become an Accountability Partner
+            </Typography>
           <Typography
             variant="h5"
             sx={{
@@ -215,11 +221,11 @@ const AccountabilityPartnerLanding = () => {
                 fontWeight: 600,
                 borderRadius: '12px',
                 textTransform: 'none',
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+                background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', // Teal
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)',
+                  background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 20px rgba(14, 165, 233, 0.3)',
+                  boxShadow: '0 8px 20px rgba(13, 148, 136, 0.3)',
                 },
                 transition: 'all 0.3s ease',
               }}
@@ -483,14 +489,95 @@ const AccountabilityPartnerLanding = () => {
           onClose={() => setWizardOpen(false)}
           onComplete={(profile) => {
             setWizardOpen(false);
-            // Show success message
-            alert('Application submitted! We\'ll review it and get back to you soon.');
-            // Optionally redirect to partner dashboard
-            navigate('/partner/dashboard');
+            // Show success dialog
+            setSuccessDialogOpen(true);
           }}
           useDirectSupabase={true}
         />
       )}
+
+      {/* Success Dialog */}
+      <Dialog
+        open={successDialogOpen}
+        onClose={() => setSuccessDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 2,
+          },
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', pt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                bgcolor: 'rgba(14, 165, 233, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Pending sx={{ fontSize: 48, color: 'primary.main' }} />
+            </Box>
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            Application Submitted!
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Thank you for your interest in becoming an Accountability Partner.
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Your application is now under review. We'll carefully evaluate your profile and get back to you via email once we've made a decision.
+          </Typography>
+          <Alert 
+            severity="info" 
+            icon={<CheckCircle />}
+            sx={{ 
+              textAlign: 'left',
+              bgcolor: 'rgba(14, 165, 233, 0.05)',
+              border: '1px solid rgba(14, 165, 233, 0.2)',
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              What happens next?
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • We'll review your LinkedIn/X profiles and experience<br/>
+              • You'll receive an email notification when your status changes<br/>
+              • Once approved, you'll appear in the marketplace for founders to discover
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, px: 3 }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setSuccessDialogOpen(false);
+              navigate('/partner/dashboard');
+            }}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)',
+              },
+            }}
+          >
+            Go to Dashboard
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
