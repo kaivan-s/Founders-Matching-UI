@@ -19,12 +19,15 @@ import {
   LockOpen,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
+import OnboardingDialog from './OnboardingDialog';
 
 const UserFlowSelector = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const [partnerPaid, setPartnerPaid] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
   useEffect(() => {
     const checkPartnerBilling = async () => {
@@ -54,7 +57,45 @@ const UserFlowSelector = () => {
     checkPartnerBilling();
   }, [user]);
 
-  const handleSelectFounder = () => {
+  const handleSelectFounder = async () => {
+    if (!user?.id) {
+      return;
+    }
+
+    setCheckingOnboarding(true);
+    try {
+      // Check if user has completed onboarding
+      const response = await fetch(`${API_BASE}/founders/onboarding-status`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // If user doesn't exist or hasn't completed onboarding, show dialog
+        if (!data.exists || !data.onboarding_completed || !data.has_purpose || !data.has_skills) {
+          setShowOnboarding(true);
+          setCheckingOnboarding(false);
+          return;
+        }
+      }
+      
+      // If onboarding is complete, navigate to discover
+      navigate('/discover');
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      // On error, show onboarding dialog to be safe
+      setShowOnboarding(true);
+    } finally {
+      setCheckingOnboarding(false);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    // Navigate to discover after onboarding is complete
     navigate('/discover');
   };
 
@@ -119,8 +160,9 @@ const UserFlowSelector = () => {
               </Typography>
               <Button
                 variant="contained"
-                endIcon={<ArrowForward />}
+                endIcon={checkingOnboarding ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
                 onClick={handleSelectFounder}
+                disabled={checkingOnboarding}
                 sx={{
                   px: 4,
                   py: 1.5,
@@ -134,7 +176,7 @@ const UserFlowSelector = () => {
                   },
                 }}
               >
-                Go to Discover
+                {checkingOnboarding ? 'Checking...' : 'Go to Discover'}
               </Button>
             </CardContent>
           </Card>
@@ -204,6 +246,16 @@ const UserFlowSelector = () => {
         </Grid>
       </Grid>
       </Container>
+
+      {/* Onboarding Dialog */}
+      <OnboardingDialog
+        open={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onSelectPartnerFlow={() => {
+          setShowOnboarding(false);
+          handleSelectPartner();
+        }}
+      />
     </Box>
   );
 };
