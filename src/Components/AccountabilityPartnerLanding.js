@@ -110,7 +110,7 @@ const AccountabilityPartnerLanding = () => {
               letterSpacing: '-0.03em',
             }}
           >
-            Co-Build
+            CoreTeam
           </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {isSignedIn ? (

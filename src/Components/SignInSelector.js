@@ -44,7 +44,7 @@ const SignInSelector = () => {
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
-          Welcome to Co-Build
+          Welcome to CoreTeam
         </Typography>
         <Typography variant="h6" color="text.secondary">
           Choose how you'd like to sign in

@@ -182,7 +182,7 @@ function Header() {
           },
         }}
       >
-        Co-Build
+        CoreTeam
       </Typography>
       <SignedIn>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

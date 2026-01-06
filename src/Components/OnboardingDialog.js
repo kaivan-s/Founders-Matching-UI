@@ -240,7 +240,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
           <Box>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                Welcome to Co-Build! 👋
+                Welcome to CoreTeam! 👋
               </Typography>
               <Typography variant="body1" sx={{ color: '#64748b' }}>
                 Choose how you'd like to get started
@@ -357,7 +357,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
             <Box>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                  Welcome to Co-Build! 👋
+                  Welcome to CoreTeam! 👋
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#64748b' }}>
                   Let's get to know you better to find your perfect co-founder

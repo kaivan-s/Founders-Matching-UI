@@ -1,14 +1,14 @@
 {
-  "short_name": "Co-Build",
-  "name": "Co-Build - Find Your Perfect Co-Founder",
+  "short_name": "CoreTeam",
+  "name": "CoreTeam - Find Your Perfect Co-Founder",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "CoreTeam.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo.png",
+      "src": "CoreTeam.png",
       "type": "image/png",
       "sizes": "512x512"
     },

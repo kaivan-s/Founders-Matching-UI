@@ -41,7 +41,7 @@ const PartnerNavigation = () => {
             mr: 2,
           }}
         >
-          Co-Build
+          CoreTeam
         </Typography>
         <Tabs 
           value={getTabValue()} 

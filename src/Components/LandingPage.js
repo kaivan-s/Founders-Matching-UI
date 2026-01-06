@@ -256,9 +256,9 @@ const LandingPage = () => {
             fontWeight: 800,
             letterSpacing: '-0.03em',
           }}
-          aria-label="Co-Build - Co-founder Matching Platform"
+          aria-label="CoreTeam - Co-founder Matching Platform"
         >
-          Co-Build
+          CoreTeam
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {!isSignedIn && (
@@ -333,7 +333,7 @@ const LandingPage = () => {
                 letterSpacing: '-0.03em',
               }}
             >
-              Co-founder partnership platform
+              Build your core team
               <br />
               <Box component="span" sx={{ 
                 color: '#0d9488', // Teal
@@ -538,7 +538,7 @@ const LandingPage = () => {
           </Grid>
         </Box>
 
-        {/* What Co-Build Does Differently */}
+        {/* What CoreTeam Does Differently */}
         <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 12 } }}>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
@@ -551,7 +551,7 @@ const LandingPage = () => {
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              What Co-Build Does Differently
+              What CoreTeam Does Differently
             </Typography>
             <Typography 
               variant="body1" 
@@ -1046,7 +1046,7 @@ const LandingPage = () => {
               fontSize: '1.25rem',
             }}
           >
-            Co-Build
+            CoreTeam
           </Typography>
           <Typography 
             variant="body2" 
@@ -1055,7 +1055,7 @@ const LandingPage = () => {
               fontSize: '0.9rem',
             }}
           >
-            © {new Date().getFullYear()} Co-Build. All rights reserved.
+            © {new Date().getFullYear()} CoreTeam. All rights reserved.
           </Typography>
           {isSignedIn && (
             <Button
