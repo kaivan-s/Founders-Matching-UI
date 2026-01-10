@@ -307,7 +307,80 @@ function Header() {
 
 function NavigationTabs() {
   const location = useLocation();
-  
+  const { user } = useUser();
+  const [notificationCounts, setNotificationCounts] = useState({
+    interests: 0,
+    workspaces: 0,
+  });
+  const [loadingCounts, setLoadingCounts] = useState(true);
+
+  // Fetch notification counts
+  const fetchNotificationCounts = useCallback(async () => {
+    if (!user || !user.id) {
+      setLoadingCounts(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/notifications/counts`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationCounts({
+          interests: data.interests || 0,
+          workspaces: data.workspaces || 0,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching notification counts:', err);
+    } finally {
+      setLoadingCounts(false);
+    }
+  }, [user]);
+
+  // Fetch counts on mount and when user changes
+  useEffect(() => {
+    fetchNotificationCounts();
+  }, [fetchNotificationCounts]);
+
+  // Refresh counts when navigating to interested or workspaces tabs (mark as viewed)
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/interested') || path.startsWith('/workspaces')) {
+      // Refresh counts after a short delay to allow page to load
+      const timer = setTimeout(() => {
+        fetchNotificationCounts();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, fetchNotificationCounts]);
+
+  // Listen for events that might change notification counts
+  useEffect(() => {
+    const handleInterestAccepted = () => {
+      setTimeout(() => fetchNotificationCounts(), 500);
+    };
+    const handleProjectCreated = () => {
+      setTimeout(() => fetchNotificationCounts(), 500);
+    };
+    const handleInterestsViewed = () => {
+      setTimeout(() => fetchNotificationCounts(), 500);
+    };
+
+    window.addEventListener('interestAccepted', handleInterestAccepted);
+    window.addEventListener('projectCreated', handleProjectCreated);
+    window.addEventListener('interestsViewed', handleInterestsViewed);
+
+    return () => {
+      window.removeEventListener('interestAccepted', handleInterestAccepted);
+      window.removeEventListener('projectCreated', handleProjectCreated);
+      window.removeEventListener('interestsViewed', handleInterestsViewed);
+    };
+  }, [fetchNotificationCounts]);
+
   // Map routes to tab indices
   const getTabValue = () => {
     const path = location.pathname;
@@ -353,9 +426,77 @@ function NavigationTabs() {
         }}
       >
         <Tab label="Discover" />
-        <Tab label="Interested" />
+        <Tab 
+          label={
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.75,
+              whiteSpace: 'nowrap',
+            }}>
+              <span>Interested</span>
+              {notificationCounts.interests > 0 && (
+                <Box
+                  sx={{
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    minWidth: '20px',
+                    height: '20px',
+                    lineHeight: '20px',
+                    padding: '0 6px',
+                    borderRadius: '10px',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {notificationCounts.interests}
+                </Box>
+              )}
+            </Box>
+          }
+        />
         <Tab label="My Projects" />
-        <Tab label="Workspaces" />
+        <Tab 
+          label={
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.75,
+              whiteSpace: 'nowrap',
+            }}>
+              <span>Workspaces</span>
+              {notificationCounts.workspaces > 0 && (
+                <Box
+                  sx={{
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    minWidth: '20px',
+                    height: '20px',
+                    lineHeight: '20px',
+                    padding: '0 6px',
+                    borderRadius: '10px',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {notificationCounts.workspaces}
+                </Box>
+              )}
+            </Box>
+          }
+        />
         <Tab label="Payments" />
         <Tab label="Feedback" />
       </Tabs>

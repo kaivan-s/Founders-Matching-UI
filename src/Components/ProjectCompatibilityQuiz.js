@@ -10,8 +10,89 @@ import {
   Paper,
   Divider,
   LinearProgress,
+  Tooltip,
 } from '@mui/material';
-import { Psychology, TrendingUp, BusinessCenter, Groups, AttachMoney, Schedule } from '@mui/icons-material';
+import { Psychology, TrendingUp, BusinessCenter, Groups, AttachMoney, Schedule, InfoOutlined } from '@mui/icons-material';
+
+// Tooltip explanations for each option (in simple, layman terms)
+const OPTION_TOOLTIPS = {
+  // Decision making
+  consensus: 'Everyone talks it out first, then you decide together. Like choosing a restaurant with friends - everyone gives input first.',
+  move_fast: 'Make quick decisions and fix things as you go. Like trying a new restaurant quickly - if it\'s bad, you can always change plans.',
+  data_driven: 'Look at numbers and facts to decide. Like checking restaurant ratings before choosing where to eat.',
+  
+  // Work hours
+  regular: 'Standard work hours, like a regular job. Mostly Monday-Friday, 9am-5pm type schedule.',
+  flexible: 'Work whenever works for you, as long as you get the job done. No strict schedule, just meet your deadlines.',
+  intense: 'Work hard, including evenings and weekends when needed. Perfect for early stages when you\'re building fast.',
+  
+  // Communication
+  async: 'Send messages and emails, reply when you can (within a few hours). No need for immediate responses.',
+  realtime: 'Quick back-and-forth, like texting or instant messaging. Fast replies and lots of quick chats.',
+  meetings: 'Scheduled calls and regular check-ins. Set times to talk, like weekly team meetings.',
+  
+  // Ideal outcome
+  acquisition: 'Sell the company to a bigger company in 3-5 years. Like building a house and selling it for profit.',
+  ipo: 'Build a huge company over many years that eventually goes public. Like building a company that becomes the next Google.',
+  lifestyle: 'Build a profitable business that lets you live comfortably. Like having a successful local business that pays well.',
+  
+  // Funding
+  bootstrap: 'Use your own money and keep full control. No investors, you own everything.',
+  vc_backed: 'Get money from investors to grow really fast. You give up some ownership but get money to scale quickly.',
+  hybrid: 'Start with your own money, maybe get investors later if needed. Keep options open.',
+  
+  // Timeline
+  quick: 'Ready for things to happen fast, in 2-3 years. Fast-paced journey.',
+  long_term: 'Committed for the long haul, 5-10 years. Building something that takes time.',
+  flexible: 'Open to whatever timeline works. See how things go and adjust.',
+  
+  // Financial risk
+  high: 'Ready to take a big pay cut or quit your job soon. High risk, high reward.',
+  medium: 'Can work part-time or reduce income for a while. Moderate risk level.',
+  low: 'Need steady income while building. Prefer financial stability and lower risk.',
+  
+  // Primary role
+  technical: 'Build the actual product - coding, software, technology. The person who makes things work.',
+  business: 'Handle sales, marketing, hiring, operations. The person who runs the business side.',
+  product: 'Design the experience, plan features, talk to users. The person who decides what to build and how it should feel.',
+  
+  // Equity split
+  equal: 'Split ownership 50/50 or equally among all founders. Everyone owns the same amount.',
+  merit: 'Split based on who contributes more, takes more risk, or works harder. Not necessarily equal.',
+  negotiable: 'Willing to discuss and figure it out. Open to different arrangements.',
+  
+  // Final say
+  one_ceo: 'One person makes the final call on big decisions. Clear leader who breaks ties.',
+  shared: 'Discuss together, but the CEO can make the call if you can\'t agree. Mostly shared decisions.',
+  always_joint: 'Everyone must agree before moving forward. No decision without full team agreement.',
+  
+  // Team size
+  lean: 'Keep it small - just the co-founders (2-3 people total). Minimal team, maximum control.',
+  small: 'Hire a few people (5-10 total) carefully. Small team, selective hiring.',
+  grow_fast: 'Hire quickly if things work (20+ people). Scale fast when you see success.',
+  
+  // Work model
+  remote_first: 'Everyone works from wherever they want. Fully remote, no office needed.',
+  hybrid: 'Mix of working from home and meeting in person sometimes. Flexible location.',
+  in_person: 'Mostly work together in the same office or location. Physical presence preferred.',
+  
+  // Formal process
+  very_important: 'Want clear rules, written goals, and regular check-ins from the start. Structured approach.',
+  somewhat_important: 'Some structure is good, but keep it light. Basic processes, not too formal.',
+  not_important: 'Keep it casual and flexible. No strict rules or formal processes needed.',
+  
+  // Disagreement
+  direct: 'Say what you think strongly and push for your way. Very straightforward and assertive.',
+  middle_ground: 'Share your opinion clearly, then try to find a compromise. Balanced approach.',
+  gentle: 'Bring it up softly and avoid big arguments. Careful, diplomatic style.',
+  let_go: 'Often just drop it to avoid conflict. Prefer keeping peace over pushing your view.',
+  
+  // Things go wrong
+  problem_solving: 'Jump right into fixing the problem immediately. Action-oriented, move fast.',
+  discuss_openly: 'Take a moment to think, then talk about it with your partner. Thoughtful, then collaborative.',
+  time_alone: 'Need to process alone first before discussing. Need space to think.',
+  withdraw: 'Pull back and don\'t really want to talk about it much. Prefer to deal with it quietly.',
+};
 
 export const PROJECT_COMPATIBILITY_QUESTIONS = [
   // Work style (3)
@@ -285,30 +366,65 @@ const ProjectCompatibilityQuiz = ({ answers, onChange, category, progress = 0 })
                 onChange={(e) => handleAnswerChange(q.id, e.target.value)}
               >
                 {q.options.map((option) => (
-                  <FormControlLabel
+                  <Tooltip
                     key={option.value}
-                    value={option.value}
-                    control={<Radio />}
-                    label={
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                        {option.label}
-                      </Typography>
-                    }
-                    sx={{
-                      ml: 0,
-                      p: 1.5,
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: answers[q.id] === option.value ? 'primary.main' : 'transparent',
-                      bgcolor: answers[q.id] === option.value ? 'rgba(14, 165, 233, 0.05)' : 'transparent',
-                      mb: 1,
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        borderColor: 'primary.light',
-                        bgcolor: 'rgba(14, 165, 233, 0.03)',
+                    title={OPTION_TOOLTIPS[option.value] || ''}
+                    arrow
+                    placement="right"
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          bgcolor: 'rgba(15, 23, 42, 0.95)',
+                          maxWidth: 350,
+                          fontSize: '0.875rem',
+                          lineHeight: 1.5,
+                          p: 1.5,
+                        },
+                      },
+                      arrow: {
+                        sx: {
+                          color: 'rgba(15, 23, 42, 0.95)',
+                        },
                       },
                     }}
-                  />
+                  >
+                    <FormControlLabel
+                      value={option.value}
+                      control={<Radio />}
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {option.label}
+                          </Typography>
+                          <InfoOutlined 
+                            sx={{ 
+                              fontSize: 16, 
+                              color: 'text.secondary',
+                              opacity: 0.6,
+                              '&:hover': {
+                                opacity: 1,
+                              },
+                            }} 
+                          />
+                        </Box>
+                      }
+                      sx={{
+                        ml: 0,
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: answers[q.id] === option.value ? 'primary.main' : 'transparent',
+                        bgcolor: answers[q.id] === option.value ? 'rgba(14, 165, 233, 0.05)' : 'transparent',
+                        mb: 1,
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          borderColor: 'primary.light',
+                          bgcolor: 'rgba(14, 165, 233, 0.03)',
+                        },
+                      }}
+                    />
+                  </Tooltip>
                 ))}
               </RadioGroup>
             </FormControl>

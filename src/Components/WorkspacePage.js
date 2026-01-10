@@ -67,15 +67,15 @@ const WorkspacePage = () => {
   // Determine active tab based on route matches
   const activeTab = useMemo(() => {
     if (overviewMatch) return 0;
-    if (decisionsMatch) return 1;
-    if (equityRolesMatch) return 2;
-    if (commitmentsMatch) return 3;
-    if (tasksMatch) return 4;
-    if (documentsMatch) return 5;
-    if (chatMatch) return 6;
+    if (chatMatch) return 1;
+    if (decisionsMatch) return 2;
+    if (equityRolesMatch) return 3;
+    if (commitmentsMatch) return 4;
+    if (tasksMatch) return 5;
+    if (documentsMatch) return 6;
     if (accountabilityMatch) return 7;
     return 0; // Default to overview
-  }, [overviewMatch, decisionsMatch, equityRolesMatch, commitmentsMatch, tasksMatch, documentsMatch, chatMatch, accountabilityMatch]);
+  }, [overviewMatch, chatMatch, decisionsMatch, equityRolesMatch, commitmentsMatch, tasksMatch, documentsMatch, accountabilityMatch]);
 
   useEffect(() => {
     // Fetch current founder ID
@@ -106,7 +106,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'chat', 'accountability'];
+    const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -173,12 +173,12 @@ const WorkspacePage = () => {
 
   const tabIcons = [
     <TrendingUp fontSize="small" />,
+    <ChatBubbleOutline fontSize="small" />,
     <CheckCircleOutline fontSize="small" />,
     <Groups fontSize="small" />,
     <Schedule fontSize="small" />,
     <Assignment fontSize="small" />,
     <Folder fontSize="small" />,
-    <ChatBubbleOutline fontSize="small" />,
     <Groups fontSize="small" />
   ];
 
@@ -433,7 +433,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[1]}
-                <span>Decisions</span>
+                <span>Chat</span>
               </Box>
             }
           />
@@ -441,7 +441,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[2]}
-                <span>Equity & Roles</span>
+                <span>Decisions</span>
               </Box>
             }
           />
@@ -449,7 +449,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[3]}
-                <span>Commitments & KPIs</span>
+                <span>Equity & Roles</span>
               </Box>
             }
           />
@@ -457,7 +457,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[4]}
-                <span>Tasks</span>
+                <span>Commitments & KPIs</span>
               </Box>
             }
           />
@@ -465,7 +465,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[5]}
-                <span>Documents</span>
+                <span>Tasks</span>
               </Box>
             }
           />
@@ -473,7 +473,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[6]}
-                <span>Chat</span>
+                <span>Documents</span>
               </Box>
             }
           />
@@ -505,19 +505,19 @@ const WorkspacePage = () => {
         }}>
           <Routes>
             <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-              const routes = ['overview', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'chat', 'accountability'];
+              const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
               navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
             }} />} />
-            <Route path="decisions" element={<WorkspaceDecisions workspaceId={workspaceId} />} />
-            <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
-            <Route path="commitments" element={<WorkspaceCommitments workspaceId={workspaceId} />} />
-            <Route path="tasks" element={<WorkspaceTasks workspaceId={workspaceId} />} />
-            <Route path="documents" element={<WorkspaceDocuments workspaceId={workspaceId} />} />
             <Route path="chat" element={
             <Box sx={{ height: 'calc(100vh - 300px)', minHeight: 400 }}>
               <WorkspaceChat matchId={workspace?.match_id} currentFounderId={currentFounderId} />
             </Box>
             } />
+            <Route path="decisions" element={<WorkspaceDecisions workspaceId={workspaceId} />} />
+            <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
+            <Route path="commitments" element={<WorkspaceCommitments workspaceId={workspaceId} />} />
+            <Route path="tasks" element={<WorkspaceTasks workspaceId={workspaceId} />} />
+            <Route path="documents" element={<WorkspaceDocuments workspaceId={workspaceId} />} />
             <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
             <Route index element={<Navigate to="overview" replace />} />
             <Route path="*" element={<Navigate to="overview" replace />} />

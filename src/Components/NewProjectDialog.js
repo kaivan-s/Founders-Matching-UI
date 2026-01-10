@@ -22,7 +22,10 @@ import {
   FormControlLabel,
   Checkbox,
   Chip,
+  Tooltip,
+  FormHelperText,
 } from '@mui/material';
+import { InfoOutlined } from '@mui/icons-material';
 import { Business, Rocket, Psychology, ArrowBack, ArrowForward, TrendingUp, AttachMoney, Groups, Schedule } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import ProjectCompatibilityQuiz from './ProjectCompatibilityQuiz';
@@ -65,46 +68,62 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
   };
 
   const projectStages = [
-    { value: 'idea', label: 'Just an Idea' },
-    { value: 'mvp', label: 'MVP Development' },
-    { value: 'early-stage', label: 'Early Stage' },
-    { value: 'growth', label: 'Growth Stage' }
+    { 
+      value: 'idea', 
+      label: 'Just an Idea',
+      tooltip: 'You have a concept but haven\'t started building yet. Like having an idea for a business but nothing built.'
+    },
+    { 
+      value: 'mvp', 
+      label: 'MVP Development',
+      tooltip: 'Building the first basic version of your product. MVP means "Minimum Viable Product" - the simplest version that works.'
+    },
+    { 
+      value: 'early-stage', 
+      label: 'Early Stage',
+      tooltip: 'You have a working product with some users, but still early in the journey. Like having customers but still figuring things out.'
+    },
+    { 
+      value: 'growth', 
+      label: 'Growth Stage',
+      tooltip: 'Your product is working and you\'re focused on growing fast. Like a business that\'s established and expanding quickly.'
+    }
   ];
 
   const projectGenres = [
-    { value: 'fitness', label: 'Fitness & Health' },
-    { value: 'gaming', label: 'Gaming & Entertainment' },
-    { value: 'fintech', label: 'Fintech & Finance' },
-    { value: 'healthcare', label: 'Healthcare & Medical' },
-    { value: 'education', label: 'Education & EdTech' },
-    { value: 'ecommerce', label: 'E-commerce & Retail' },
-    { value: 'saas', label: 'SaaS & Software' },
-    { value: 'social', label: 'Social Media & Networking' },
-    { value: 'food', label: 'Food & Beverage' },
-    { value: 'travel', label: 'Travel & Hospitality' },
-    { value: 'real_estate', label: 'Real Estate & PropTech' },
-    { value: 'ai_ml', label: 'AI & Machine Learning' },
-    { value: 'blockchain', label: 'Blockchain & Crypto' },
-    { value: 'sustainability', label: 'Sustainability & Green Tech' },
-    { value: 'media', label: 'Media & Content' },
-    { value: 'logistics', label: 'Logistics & Supply Chain' },
-    { value: 'other', label: 'Other' },
+    { value: 'fitness', label: 'Fitness & Health', tooltip: 'Apps and services for exercise, health tracking, wellness, and fitness.' },
+    { value: 'gaming', label: 'Gaming & Entertainment', tooltip: 'Video games, mobile games, entertainment apps, and gaming platforms.' },
+    { value: 'fintech', label: 'Fintech & Finance', tooltip: 'Financial technology - banking apps, payment systems, investing tools, money management.' },
+    { value: 'healthcare', label: 'Healthcare & Medical', tooltip: 'Medical apps, healthcare services, telemedicine, patient care platforms.' },
+    { value: 'education', label: 'Education & EdTech', tooltip: 'Learning apps, online courses, educational tools, teaching platforms.' },
+    { value: 'ecommerce', label: 'E-commerce & Retail', tooltip: 'Online stores, marketplaces, selling products online, retail platforms.' },
+    { value: 'saas', label: 'SaaS & Software', tooltip: 'Software as a Service - business software you subscribe to, like project management or CRM tools.' },
+    { value: 'social', label: 'Social Media & Networking', tooltip: 'Social networks, community platforms, connecting people online.' },
+    { value: 'food', label: 'Food & Beverage', tooltip: 'Food delivery, recipe apps, restaurant tech, food service platforms.' },
+    { value: 'travel', label: 'Travel & Hospitality', tooltip: 'Travel booking, hotel apps, trip planning, tourism services.' },
+    { value: 'real_estate', label: 'Real Estate & PropTech', tooltip: 'Real estate apps, property management, buying/selling homes, property technology.' },
+    { value: 'ai_ml', label: 'AI & Machine Learning', tooltip: 'Artificial intelligence products, machine learning tools, AI-powered services.' },
+    { value: 'blockchain', label: 'Blockchain & Crypto', tooltip: 'Cryptocurrency, blockchain technology, decentralized apps, Web3 projects.' },
+    { value: 'sustainability', label: 'Sustainability & Green Tech', tooltip: 'Environmental tech, green energy, sustainability solutions, eco-friendly products.' },
+    { value: 'media', label: 'Media & Content', tooltip: 'Content creation platforms, media apps, streaming, publishing tools.' },
+    { value: 'logistics', label: 'Logistics & Supply Chain', tooltip: 'Shipping, delivery, supply chain management, logistics software.' },
+    { value: 'other', label: 'Other', tooltip: 'Your project doesn\'t fit into the categories above.' },
   ];
 
   const neededSkillsOptions = [
-    'Marketing',
-    'Sales',
-    'Product Management',
-    'Engineering/Technical',
-    'Design',
-    'Finance',
-    'Operations',
-    'Business Development',
-    'Content Creation',
-    'Data Analytics',
-    'Customer Success',
-    'Legal',
-    'HR/Recruiting',
+    { skill: 'Marketing', tooltip: 'Promoting your product, getting customers to know about it, advertising, social media marketing.' },
+    { skill: 'Sales', tooltip: 'Selling your product to customers, closing deals, building relationships with buyers.' },
+    { skill: 'Product Management', tooltip: 'Planning what features to build, deciding product direction, coordinating what gets built.' },
+    { skill: 'Engineering/Technical', tooltip: 'Building the actual product - coding, software development, making the technology work.' },
+    { skill: 'Design', tooltip: 'Making your product look good and easy to use - user interface, user experience, visual design.' },
+    { skill: 'Finance', tooltip: 'Managing money, accounting, budgeting, financial planning, handling company finances.' },
+    { skill: 'Operations', tooltip: 'Running day-to-day business operations, managing processes, keeping things running smoothly.' },
+    { skill: 'Business Development', tooltip: 'Finding partnerships, building relationships with other companies, expanding business opportunities.' },
+    { skill: 'Content Creation', tooltip: 'Creating content like blog posts, videos, social media content, marketing materials.' },
+    { skill: 'Data Analytics', tooltip: 'Analyzing data to understand customers and business performance, making data-driven decisions.' },
+    { skill: 'Customer Success', tooltip: 'Helping customers succeed with your product, support, onboarding, keeping customers happy.' },
+    { skill: 'Legal', tooltip: 'Legal matters, contracts, compliance, intellectual property, legal advice for the business.' },
+    { skill: 'HR/Recruiting', tooltip: 'Hiring people, managing employees, human resources, building a team.' },
   ];
 
   const handleChange = (field) => (event) => {
@@ -131,6 +150,9 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       }
     });
   };
+
+  // Helper to get skill name from skill object
+  const getSkillName = (skillObj) => typeof skillObj === 'string' ? skillObj : skillObj.skill;
 
   const handleAddOtherSkill = () => {
     if (otherSkill.trim() && !formData.needed_skills.includes(otherSkill.trim())) {
@@ -393,46 +415,110 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               }}
             />
             
-            <FormControl fullWidth>
-              <InputLabel id="stage-label">Project Stage</InputLabel>
-              <Select
-                labelId="stage-label"
-                value={formData.stage}
-                label="Project Stage"
-                onChange={handleChange('stage')}
-                disabled={loading}
-                sx={{
-                  borderRadius: 2,
-                }}
-              >
-                {projectStages.map(stage => (
-                  <MenuItem key={stage.value} value={stage.value}>
-                    {stage.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box sx={{ position: 'relative' }}>
+              <FormControl fullWidth>
+                <InputLabel id="stage-label">Project Stage</InputLabel>
+                <Select
+                  labelId="stage-label"
+                  value={formData.stage}
+                  label="Project Stage"
+                  onChange={handleChange('stage')}
+                  disabled={loading}
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {projectStages.map(stage => (
+                    <MenuItem key={stage.value} value={stage.value}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        <Typography>{stage.label}</Typography>
+                        <Tooltip title={stage.tooltip} arrow placement="right" disableInteractive>
+                          <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.6, ml: 'auto', pointerEvents: 'auto' }} />
+                        </Tooltip>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {formData.stage && (
+                  <FormHelperText>
+                    {projectStages.find(s => s.value === formData.stage)?.tooltip}
+                  </FormHelperText>
+                )}
+              </FormControl>
+              {formData.stage && (
+                <Tooltip 
+                  title={projectStages.find(s => s.value === formData.stage)?.tooltip || ''}
+                  arrow
+                  placement="right"
+                >
+                  <InfoOutlined 
+                    sx={{ 
+                      position: 'absolute',
+                      right: 40,
+                      top: 32,
+                      fontSize: 16, 
+                      color: 'text.secondary', 
+                      opacity: 0.7, 
+                      cursor: 'help',
+                      pointerEvents: 'auto',
+                    }} 
+                  />
+                </Tooltip>
+              )}
+            </Box>
             
-            <FormControl fullWidth>
-              <InputLabel id="genre-label">Project Genre</InputLabel>
-              <Select
-                labelId="genre-label"
-                value={formData.genre}
-                label="Project Genre"
-                onChange={handleChange('genre')}
-                disabled={loading}
-                required
-                sx={{
-                  borderRadius: 2,
-                }}
-              >
-                {projectGenres.map(genre => (
-                  <MenuItem key={genre.value} value={genre.value}>
-                    {genre.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box sx={{ position: 'relative' }}>
+              <FormControl fullWidth>
+                <InputLabel id="genre-label">Project Genre</InputLabel>
+                <Select
+                  labelId="genre-label"
+                  value={formData.genre}
+                  label="Project Genre"
+                  onChange={handleChange('genre')}
+                  disabled={loading}
+                  required
+                  sx={{
+                    borderRadius: 2,
+                  }}
+                >
+                  {projectGenres.map(genre => (
+                    <MenuItem key={genre.value} value={genre.value}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                        <Typography>{genre.label}</Typography>
+                        <Tooltip title={genre.tooltip} arrow placement="right" disableInteractive>
+                          <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.6, ml: 'auto', pointerEvents: 'auto' }} />
+                        </Tooltip>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {formData.genre && (
+                  <FormHelperText>
+                    {projectGenres.find(g => g.value === formData.genre)?.tooltip}
+                  </FormHelperText>
+                )}
+              </FormControl>
+              {formData.genre && (
+                <Tooltip 
+                  title={projectGenres.find(g => g.value === formData.genre)?.tooltip || ''}
+                  arrow
+                  placement="right"
+                >
+                  <InfoOutlined 
+                    sx={{ 
+                      position: 'absolute',
+                      right: 40,
+                      top: 32,
+                      fontSize: 16, 
+                      color: 'text.secondary', 
+                      opacity: 0.7, 
+                      cursor: 'help',
+                      pointerEvents: 'auto',
+                    }} 
+                  />
+                </Tooltip>
+              )}
+            </Box>
 
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
@@ -443,19 +529,56 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               </Typography>
               <FormGroup>
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1 }}>
-                  {neededSkillsOptions.map(skill => (
-                    <FormControlLabel
-                      key={skill}
-                      control={
-                        <Checkbox
-                          checked={(formData.needed_skills || []).includes(skill)}
-                          onChange={handleNeededSkillsChange(skill)}
-                          disabled={loading}
+                  {neededSkillsOptions.map(skillObj => {
+                    const skill = getSkillName(skillObj);
+                    return (
+                      <Tooltip
+                        key={skill}
+                        title={skillObj.tooltip}
+                        arrow
+                        placement="right"
+                        componentsProps={{
+                          tooltip: {
+                            sx: {
+                              bgcolor: 'rgba(15, 23, 42, 0.95)',
+                              maxWidth: 350,
+                              fontSize: '0.875rem',
+                              lineHeight: 1.5,
+                              p: 1.5,
+                            },
+                          },
+                          arrow: {
+                            sx: {
+                              color: 'rgba(15, 23, 42, 0.95)',
+                            },
+                          },
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={(formData.needed_skills || []).includes(skill)}
+                              onChange={handleNeededSkillsChange(skill)}
+                              disabled={loading}
+                            />
+                          }
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography>{skill}</Typography>
+                              <InfoOutlined 
+                                sx={{ 
+                                  fontSize: 14, 
+                                  color: 'text.secondary',
+                                  opacity: 0.6,
+                                }} 
+                              />
+                            </Box>
+                          }
+                          sx={{ cursor: 'pointer' }}
                         />
-                      }
-                      label={skill}
-                    />
-                  ))}
+                      </Tooltip>
+                    );
+                  })}
                 </Box>
               </FormGroup>
               

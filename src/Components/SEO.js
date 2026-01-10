@@ -9,7 +9,7 @@ const SEO = ({
   title,
   description,
   keywords,
-  image = 'https://founder-match.in/logo512.png',
+  image = 'https://founder-match.in/CoreTeam.png',
   url,
   type = 'website',
   noindex = false,
@@ -17,8 +17,8 @@ const SEO = ({
 }) => {
   const siteUrl = 'https://founder-match.in';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
-  const fullTitle = title ? `${title} | Co-Build` : 'Co-Build - Find Your Perfect Co-Founder';
-  const defaultDescription = 'Find your ideal co-founder with Co-Build. Our platform goes beyond matching - we help you avoid ghosting, clarify equity splits, and build successful partnerships.';
+  const fullTitle = title ? `${title} | CoreTeam` : 'CoreTeam - Find Your Perfect Co-Founder';
+  const defaultDescription = 'Find your ideal co-founder with CoreTeam. Our platform goes beyond matching - we help you avoid ghosting, clarify equity splits, and build successful partnerships.';
   const metaDescription = description || defaultDescription;
   const defaultKeywords = 'co-founder, cofounder matching, find co-founder, startup partner, business partner, equity split, founder matching, startup collaboration, accountability partner';
   const metaKeywords = keywords || defaultKeywords;
@@ -45,7 +45,7 @@ const SEO = ({
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Co-Build" />
+      <meta property="og:site_name" content="CoreTeam" />
       <meta property="og:locale" content="en_US" />
       
       {/* Twitter Card */}

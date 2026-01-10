@@ -31,6 +31,11 @@ const InterestedPage = () => {
 
   useEffect(() => {
     fetchLikes();
+    // Dispatch event to refresh notification counts after fetching
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('interestsViewed'));
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const fetchLikes = async () => {

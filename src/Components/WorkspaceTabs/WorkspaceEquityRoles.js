@@ -33,8 +33,9 @@ import {
   Paper,
   Tabs,
   Tab,
+  Tooltip,
 } from '@mui/material';
-import { Add, Delete, CheckCircle, Description, Save, ContentCopy, HourglassEmpty, Cancel, Check, Close } from '@mui/icons-material';
+import { Add, Delete, CheckCircle, Description, Save, ContentCopy, HourglassEmpty, Cancel, Check, Close, Info } from '@mui/icons-material';
 import { useWorkspaceEquity, useWorkspaceRoles, useWorkspaceParticipants } from '../../hooks/useWorkspace';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../../config/api';
@@ -71,6 +72,8 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   const [processingApproval, setProcessingApproval] = useState(null);
   const [activeTab, setActiveTab] = useState(0); // For equity scenarios tabs
   const [activeRoleTab, setActiveRoleTab] = useState(0); // For roles tabs (one per founder)
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Fetch plan to check feature access
   useEffect(() => {
@@ -217,13 +220,15 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
 
   const handleSaveScenario = async () => {
     if (!scenarioLabel.trim()) {
-      alert('Please enter a scenario label');
+      setSuccessMessage('Please enter a scenario label');
+      setSuccessDialogOpen(true);
       return;
     }
 
     const total = getTotalPercentage();
     if (Math.abs(total - 100) > 0.01) {
-      alert(`Total must equal 100%. Current: ${total.toFixed(1)}%`);
+      setSuccessMessage(`Total must equal 100%. Current: ${total.toFixed(1)}%`);
+      setSuccessDialogOpen(true);
       return;
     }
 
@@ -253,9 +258,11 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
       // Switch to Saved Scenarios tab after saving
       setActiveTab(1);
       await refetchEquity();
-      alert('Scenario saved! Waiting for partner approval.');
+      setSuccessMessage('Scenario saved! Waiting for partner approval.');
+      setSuccessDialogOpen(true);
     } catch (err) {
-      alert('Failed to save scenario');
+      setSuccessMessage('Failed to save scenario. Please try again.');
+      setSuccessDialogOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -282,21 +289,33 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   };
 
   const handleSaveRole = async (userId) => {
-    const roleData = editingRoles[userId];
-    if (!roleData?.role_title) {
-      alert('Role title is required');
+    // Get roleData from editing state or existing role (same logic as UI)
+    const existingRole = getParticipantRole(userId);
+    const editing = editingRoles[userId];
+    const roleData = editing || existingRole || { role_title: '', responsibilities: '' };
+    
+    // Check if role_title exists and is not empty after trimming
+    if (!roleData.role_title || !roleData.role_title.trim()) {
+      setSuccessMessage('Role title is required');
+      setSuccessDialogOpen(true);
       return;
     }
 
     try {
-      await upsertRole(userId, roleData);
+      await upsertRole(userId, {
+        role_title: roleData.role_title.trim(),
+        responsibilities: roleData.responsibilities?.trim() || '',
+      });
       setEditingRoles(prev => {
         const updated = { ...prev };
         delete updated[userId];
         return updated;
       });
+      setSuccessMessage('Role updated successfully!');
+      setSuccessDialogOpen(true);
     } catch (err) {
-      // Error saving role
+      setSuccessMessage('Failed to update role. Please try again.');
+      setSuccessDialogOpen(true);
     }
   };
 
@@ -387,6 +406,30 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
     });
     
     return text;
+  };
+
+  const formatScenarioPreview = (scenario) => {
+    if (!scenario?.data) return '';
+    
+    const equityData = scenario.data;
+    const users = equityData.users || [];
+    const vesting = equityData.vesting || { years: 4, cliffMonths: 12 };
+    
+    let preview = 'EQUITY DISTRIBUTION\n';
+    preview += `Vesting: ${vesting.years} years with ${vesting.cliffMonths}-month cliff\n\n`;
+    
+    users.forEach(userData => {
+      const participant = participants?.find(p => p.user_id === userData.userId);
+      const userName = participant?.user?.name || 'Unknown';
+      preview += `${userName}: ${userData.percent}%\n`;
+    });
+    
+    const total = users.reduce((sum, u) => sum + (u.percent || 0), 0);
+    if (Math.abs(total - 100) > 0.01) {
+      preview += `\n⚠️ Total: ${total.toFixed(1)}% (should be 100%)`;
+    }
+    
+    return preview;
   };
 
   const totalPercent = getTotalPercentage();
@@ -634,198 +677,252 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
                     .map((scenario, index) => {
                       const isLatestScenario = index === 0;
                       const isEditable = isLatestScenario && !scenario.is_current && scenario.status !== 'canceled';
+                      const scenarioPreview = formatScenarioPreview(scenario);
                       return (
-                    <Card
+                    <Tooltip
                       key={scenario.id}
+                      title={
+                        <Box sx={{ p: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: 'white' }}>
+                            {scenario.label}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            component="pre"
+                            sx={{ 
+                              color: 'white', 
+                              fontFamily: 'monospace',
+                              whiteSpace: 'pre-wrap',
+                              fontSize: '0.75rem',
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {scenarioPreview || 'No equity data available'}
+                          </Typography>
+                        </Box>
+                      }
+                      arrow
+                      placement="right"
+                      componentsProps={{
+                        tooltip: {
+                          sx: {
+                            bgcolor: 'rgba(15, 23, 42, 0.95)',
+                            maxWidth: 350,
+                            fontSize: '0.875rem',
+                            p: 2,
+                          },
+                        },
+                        arrow: {
+                          sx: {
+                            color: 'rgba(15, 23, 42, 0.95)',
+                          },
+                        },
+                      }}
+                    >
+                    <Card
                       sx={{
                         border: scenario.is_current ? '2px solid #0ea5e9' : '1px solid #e2e8f0',
                         borderRadius: '8px',
                         p: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          borderColor: scenario.is_current ? '#0ea5e9' : '#cbd5e1',
+                        },
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                            {scenario.label}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
-                          {scenario.is_current && (
-                            <Chip
-                              label="Current"
-                              size="small"
-                              icon={<CheckCircle />}
-                              sx={{
-                                bgcolor: '#0ea5e9',
-                                color: 'white',
-                                fontSize: '0.7rem',
-                                height: 20,
-                              }}
-                            />
-                          )}
-                            {scenario.approval_status === 'PENDING' && (
+                      <Box>
+                        {/* Top row: Scenario info on left, approval buttons on right */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a' }}>
+                              {scenario.label}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                            {scenario.is_current && (
                               <Chip
-                                label="Pending Approval"
+                                label="Current"
                                 size="small"
-                                icon={<HourglassEmpty />}
-                                color="warning"
+                                icon={<CheckCircle />}
                                 sx={{
+                                  bgcolor: '#0ea5e9',
+                                  color: 'white',
                                   fontSize: '0.7rem',
                                   height: 20,
                                 }}
                               />
                             )}
-                            {scenario.approval_status === 'REJECTED' && (
-                              <Chip
-                                label="Rejected"
-                                size="small"
-                                icon={<Cancel />}
-                                color="error"
-                                sx={{
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                }}
-                              />
+                              {scenario.approval_status === 'PENDING' && (
+                                <Chip
+                                  label="Pending Approval"
+                                  size="small"
+                                  icon={<HourglassEmpty />}
+                                  color="warning"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    height: 20,
+                                  }}
+                                />
+                              )}
+                              {scenario.approval_status === 'REJECTED' && (
+                                <Chip
+                                  label="Rejected"
+                                  size="small"
+                                  icon={<Cancel />}
+                                  color="error"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    height: 20,
+                                  }}
+                                />
+                              )}
+                              {scenario.status === 'canceled' && (
+                                <Chip
+                                  label="Canceled"
+                                  size="small"
+                                  icon={<Cancel />}
+                                  color="default"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    height: 20,
+                                    opacity: 0.6,
+                                  }}
+                                />
+                              )}
+                            </Box>
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
+                              {new Date(scenario.created_at).toLocaleDateString()}
+                            </Typography>
+                            
+                            {/* Show who needs to approve */}
+                            {pendingApprovals[scenario.id] && (
+                              <Typography variant="caption" sx={{ color: '#f59e0b', display: 'block', mt: 0.5, fontWeight: 500 }}>
+                                👤 Proposed by {pendingApprovals[scenario.id].proposer?.name || 'partner'} - awaiting your approval
+                              </Typography>
                             )}
-                            {scenario.status === 'canceled' && (
-                              <Chip
-                                label="Canceled"
-                                size="small"
-                                icon={<Cancel />}
-                                color="default"
-                                sx={{
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                  opacity: 0.6,
-                                }}
-                              />
+                            {scenario.approval_status === 'PENDING' && !pendingApprovals[scenario.id] && (
+                              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
+                                ⏳ Waiting for partner's approval
+                              </Typography>
                             )}
                           </Box>
-                          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
-                            {new Date(scenario.created_at).toLocaleDateString()}
-                          </Typography>
-                          
-                          {/* Show who needs to approve */}
-                          {pendingApprovals[scenario.id] && (
-                            <Typography variant="caption" sx={{ color: '#f59e0b', display: 'block', mt: 0.5, fontWeight: 500 }}>
-                              👤 Proposed by {pendingApprovals[scenario.id].proposer?.name || 'partner'} - awaiting your approval
-                            </Typography>
-                          )}
-                          {scenario.approval_status === 'PENDING' && !pendingApprovals[scenario.id] && (
-                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
-                              ⏳ Waiting for partner's approval
-                            </Typography>
-                          )}
-                          
-                          {/* Scenario Note */}
-                          <Box sx={{ mt: 1 }}>
-                            <TextField
-                              size="small"
-                              placeholder={
-                                !isEditable
-                                  ? scenario.is_current 
-                                    ? "Note (locked - scenario is current)"
-                                    : scenario.status === 'canceled'
-                                    ? "Note (locked - scenario is canceled)"
-                                    : "Note (locked - previous scenario)"
-                                  : "Add a note (e.g., 'Post-seed revision')"
-                              }
-                              value={scenarioNotes[scenario.id] ?? scenario.note ?? ''}
-                              onChange={(e) => setScenarioNotes(prev => ({ ...prev, [scenario.id]: e.target.value }))}
-                              onBlur={() => {
-                                if (!isEditable) return;
-                                const note = scenarioNotes[scenario.id] ?? scenario.note ?? '';
-                                if (note !== scenario.note) {
-                                  handleUpdateScenarioNote(scenario.id, note);
-                                }
-                              }}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' && isEditable) {
-                                  e.target.blur();
-                                }
-                              }}
-                              disabled={!isEditable}
-                              fullWidth
-                              inputProps={{ maxLength: 255, style: { fontSize: '0.875rem' } }}
-                              sx={{ 
-                                '& .MuiOutlinedInput-root': { 
-                                  bgcolor: !isEditable ? '#f1f5f9' : '#f8fafc',
-                                  '& fieldset': { borderColor: '#e2e8f0' },
-                                  '&.Mui-disabled': {
-                                    bgcolor: '#f1f5f9',
-                                    opacity: 0.7,
-                                  },
-                                },
-                              }}
-                            />
-                            {savingNote[scenario.id] === 'saved' && (
-                              <Typography variant="caption" sx={{ color: '#10b981', display: 'block', mt: 0.5 }}>
-                                ✓ Saved
-                              </Typography>
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', ml: 2 }}>
+                            {/* Show approval buttons if user is approver */}
+                            {pendingApprovals[scenario.id] && (
+                              <>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  color="success"
+                                  startIcon={<Check />}
+                                  onClick={() => handleApproval(pendingApprovals[scenario.id].id, 'approve')}
+                                  disabled={processingApproval === pendingApprovals[scenario.id].id}
+                                  sx={{ fontSize: '0.75rem' }}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="error"
+                                  startIcon={<Close />}
+                                  onClick={() => handleApproval(pendingApprovals[scenario.id].id, 'reject')}
+                                  disabled={processingApproval === pendingApprovals[scenario.id].id}
+                                  sx={{ fontSize: '0.75rem' }}
+                                >
+                                  Reject
+                                </Button>
+                              </>
                             )}
-                            {scenario.note && !scenarioNotes[scenario.id] && (
-                              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
-                                {scenario.note}
-                              </Typography>
+                            
+                            {processingApproval === pendingApprovals[scenario.id]?.id && (
+                              <CircularProgress size={20} />
                             )}
                           </Box>
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          {/* Show approval buttons if user is approver */}
-                          {pendingApprovals[scenario.id] && (
-                            <>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                color="success"
-                                startIcon={<Check />}
-                                onClick={() => handleApproval(pendingApprovals[scenario.id].id, 'approve')}
-                                disabled={processingApproval === pendingApprovals[scenario.id].id}
-                                sx={{ fontSize: '0.75rem' }}
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                color="error"
-                                startIcon={<Close />}
-                                onClick={() => handleApproval(pendingApprovals[scenario.id].id, 'reject')}
-                                disabled={processingApproval === pendingApprovals[scenario.id].id}
-                                sx={{ fontSize: '0.75rem' }}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                          
-                          {/* Show Set as Current button only for approved, active scenarios */}
-                          {!scenario.is_current && 
-                           !pendingApprovals[scenario.id] && 
-                           scenario.approval_status === 'APPROVED' && 
-                           scenario.status !== 'canceled' && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleSetCurrent(scenario.id)}
-                            sx={{
-                              borderColor: '#0ea5e9',
-                              color: '#0ea5e9',
+
+                        {/* Set as Current button - full width, above note field */}
+                        {!scenario.is_current && 
+                         !pendingApprovals[scenario.id] && 
+                         scenario.approval_status === 'APPROVED' && 
+                         scenario.status !== 'canceled' && (
+                          <Box sx={{ mb: 1 }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              fullWidth
+                              onClick={() => handleSetCurrent(scenario.id)}
+                              sx={{
+                                borderColor: '#0ea5e9',
+                                color: '#0ea5e9',
+                                textTransform: 'none',
                                 '&:hover': { 
                                   borderColor: '#0284c7', 
                                   bgcolor: 'rgba(14, 165, 233, 0.05)' 
                                 },
-                            }}
-                          >
-                            Set as Current
-                          </Button>
+                              }}
+                            >
+                              Set as Current
+                            </Button>
+                          </Box>
                         )}
-                          
-                          {processingApproval === pendingApprovals[scenario.id]?.id && (
-                            <CircularProgress size={20} />
+                        
+                        {/* Scenario Note - full width */}
+                        <Box sx={{ mt: 1 }}>
+                          <TextField
+                            size="small"
+                            placeholder={
+                              !isEditable
+                                ? scenario.is_current 
+                                  ? "Note (locked - scenario is current)"
+                                  : scenario.status === 'canceled'
+                                  ? "Note (locked - scenario is canceled)"
+                                  : "Note (locked - previous scenario)"
+                                : "Add a note (e.g., 'Post-seed revision')"
+                            }
+                            value={scenarioNotes[scenario.id] ?? scenario.note ?? ''}
+                            onChange={(e) => setScenarioNotes(prev => ({ ...prev, [scenario.id]: e.target.value }))}
+                            onBlur={() => {
+                              if (!isEditable) return;
+                              const note = scenarioNotes[scenario.id] ?? scenario.note ?? '';
+                              if (note !== scenario.note) {
+                                handleUpdateScenarioNote(scenario.id, note);
+                              }
+                            }}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && isEditable) {
+                                e.target.blur();
+                              }
+                            }}
+                            disabled={!isEditable}
+                            fullWidth
+                            inputProps={{ maxLength: 255, style: { fontSize: '0.875rem' } }}
+                            sx={{ 
+                              '& .MuiOutlinedInput-root': { 
+                                bgcolor: !isEditable ? '#f1f5f9' : '#f8fafc',
+                                '& fieldset': { borderColor: '#e2e8f0' },
+                                '&.Mui-disabled': {
+                                  bgcolor: '#f1f5f9',
+                                  opacity: 0.7,
+                                },
+                              },
+                            }}
+                          />
+                          {savingNote[scenario.id] === 'saved' && (
+                            <Typography variant="caption" sx={{ color: '#10b981', display: 'block', mt: 0.5 }}>
+                              ✓ Saved
+                            </Typography>
+                          )}
+                          {scenario.note && !scenarioNotes[scenario.id] && (
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
+                              {scenario.note}
+                            </Typography>
                           )}
                         </Box>
                       </Box>
                     </Card>
+                    </Tooltip>
                     );
                   })}
                 </Box>
@@ -1087,6 +1184,64 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
         <Button onClick={() => setDraftDialogOpen(false)}>Close</Button>
         <Button variant="contained" onClick={copyDraftToClipboard} startIcon={<ContentCopy />}>
           Copy to Clipboard
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    {/* Success Dialog */}
+    <Dialog 
+      open={successDialogOpen} 
+      onClose={() => setSuccessDialogOpen(false)} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{
+            p: 1,
+            borderRadius: 2,
+            background: successMessage.includes('Failed') 
+              ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+              : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {successMessage.includes('Failed') ? (
+              <Close sx={{ color: 'white', fontSize: 24 }} />
+            ) : (
+              <CheckCircle sx={{ color: 'white', fontSize: 24 }} />
+            )}
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {successMessage.includes('Failed') ? 'Error' : 'Success'}
+          </Typography>
+        </Box>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 2 }}>
+        <Typography variant="body1" sx={{ color: 'text.primary' }}>
+          {successMessage}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ p: 2.5, pt: 1 }}>
+        <Button 
+          onClick={() => setSuccessDialogOpen(false)}
+          variant="contained"
+          sx={{
+            bgcolor: successMessage.includes('Failed') ? '#ef4444' : '#10b981',
+            '&:hover': {
+              bgcolor: successMessage.includes('Failed') ? '#dc2626' : '#059669',
+            },
+            textTransform: 'none',
+            px: 3,
+          }}
+        >
+          OK
         </Button>
       </DialogActions>
     </Dialog>
