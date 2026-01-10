@@ -298,37 +298,15 @@ const SwipeInterface = () => {
     const actualFounderId = founder?.founder_id || founderId;
     const primaryProjectId = founder?.primary_project_id || projectId || (founder?.projects?.[0]?.id);
     
-    // Get current user's projects (we'll use the first active project for now)
-    // In a more sophisticated implementation, we'd let users select which project to use
-    let swiperProjectId = null;
-    try {
-      const projectsResponse = await fetch(`${API_BASE}/projects`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      if (projectsResponse.ok) {
-        const userProjects = await projectsResponse.json();
-        // Use the first active project, or first project if no active filter
-        swiperProjectId = userProjects?.[0]?.id || null;
-      }
-    } catch (err) {
-      console.error('Error fetching user projects:', err);
-      // Continue without swiper project ID - will create legacy user-to-user match
-    }
-    
     try {
       const swipeData = {
         swiped_id: actualFounderId,  // Use actual founder ID for the swipe
         swipe_type: direction
       };
       
-      // Add project information if available (project-based swiping)
+      // Add project information (project_id is required - all swipes must be project-based)
       if (primaryProjectId) {
         swipeData.project_id = primaryProjectId;
-      }
-      if (swiperProjectId && direction === 'right') {
-        swipeData.swiper_project_id = swiperProjectId;
       }
       
       const response = await fetch(`${API_BASE}/swipes`, {
