@@ -594,8 +594,8 @@ const WorkspaceCommitments = ({ workspaceId }) => {
                         
                         {/* Partner Reviews Section */}
                         {(() => {
-                          const hasAccountabilityPartner = participants?.some(p => p.role === 'ACCOUNTABILITY_PARTNER');
-                          if (!hasAccountabilityPartner) return null;
+                          const hasAdvisor = participants?.some(p => p.role === 'ADVISOR');
+                          if (!hasAdvisor) return null;
                           
                           if (partnerReviews.length > 0) {
                             return (

@@ -29,7 +29,7 @@ import { useUser, SignInButton } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import PartnerOnboardingWizard from './PartnerOnboardingWizard';
 
-const AccountabilityPartnerLanding = () => {
+const AdvisorLanding = () => {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -110,7 +110,7 @@ const AccountabilityPartnerLanding = () => {
               letterSpacing: '-0.03em',
             }}
           >
-            CoreTeam
+            GuildSpace
           </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {isSignedIn ? (
@@ -192,7 +192,7 @@ const AccountabilityPartnerLanding = () => {
                 lineHeight: 1.2,
               }}
             >
-              Become an Accountability Partner
+              Become an Advisor
             </Typography>
           <Typography
             variant="h5"
@@ -230,7 +230,7 @@ const AccountabilityPartnerLanding = () => {
                 transition: 'all 0.3s ease',
               }}
             >
-              Join as Accountability Partner
+              Join as Advisor
             </Button>
           ) : (
             <SignInButton mode="modal" afterSignInUrl="/accountable_partner" afterSignUpUrl="/accountable_partner">
@@ -255,7 +255,7 @@ const AccountabilityPartnerLanding = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                Join as Accountability Partner
+                Join as Advisor
               </Button>
             </SignInButton>
           )}
@@ -428,7 +428,7 @@ const AccountabilityPartnerLanding = () => {
             Ready to Help Founders Succeed?
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '600px', mx: 'auto' }}>
-            Join our community of accountability partners and make a real impact on early-stage startups.
+            Join our community of advisors and make a real impact on early-stage startups.
           </Typography>
           {isSignedIn ? (
             <Button
@@ -531,7 +531,7 @@ const AccountabilityPartnerLanding = () => {
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Thank you for your interest in becoming an Accountability Partner.
+            Thank you for your interest in becoming an Advisor.
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
             Your application is now under review. We'll carefully evaluate your profile and get back to you via email once we've made a decision.
@@ -582,5 +582,5 @@ const AccountabilityPartnerLanding = () => {
   );
 };
 
-export default AccountabilityPartnerLanding;
+export default AdvisorLanding;
 

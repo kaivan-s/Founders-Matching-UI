@@ -93,6 +93,11 @@ const UserFlowSelector = () => {
     }
   };
 
+  const handleSelectAdvisor = () => {
+    // Navigate to advisor onboarding
+    navigate('/partner/onboarding');
+  };
+
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     // Navigate to discover after onboarding is complete
@@ -118,7 +123,7 @@ const UserFlowSelector = () => {
       <Container maxWidth="md" sx={{ py: 8 }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
-            Welcome to CoreTeam
+            Welcome to GuildSpace
           </Typography>
           <Typography variant="h6" color="text.secondary">
             Choose how you'd like to use the platform
@@ -153,10 +158,10 @@ const UserFlowSelector = () => {
                 }} 
               />
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-                Founder Dashboard
+                I'm Looking for a Co-Founder
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                Find co-founders, create projects, and build partnerships
+                Find your perfect co-founder match. Swipe through projects, get matched, and start building together.
               </Typography>
               <Button
                 variant="contained"
@@ -215,10 +220,10 @@ const UserFlowSelector = () => {
                 }} 
               />
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-                Accountability Partner Dashboard
+                I'm an Accountability Partner/Advisor
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                Help founders succeed and build your network
+                Help founders stay accountable and succeed. Join workspaces, provide guidance, and build your advisory network.
               </Typography>
               <Button
                 variant="outlined"

@@ -7,7 +7,6 @@ import {
   Button,
   TextField,
   Chip,
-  IconButton,
   LinearProgress,
   Paper,
   Fade,
@@ -21,11 +20,6 @@ import {
   Code,
   Groups,
   CheckCircle,
-  Add,
-  Business,
-  Delete,
-  Person,
-  Handshake,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 
@@ -33,7 +27,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [userType, setUserType] = useState(null); // 'founder' or 'partner'
+  const [userType, setUserType] = useState('founder'); // Default to 'founder' since user already selected discover from founders option
   
   // Form data
   const [formData, setFormData] = useState({
@@ -47,23 +41,22 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
   
   // Temporary states for input
   const [skillInput, setSkillInput] = useState('');
-  const [projectForm, setProjectForm] = useState({
-    title: '',
-    description: '',
-    stage: 'idea',
-  });
 
-  const totalSteps = 3;
+  const totalSteps = 2; // Removed project addition step
   const progress = userType ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
-  // Pre-fill name and email from Clerk user object when dialog opens
+  // Reset step and pre-fill name and email from Clerk user object when dialog opens
   useEffect(() => {
-    if (open && user) {
-      setFormData(prev => ({
-        ...prev,
-        name: prev.name || user.fullName || user.firstName || '',
-        email: prev.email || user.primaryEmailAddress?.emailAddress || '',
-      }));
+    if (open) {
+      setCurrentStep(0);
+      setUserType('founder'); // Always default to founder since user selected discover from founders option
+      if (user) {
+        setFormData(prev => ({
+          ...prev,
+          name: prev.name || user.fullName || user.firstName || '',
+          email: prev.email || user.primaryEmailAddress?.emailAddress || '',
+        }));
+      }
     }
   }, [open, user]);
 
@@ -124,27 +117,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
     setFormData({
       ...formData,
       skills: formData.skills.filter(skill => skill !== skillToRemove),
-    });
-  };
-
-  const handleAddProject = () => {
-    if (projectForm.title.trim() && projectForm.description.trim()) {
-      setFormData({
-        ...formData,
-        projects: [...formData.projects, { ...projectForm }],
-      });
-      setProjectForm({
-        title: '',
-        description: '',
-        stage: 'idea',
-      });
-    }
-  };
-
-  const handleRemoveProject = (index) => {
-    setFormData({
-      ...formData,
-      projects: formData.projects.filter((_, i) => i !== index),
     });
   };
 
@@ -214,141 +186,12 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
         return formData.purpose !== '';
       case 1:
         return formData.location.trim() !== '' && formData.skills.length > 0;
-      case 2:
-        return true; // Projects are optional
       default:
         return false;
     }
   };
 
-  const handleUserTypeSelect = (type) => {
-    setUserType(type);
-    if (type === 'partner') {
-      // Switch to partner onboarding flow
-      onSelectPartnerFlow?.();
-    } else {
-      // Continue with founder onboarding
-      setCurrentStep(0);
-    }
-  };
-
   const renderStepContent = () => {
-    // Step -1: Choose user type (Founder or Partner)
-    if (userType === null) {
-      return (
-        <Fade in timeout={300}>
-          <Box>
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                Welcome to CoreTeam! 👋
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#64748b' }}>
-                Choose how you'd like to get started
-              </Typography>
-            </Box>
-            
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 3, textAlign: 'center' }}>
-              What would you like to do?
-            </Typography>
-            
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Paper
-                onClick={() => handleUserTypeSelect('founder')}
-                sx={{
-                  p: 4,
-                  cursor: 'pointer',
-                  border: '2px solid',
-                  borderColor: userType === 'founder' ? '#0ea5e9' : 'rgba(226, 232, 240, 0.8)',
-                  background: userType === 'founder' 
-                    ? 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(14, 165, 233, 0.02) 100%)'
-                    : '#ffffff',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#0ea5e9',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-                  },
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    bgcolor: 'rgba(14, 165, 233, 0.1)',
-                    color: '#0ea5e9',
-                  }}>
-                    <Person sx={{ fontSize: 32 }} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                      Become a Founder
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
-                      Find co-founders, build projects, and discover opportunities. Perfect if you're looking to start or join a startup.
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      <Chip label="Find Co-founders" size="small" />
-                      <Chip label="Build Projects" size="small" />
-                      <Chip label="Discover Opportunities" size="small" />
-                    </Box>
-                  </Box>
-                  {userType === 'founder' && (
-                    <CheckCircle sx={{ color: '#0ea5e9', fontSize: 28 }} />
-                  )}
-                </Box>
-              </Paper>
-
-              <Paper
-                onClick={() => handleUserTypeSelect('partner')}
-                sx={{
-                  p: 4,
-                  cursor: 'pointer',
-                  border: '2px solid',
-                  borderColor: userType === 'partner' ? '#14b8a6' : 'rgba(226, 232, 240, 0.8)',
-                  background: userType === 'partner' 
-                    ? 'linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(20, 184, 166, 0.02) 100%)'
-                    : '#ffffff',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#14b8a6',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-                  },
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    bgcolor: 'rgba(20, 184, 166, 0.1)',
-                    color: '#14b8a6',
-                  }}>
-                    <Handshake sx={{ fontSize: 32 }} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                      Become an Accountability Partner
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
-                      Help founders stay accountable and provide valuable feedback. Set your capacity and get matched with startups that need your guidance.
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      <Chip label="Help Founders" size="small" />
-                      <Chip label="Provide Feedback" size="small" />
-                      <Chip label="Set Your Capacity" size="small" />
-                    </Box>
-                  </Box>
-                  {userType === 'partner' && (
-                    <CheckCircle sx={{ color: '#14b8a6', fontSize: 28 }} />
-                  )}
-                </Box>
-              </Paper>
-            </Box>
-          </Box>
-        </Fade>
-      );
-    }
-
     // Founder onboarding steps (original steps)
     switch (currentStep) {
       case 0:
@@ -357,7 +200,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
             <Box>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                  Welcome to CoreTeam! 👋
+                  Welcome to GuildSpace! 👋
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#64748b' }}>
                   Let's get to know you better to find your perfect co-founder
@@ -564,103 +407,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
           </Fade>
         );
 
-      case 2:
-        return (
-          <Fade in timeout={300}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                Do you have a project in mind?
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                Share your project idea or skip this step for now
-              </Typography>
-              
-              {/* Add project form */}
-              <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(248, 250, 252, 0.5)', border: '1px solid rgba(226, 232, 240, 0.8)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Business sx={{ color: '#0ea5e9' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                    Add a Project
-                  </Typography>
-                </Box>
-                
-                <TextField
-                  fullWidth
-                  label="Project Title"
-                  placeholder="e.g., AI-powered Learning Platform"
-                  value={projectForm.title}
-                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                  sx={{ mb: 2 }}
-                />
-                
-                <TextField
-                  fullWidth
-                  label="Description"
-                  placeholder="Briefly describe your project idea..."
-                  multiline
-                  rows={3}
-                  value={projectForm.description}
-                  onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
-                  sx={{ mb: 2 }}
-                />
-                
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    onClick={handleAddProject}
-                    disabled={!projectForm.title.trim() || !projectForm.description.trim()}
-                    sx={{
-                      background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                      textTransform: 'none',
-                    }}
-                  >
-                    Add Project
-                  </Button>
-                </Box>
-              </Paper>
-              
-              {/* Added projects */}
-              {formData.projects.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle2" sx={{ color: '#64748b', mb: 2 }}>
-                    Your projects ({formData.projects.length}):
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {formData.projects.map((project, index) => (
-                      <Paper
-                        key={index}
-                        sx={{
-                          p: 2,
-                          border: '1px solid rgba(226, 232, 240, 0.8)',
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                              {project.title}
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                              {project.description}
-                            </Typography>
-                          </Box>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleRemoveProject(index)}
-                            sx={{ color: '#ef4444' }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Paper>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          </Fade>
-        );
-
       default:
         return null;
     }
@@ -731,28 +477,18 @@ const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
             </Button>
             
             {currentStep === totalSteps - 1 ? (
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleComplete}
-                  disabled={loading}
-                  sx={{ textTransform: 'none' }}
-                >
-                  Skip for now
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleComplete}
-                  disabled={loading}
-                  sx={{
-                    background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                    textTransform: 'none',
-                    px: 4,
-                  }}
-                >
-                  {loading ? 'Saving...' : 'Complete Setup'}
-                </Button>
-              </Box>
+              <Button
+                variant="contained"
+                onClick={handleComplete}
+                disabled={loading}
+                sx={{
+                  background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                  textTransform: 'none',
+                  px: 4,
+                }}
+              >
+                {loading ? 'Saving...' : 'Complete Setup'}
+              </Button>
             ) : (
               <Button
                 variant="contained"

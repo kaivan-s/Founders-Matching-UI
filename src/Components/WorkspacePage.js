@@ -481,7 +481,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[7]}
-                <span>Accountability</span>
+                <span>Advisors</span>
               </Box>
             }
           />

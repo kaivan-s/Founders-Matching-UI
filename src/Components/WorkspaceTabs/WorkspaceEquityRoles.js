@@ -54,8 +54,8 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   const { roles, loading: rolesLoading, upsertRole } = useWorkspaceRoles(workspaceId);
   const { participants: allParticipants } = useWorkspaceParticipants(workspaceId);
   
-  // Filter out accountability partners - only show founders/co-founders in equity and roles
-  const participants = allParticipants?.filter(p => p.role !== 'ACCOUNTABILITY_PARTNER') || [];
+  // Filter out advisors - only show founders/co-founders in equity and roles
+  const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
   
   const [equityPercentages, setEquityPercentages] = useState({});
   const [vestingPreset, setVestingPreset] = useState('4 years, 1-year cliff');
@@ -192,7 +192,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
         const currentData = equity.current.data;
         const percentages = {};
         currentData.users?.forEach((u) => {
-          // Only include users who are founders (not accountability partners)
+          // Only include users who are founders (not advisors)
           if (participants.some(p => p.user_id === u.userId)) {
             percentages[u.userId] = u.percent;
           }

@@ -510,7 +510,7 @@ const PartnerWorkspaceView = () => {
                             </ListItemAvatar>
                             <ListItemText
                               primary={userName}
-                              secondary={userRole === 'ACCOUNTABILITY_PARTNER' ? 'Accountability Partner' : userRole}
+                              secondary={userRole === 'ADVISOR' ? 'Advisor' : userRole}
                             />
                           </ListItem>
                         );

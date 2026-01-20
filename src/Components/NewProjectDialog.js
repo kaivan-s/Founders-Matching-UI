@@ -309,22 +309,23 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: '16px',
           height: '90vh',
           maxHeight: '800px',
           width: '90vw',
           maxWidth: '900px',
           display: 'flex',
           flexDirection: 'column',
+          border: '1px solid #e2e8f0',
         }
       }}
     >
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{
-            p: 1,
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+            p: 1.5,
+            borderRadius: '12px',
+            bgcolor: '#0d9488',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -346,11 +347,11 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             value={progress} 
             sx={{ 
               height: 6, 
-              borderRadius: 3,
-              backgroundColor: 'grey.200',
+              borderRadius: '12px',
+              bgcolor: 'rgba(13, 148, 136, 0.1)',
               '& .MuiLinearProgress-bar': {
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+                bgcolor: '#0d9488',
+                borderRadius: '12px',
               }
             }} 
           />
@@ -358,12 +359,35 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             <Stepper 
               activeStep={currentStep} 
               alternativeLabel
-              sx={{ minWidth: '600px' }}
+              sx={{ 
+                minWidth: '600px',
+                '& .MuiStepLabel-root .Mui-completed': {
+                  color: '#0d9488',
+                },
+                '& .MuiStepLabel-label.Mui-completed.MuiStepLabel-alternativeLabel': {
+                  color: '#0d9488',
+                },
+                '& .MuiStepLabel-root .Mui-active': {
+                  color: '#0d9488',
+                },
+                '& .MuiStepLabel-label.Mui-active.MuiStepLabel-alternativeLabel': {
+                  color: '#0d9488',
+                },
+                '& .MuiStepIcon-root': {
+                  fontSize: '1.5rem',
+                  '&.Mui-completed': {
+                    color: '#0d9488',
+                  },
+                  '&.Mui-active': {
+                    color: '#0d9488',
+                  },
+                },
+              }}
             >
               {steps.map((step, index) => (
                 <Step key={index}>
                   <StepLabel>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: index === currentStep ? 600 : 400 }}>
                       {step.label}
                     </Typography>
                   </StepLabel>
@@ -393,7 +417,13 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               disabled={loading}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
                 }
               }}
             />
@@ -410,7 +440,13 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               disabled={loading}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
                 }
               }}
             />
@@ -425,7 +461,13 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   onChange={handleChange('stage')}
                   disabled={loading}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: '12px',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#0d9488',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#0d9488',
+                    },
                   }}
                 >
                   {projectStages.map(stage => (
@@ -478,7 +520,13 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   disabled={loading}
                   required
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: '12px',
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#0d9488',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#0d9488',
+                    },
                   }}
                 >
                   {projectGenres.map(genre => (
@@ -560,6 +608,12 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                               checked={(formData.needed_skills || []).includes(skill)}
                               onChange={handleNeededSkillsChange(skill)}
                               disabled={loading}
+                              sx={{
+                                color: '#0d9488',
+                                '&.Mui-checked': {
+                                  color: '#0d9488',
+                                },
+                              }}
                             />
                           }
                           label={
@@ -603,7 +657,21 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   disabled={loading || !otherSkill.trim()}
                   variant="outlined"
                   size="small"
-                  sx={{ textTransform: 'none' }}
+                  sx={{ 
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: '#0d9488',
+                    color: '#0d9488',
+                    borderRadius: '12px',
+                    '&:hover': {
+                      borderColor: '#14b8a6',
+                      bgcolor: 'rgba(13, 148, 136, 0.04)',
+                    },
+                    '&:disabled': {
+                      borderColor: '#cbd5e1',
+                      color: '#94a3b8',
+                    },
+                  }}
                 >
                   Add
                 </Button>
@@ -617,8 +685,18 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                       key={skill}
                       label={skill}
                       onDelete={() => handleRemoveSkill(skill)}
-                      color="primary"
-                      variant="outlined"
+                      sx={{
+                        bgcolor: 'rgba(13, 148, 136, 0.08)',
+                        color: '#0d9488',
+                        border: '1px solid rgba(13, 148, 136, 0.15)',
+                        fontWeight: 500,
+                        '& .MuiChip-deleteIcon': {
+                          color: '#0d9488',
+                          '&:hover': {
+                            color: '#14b8a6',
+                          }
+                        }
+                      }}
                       size="small"
                     />
                   ))}
@@ -626,7 +704,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               )}
             </Box>
             
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
+            <Alert severity="info" sx={{ borderRadius: '12px', bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
               <Typography variant="body2">
                 <strong>Note:</strong> Each new project will appear separately in the discovery feed. 
                 Other founders can swipe on specific projects, allowing you to collaborate on different 
@@ -646,11 +724,18 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         )}
       </DialogContent>
       
-      <DialogActions sx={{ p: 2.5, pt: 0 }}>
+      <DialogActions sx={{ p: 3, pt: 2, borderTop: '1px solid #e2e8f0' }}>
         <Button 
           onClick={handleClose}
           disabled={loading}
-          sx={{ textTransform: 'none' }}
+          sx={{ 
+            textTransform: 'none',
+            color: '#64748b',
+            fontWeight: 600,
+            '&:hover': {
+              bgcolor: 'rgba(100, 116, 139, 0.08)',
+            },
+          }}
         >
           Cancel
         </Button>
@@ -659,7 +744,14 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             onClick={handleBack}
             disabled={loading}
             startIcon={<ArrowBack />}
-            sx={{ textTransform: 'none' }}
+            sx={{ 
+              textTransform: 'none',
+              color: '#64748b',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: 'rgba(100, 116, 139, 0.08)',
+              },
+            }}
           >
             Back
           </Button>
@@ -671,9 +763,20 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             disabled={loading || !validateStep(currentStep)}
             endIcon={<ArrowForward />}
             sx={{
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+              bgcolor: '#0d9488',
+              color: 'white',
               textTransform: 'none',
-              px: 3,
+              fontWeight: 600,
+              px: 4,
+              py: 1,
+              borderRadius: '12px',
+              '&:hover': {
+                bgcolor: '#14b8a6',
+              },
+              '&:disabled': {
+                bgcolor: '#cbd5e1',
+                color: '#94a3b8',
+              },
             }}
           >
             Next
@@ -683,11 +786,22 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             onClick={handleSubmit}
             variant="contained"
             disabled={loading || !validateStep(currentStep)}
-            startIcon={loading ? <CircularProgress size={20} /> : <Business />}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Business />}
             sx={{
-              background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+              bgcolor: '#0d9488',
+              color: 'white',
               textTransform: 'none',
-              px: 3,
+              fontWeight: 600,
+              px: 4,
+              py: 1,
+              borderRadius: '12px',
+              '&:hover': {
+                bgcolor: '#14b8a6',
+              },
+              '&:disabled': {
+                bgcolor: '#cbd5e1',
+                color: '#94a3b8',
+              },
             }}
           >
             {loading ? 'Creating...' : 'Create Project'}

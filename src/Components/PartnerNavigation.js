@@ -10,11 +10,16 @@ const PartnerNavigation = () => {
   
   // Map routes to tab indices
   const getTabValue = () => {
-    return 0; // Only Dashboard tab now
+    if (location.pathname.includes('/marketplace')) return 1;
+    return 0; // Dashboard
   };
 
   const handleTabChange = (event, newValue) => {
-    navigate('/partner/dashboard');
+    if (newValue === 0) {
+      navigate('/partner/dashboard');
+    } else if (newValue === 1) {
+      navigate('/partner/marketplace');
+    }
   };
 
   return (
@@ -41,7 +46,7 @@ const PartnerNavigation = () => {
             mr: 2,
           }}
         >
-          CoreTeam
+          GuildSpace
         </Typography>
         <Tabs 
           value={getTabValue()} 
@@ -71,6 +76,7 @@ const PartnerNavigation = () => {
           }}
         >
           <Tab label="Dashboard" />
+          <Tab label="Marketplace" />
         </Tabs>
       </Box>
       

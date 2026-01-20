@@ -24,7 +24,7 @@ import PartnerWorkspaceView from './Components/PartnerWorkspaceView';
 import UserFlowSelector from './Components/UserFlowSelector';
 import NewProjectDialog from './Components/NewProjectDialog';
 import PricingPage from './Components/PricingPage';
-import AccountabilityPartnerLanding from './Components/AccountabilityPartnerLanding';
+import AdvisorLanding from './Components/AccountabilityPartnerLanding';
 import FeedbackHistory from './Components/FeedbackHistory';
 import FeedbackDialog from './Components/FeedbackDialog';
 import { API_BASE } from './config/api';
@@ -182,7 +182,7 @@ function Header() {
           },
         }}
       >
-        CoreTeam
+        GuildSpace
       </Typography>
       <SignedIn>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -524,7 +524,16 @@ function RouteWrapper({ children, loading, partnerChecked, showPartnerOnboarding
     );
   }
 
-  if (onboardingChecked && showOnboarding && !isPartner && !isFounder) {
+  // Always allow access to flow selector page
+  const currentPath = window.location.pathname;
+  if (currentPath === '/select-flow') {
+    return children;
+  }
+
+  // IMPORTANT: Don't show founder onboarding if user is on partner routes
+  // This prevents advisors from seeing founder onboarding questionnaire
+  const isOnPartnerRoute = currentPath.startsWith('/partner/');
+  if (onboardingChecked && showOnboarding && !isPartner && !isFounder && !isOnPartnerRoute) {
     return (
       <OnboardingDialog 
         open={showOnboarding} 
@@ -532,12 +541,6 @@ function RouteWrapper({ children, loading, partnerChecked, showPartnerOnboarding
         onSelectPartnerFlow={onSelectPartnerFlow}
       />
     );
-  }
-
-  // Always allow access to flow selector page
-  const currentPath = window.location.pathname;
-  if (currentPath === '/select-flow') {
-    return children;
   }
 
   if (isPartner) {
@@ -572,77 +575,170 @@ function AppContent() {
 
   const checkUserType = useCallback(async () => {
     try {
-      // First check if user is an accountability partner
-      const partnerResponse = await fetch(`${API_BASE}/accountability-partners/profile`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
+      // IMPORTANT: Only check for advisor if user is on partner routes
+      // This prevents founders from being incorrectly identified as partners
+      const isOnPartnerRoute = location.pathname.startsWith('/partner/');
+      
+      // Only check advisor profile if on partner routes
+      if (isOnPartnerRoute) {
+        const advisorResponse = await fetch(`${API_BASE}/advisors/profile`, {
+          headers: {
+            'X-Clerk-User-Id': user.id,
+          },
+        });
 
-      if (partnerResponse.ok) {
-        const partnerData = await partnerResponse.json();
-        // Check if we got actual profile data (not null or empty)
-        if (partnerData && partnerData !== null && Object.keys(partnerData).length > 0) {
-          // User is a partner - show partner dashboard
-          setIsPartner(true);
-          setPartnerChecked(true);
-          setLoading(false);
-          return;
+        if (advisorResponse.ok) {
+          const advisorData = await advisorResponse.json();
+          console.log('Advisor profile response:', advisorData);
+          // Check if we got actual profile data (not null or empty)
+          // Handle both null and empty object cases
+          if (advisorData !== null && advisorData !== undefined && typeof advisorData === 'object' && Object.keys(advisorData).length > 0) {
+            console.log('Advisor profile found, setting isPartner to true');
+            // User is a partner - show partner dashboard
+            setIsPartner(true);
+            setIsFounder(false); // Don't check founder status if they're an advisor
+            setShowOnboarding(false); // Don't show founder onboarding for advisors
+            setShowPartnerOnboarding(false); // Don't show partner onboarding if profile exists
+            setPartnerChecked(true);
+            setOnboardingChecked(true);
+            setLoading(false);
+            
+            // If user is on onboarding page but profile exists, redirect to dashboard
+            if (location.pathname === '/partner/onboarding') {
+              navigate('/partner/dashboard', { replace: true });
+            }
+            return;
+          } else {
+            console.log('Advisor profile check: profile is null/empty, advisorData:', advisorData);
+          }
+        } else {
+          console.log('Advisor profile check: response not ok, status:', advisorResponse.status);
+        }
+      } else {
+        // Not on partner route - skip advisor check
+        setIsPartner(false);
+      }
+
+      // Skip advisor retry check if not on partner routes
+      if (isOnPartnerRoute) {
+        // Check if advisor profile might exist but query failed - verify by checking advisor_profiles table directly
+        // This handles edge cases where the API might return null even though a profile exists
+        let hasAdvisorProfile = false;
+        try {
+          // Try to check if there's an advisor profile by checking the founder profile first
+          // If founder exists with onboarding_completed=false and has advisor-like data, they might be an advisor
+          const founderCheckResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
+            headers: {
+              'X-Clerk-User-Id': user.id,
+            },
+          });
+          if (founderCheckResponse.ok) {
+            const founderData = await founderCheckResponse.json();
+            // If founder exists but onboarding is incomplete, and they're trying to access partner routes,
+            // they might be an advisor whose profile check failed
+            if (founderData.exists && !founderData.onboarding_completed && location.pathname.startsWith('/partner/')) {
+              // Re-check advisor profile - might be a timing issue
+              const retryAdvisorResponse = await fetch(`${API_BASE}/advisors/profile`, {
+                headers: {
+                  'X-Clerk-User-Id': user.id,
+                },
+              });
+              if (retryAdvisorResponse.ok) {
+                const retryAdvisorData = await retryAdvisorResponse.json();
+                if (retryAdvisorData !== null && retryAdvisorData !== undefined && typeof retryAdvisorData === 'object' && Object.keys(retryAdvisorData).length > 0) {
+                  hasAdvisorProfile = true;
+                  setIsPartner(true);
+                  setIsFounder(false);
+                  setShowOnboarding(false);
+                  setPartnerChecked(true);
+                  setOnboardingChecked(true);
+                  setLoading(false);
+                  return;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore errors in this check
+          console.log('Error in advisor profile retry check:', e);
         }
       }
 
       // Not a partner (or profile doesn't exist yet), check founder status
-      setIsPartner(false);
-      const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      const onboardingData = await onboardingResponse.json();
-      
-      // Check if user exists as founder
-      if (onboardingData.exists) {
-        setIsFounder(true);
-        // Check if onboarding is needed
-        if (!onboardingData.onboarding_completed || 
-            !onboardingData.has_purpose || !onboardingData.has_skills) {
-          setShowOnboarding(true);
-        } else {
-          setShowOnboarding(false);
-        }
-      } else {
-        // User doesn't exist as founder
-        setIsFounder(false);
-        setShowOnboarding(false);
+      // BUT: Don't show founder onboarding if user is on partner routes (they're likely an advisor)
+      if (!isOnPartnerRoute) {
+        setIsPartner(false);
         
-        // If user is not a partner either, show flow selector
-        // (This will be handled by checking if they're on /select-flow route)
-      }
-      setOnboardingChecked(true);
-      setPartnerChecked(true);
-    } catch (error) {
-      console.error('Error checking user type:', error);
-      // If error, check founder onboarding to be safe
-      try {
         const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
           headers: {
             'X-Clerk-User-Id': user.id,
           },
         });
         const onboardingData = await onboardingResponse.json();
-        if (!onboardingData.exists || !onboardingData.onboarding_completed || 
-            !onboardingData.has_purpose || !onboardingData.has_skills) {
+        
+        // Check if user exists as founder
+        if (onboardingData.exists) {
+          setIsFounder(true);
+          // IMPORTANT: Don't show founder onboarding if user is on partner routes
+          // This prevents advisors from seeing founder onboarding questionnaire
+          if (!onboardingData.onboarding_completed || 
+              !onboardingData.has_purpose || !onboardingData.has_skills) {
+            setShowOnboarding(true);
+          } else {
+            setShowOnboarding(false);
+          }
+        } else {
+          // User doesn't exist as founder
+          setIsFounder(false);
+          setShowOnboarding(false);
+          
+          // If user is not a partner either, show flow selector
+          // (This will be handled by checking if they're on /select-flow route)
+        }
+      } else {
+        // On partner route but no advisor profile found - don't check founder status
+        setIsFounder(false);
+        setShowOnboarding(false);
+      }
+      setOnboardingChecked(true);
+      setPartnerChecked(true);
+    } catch (error) {
+      console.error('Error checking user type:', error);
+      // If error, check founder onboarding to be safe
+      // BUT: Don't show onboarding if user is on partner routes
+      const isOnPartnerRoute = location.pathname.startsWith('/partner/');
+      if (!isOnPartnerRoute) {
+        setIsPartner(false);
+        try {
+          const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
+            headers: {
+              'X-Clerk-User-Id': user.id,
+            },
+          });
+          const onboardingData = await onboardingResponse.json();
+          if (onboardingData.exists) {
+            setIsFounder(true);
+            if (!onboardingData.onboarding_completed || 
+                !onboardingData.has_purpose || !onboardingData.has_skills) {
+              setShowOnboarding(true);
+            }
+          } else {
+            setIsFounder(false);
+          }
+        } catch (e) {
+          setIsFounder(false);
           setShowOnboarding(true);
         }
-      } catch (e) {
-        setShowOnboarding(true);
+      } else {
+        setIsPartner(false);
+        setIsFounder(false);
       }
       setOnboardingChecked(true);
       setPartnerChecked(true);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, location.pathname, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -653,12 +749,32 @@ function AppContent() {
         setLoading(false);
         setPartnerChecked(true);
         setOnboardingChecked(true);
+        setIsPartner(false); // Reset partner status on flow selector
+        setIsFounder(false); // Reset founder status on flow selector
         return;
       }
       
-      // If user is on partner onboarding page, allow them to stay there
+      // If user is on partner onboarding page, skip user type check
+      // PartnerOnboardingPage will handle its own logic
       if (location.pathname === '/partner/onboarding') {
+        setLoading(false);
+        setPartnerChecked(true);
+        setOnboardingChecked(true);
+        return;
+      }
+      
+      // If user is on partner dashboard/marketplace routes, prioritize advisor check
+      // and don't show founder onboarding even if founder profile is incomplete
+      if (location.pathname.startsWith('/partner/')) {
         checkUserType();
+        return;
+      }
+      
+      // For founder routes (like /discover), check founder status first, not partner
+      // This prevents founders from being incorrectly identified as partners
+      if (location.pathname === '/discover' || location.pathname.startsWith('/workspace') || location.pathname.startsWith('/projects')) {
+        // Check founder status first for founder routes
+        checkFounderStatus();
         return;
       }
       
@@ -666,6 +782,39 @@ function AppContent() {
       checkUserType();
     }
   }, [user, checkUserType, location.pathname]);
+
+  const checkFounderStatus = useCallback(async () => {
+    try {
+      setIsPartner(false); // Explicitly set to false for founder routes
+      const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      const onboardingData = await onboardingResponse.json();
+      
+      if (onboardingData.exists) {
+        setIsFounder(true);
+        if (!onboardingData.onboarding_completed || 
+            !onboardingData.has_purpose || !onboardingData.has_skills) {
+          setShowOnboarding(true);
+        } else {
+          setShowOnboarding(false);
+        }
+      } else {
+        setIsFounder(false);
+        setShowOnboarding(false);
+      }
+      setOnboardingChecked(true);
+      setPartnerChecked(true);
+    } catch (error) {
+      console.error('Error checking founder status:', error);
+      setOnboardingChecked(true);
+      setPartnerChecked(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -701,15 +850,24 @@ function AppContent() {
         } />
         
         {/* Partner routes */}
+        <Route path="/partner/marketplace" element={
+          loading || !partnerChecked ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <CircularProgress />
+            </Box>
+          ) : (
+            // Always render PartnerDashboard - it will handle checking for profile and redirecting if needed
+            <PartnerDashboard />
+          )
+        } />
         <Route path="/partner/dashboard" element={
           loading || !partnerChecked ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress />
             </Box>
-          ) : isPartner ? (
-            <PartnerDashboard />
           ) : (
-            <Navigate to="/discover" replace />
+            // Always render PartnerDashboard - it will handle checking for profile and redirecting if needed
+            <PartnerDashboard />
           )
         } />
         <Route path="/partner/workspaces/:workspaceId" element={
@@ -957,7 +1115,7 @@ function AppContent() {
             width: '100%',
             position: 'relative'
           }}>
-            <AccountabilityPartnerLanding />
+            <AdvisorLanding />
           </Box>
         } />
         <Route path="/" element={<Navigate to="/select-flow" replace />} />
@@ -993,7 +1151,7 @@ function App() {
         
         <SignedOut>
           <Routes>
-            {/* Accountability Partner Landing Page */}
+            {/* Advisor Landing Page */}
             <Route path="/accountable_partner" element={
               <Box sx={{ 
                 minHeight: '100vh',
@@ -1003,7 +1161,7 @@ function App() {
                 overflowY: 'auto',
                 overflowX: 'hidden'
               }}>
-                <AccountabilityPartnerLanding />
+                <AdvisorLanding />
               </Box>
             } />
             {/* Normal Landing Page - catch-all for signed-out users */}
@@ -1055,7 +1213,7 @@ function AppWithHeader() {
         position: 'relative'
       }}>
         {isAccountablePartnerRoute ? (
-          <AccountabilityPartnerLanding />
+          <AdvisorLanding />
         ) : (
           <AppContent />
         )}

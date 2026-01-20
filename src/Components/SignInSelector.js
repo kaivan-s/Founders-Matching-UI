@@ -44,7 +44,7 @@ const SignInSelector = () => {
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
-          Welcome to CoreTeam
+          Welcome to GuildSpace
         </Typography>
         <Typography variant="h6" color="text.secondary">
           Choose how you'd like to sign in
@@ -102,7 +102,7 @@ const SignInSelector = () => {
                 <Handshake sx={{ fontSize: 40, color: '#0d9488' }} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                    Sign in as Accountability Partner
+                    Sign in as Advisor
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Help founders succeed and build your network

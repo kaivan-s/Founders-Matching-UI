@@ -9,7 +9,7 @@ const SEO = ({
   title,
   description,
   keywords,
-  image = 'https://founder-match.in/CoreTeam.png',
+  image = 'https://founder-match.in/GuildSpace.png',
   url,
   type = 'website',
   noindex = false,
@@ -17,10 +17,10 @@ const SEO = ({
 }) => {
   const siteUrl = 'https://founder-match.in';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
-  const fullTitle = title ? `${title} | CoreTeam` : 'CoreTeam - Find Your Perfect Co-Founder';
-  const defaultDescription = 'Find your ideal co-founder with CoreTeam. Our platform goes beyond matching - we help you avoid ghosting, clarify equity splits, and build successful partnerships.';
+  const fullTitle = title ? `${title} | GuildSpace` : 'GuildSpace - Find Your Perfect Co-Founder';
+  const defaultDescription = 'Find your ideal co-founder with GuildSpace. Our platform goes beyond matching - we help you avoid ghosting, clarify equity splits, and build successful partnerships.';
   const metaDescription = description || defaultDescription;
-  const defaultKeywords = 'co-founder, cofounder matching, find co-founder, startup partner, business partner, equity split, founder matching, startup collaboration, accountability partner';
+  const defaultKeywords = 'co-founder, cofounder matching, find co-founder, startup partner, business partner, equity split, founder matching, startup collaboration, advisor';
   const metaKeywords = keywords || defaultKeywords;
 
   return (
@@ -45,7 +45,7 @@ const SEO = ({
       <meta property="og:image" content={image} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="CoreTeam" />
+      <meta property="og:site_name" content="GuildSpace" />
       <meta property="og:locale" content="en_US" />
       
       {/* Twitter Card */}
@@ -68,4 +68,3 @@ const SEO = ({
 };
 
 export default SEO;
-

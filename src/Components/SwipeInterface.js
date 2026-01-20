@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
 import AdvancedSearch from './AdvancedSearch';
+import OnboardingTutorial from './OnboardingTutorial';
 import { API_BASE } from '../config/api';
 
 const SwipeInterface = () => {
@@ -65,11 +66,42 @@ const SwipeInterface = () => {
     looking_for: ''
   });
   const [preferences, setPreferences] = useState(() => {
-    const saved = localStorage.getItem('discoveryPreferences');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('discoveryPreferences');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Error parsing preferences from localStorage:', e);
+      return {};
+    }
   });
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [plan, setPlan] = useState(null);
+  const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
+  const [showTutorial, setShowTutorial] = useState(() => {
+    // Check if user has completed tutorial
+    try {
+      return !localStorage.getItem('discoveryTutorialCompleted');
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const fetchSwipeLimit = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/founders/swipe-limit`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSwipeLimit(data);
+      }
+    } catch (err) {
+      console.error('Error fetching swipe limit:', err);
+    }
+  }, [user]);
 
   const fetchFounders = useCallback(async (currentFilters, currentPreferences, currentOffset = 0, append = false) => {
     if (!user || !user.id) {
@@ -182,10 +214,16 @@ const SwipeInterface = () => {
       setOffset(0);
       setHasMore(true);
       // Fetch with initial preferences if they exist
-      const savedPrefs = localStorage.getItem('discoveryPreferences');
-      const initialPrefs = savedPrefs ? JSON.parse(savedPrefs) : {};
-      fetchFounders(filters, initialPrefs, 0, false);
+      try {
+        const savedPrefs = localStorage.getItem('discoveryPreferences');
+        const initialPrefs = savedPrefs ? JSON.parse(savedPrefs) : {};
+        fetchFounders(filters, initialPrefs, 0, false);
+      } catch (e) {
+        console.error('Error parsing preferences from localStorage:', e);
+        fetchFounders(filters, {}, 0, false);
+      }
       fetchPlan();
+      fetchSwipeLimit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -287,8 +325,16 @@ const SwipeInterface = () => {
     // useEffect will handle fetching
   };
 
-
   const handleSwipe = async (founderId, direction, projectId = null) => {
+    // Check swipe limit for right swipes
+    if (direction === 'right' && swipeLimit && swipeLimit.max_allowed !== -1) {
+      if (!swipeLimit.can_swipe) {
+        setError(`Swipe limit reached! You've used ${swipeLimit.current_count} of ${swipeLimit.max_allowed} swipes. Upgrade to Pro for unlimited discovery.`);
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+    }
+    
     setSwiping(founderId);
     setSwipeDirection(direction); // Set animation direction
     
@@ -324,6 +370,11 @@ const SwipeInterface = () => {
       }
 
       const swipeResult = await response.json();
+      
+      // Refresh swipe limit after successful right swipe
+      if (direction === 'right') {
+        fetchSwipeLimit();
+      }
 
       // Note: Credits system replaced with plan-based limits
       
@@ -429,11 +480,11 @@ const SwipeInterface = () => {
           sx={{
             textAlign: 'center',
             bgcolor: '#ffffff',
-            borderRadius: 3,
+            borderRadius: '16px',
             p: 5,
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             border: '1px solid',
-                          borderColor: 'rgba(229, 231, 235, 0.8)',
+            borderColor: '#e2e8f0',
             maxWidth: '450px',
           }}
         >
@@ -444,9 +495,9 @@ const SwipeInterface = () => {
             width: 88,
             height: 88,
             borderRadius: '50%',
-            background: '#2563eb',
+            bgcolor: '#1e3a8a',
             mb: 3,
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+            boxShadow: '0 4px 12px rgba(30, 58, 138, 0.2)',
           }}>
             <Business sx={{ fontSize: 40, color: 'white' }} />
           </Box>
@@ -467,13 +518,15 @@ const SwipeInterface = () => {
                 textTransform: 'none',
                 px: 3.5,
                 py: 1.25,
-                background: '#2563eb',
-                fontWeight: 500,
+                bgcolor: '#1e3a8a',
+                color: 'white',
+                fontWeight: 600,
                 fontSize: '0.9375rem',
-                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(30, 58, 138, 0.25)',
                 '&:hover': {
-                  background: '#1d4ed8',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                  bgcolor: '#3b82f6',
+                  boxShadow: '0 4px 12px rgba(30, 58, 138, 0.3)',
                 },
               }}
             >
@@ -549,6 +602,18 @@ const SwipeInterface = () => {
           minHeight: 0,
         }}>
           {/* Filters and Preferences */}
+                {swipeLimit && swipeLimit.max_allowed !== -1 && (
+                  <Chip
+                    label={`${swipeLimit.remaining} swipes remaining`}
+                    size="small"
+                    color={swipeLimit.remaining <= 2 ? 'error' : swipeLimit.remaining <= 5 ? 'warning' : 'default'}
+                    sx={{ 
+                      fontSize: '0.7rem',
+                      height: '20px',
+                      fontWeight: swipeLimit.remaining <= 2 ? 600 : 400
+                    }}
+                  />
+                )}
           <Box sx={{ 
             mb: 0.5, 
             px: { xs: 1, sm: 2 },
@@ -574,12 +639,15 @@ const SwipeInterface = () => {
                 )}
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                <FilterBar 
-                  onFilterChange={handleFilterChange} 
-                  activeFilters={filters} 
-                  onPreferencesChange={handlePreferencesChange} 
-                />
+                <Box data-tutorial-id="filter-bar">
+                  <FilterBar 
+                    onFilterChange={handleFilterChange} 
+                    activeFilters={filters} 
+                    onPreferencesChange={handlePreferencesChange} 
+                  />
+                </Box>
                 <Button
+                  data-tutorial-id="advanced-search-btn"
                   variant="outlined"
                   startIcon={<Search />}
                   onClick={() => setAdvancedSearchOpen(true)}
@@ -599,7 +667,9 @@ const SwipeInterface = () => {
             </Box>
           </Box>
           {/* Card Carousel Container - Full Width Horizontal Layout */}
-          <Box sx={{ 
+          <Box 
+            data-tutorial-id="project-cards"
+            sx={{ 
             position: 'relative',
             width: '100%',
             flex: '1 1 auto',
@@ -772,9 +842,9 @@ const SwipeInterface = () => {
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        borderRadius: 3,
+                        borderRadius: '16px',
                         border: isCurrentCard ? '1.5px solid' : '1px solid',
-                        borderColor: isCurrentCard ? 'rgba(37, 99, 235, 0.2)' : 'rgba(229, 231, 235, 0.6)',
+                        borderColor: isCurrentCard ? 'rgba(30, 58, 138, 0.2)' : 'rgba(226, 232, 240, 0.6)',
                         cursor: isCurrentCard ? 'pointer' : 'default',
                         overflow: 'hidden',
                         position: 'relative',
@@ -793,7 +863,7 @@ const SwipeInterface = () => {
                         },
                         '&:hover': isCurrentCard ? {
                           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
-                          borderColor: 'rgba(37, 99, 235, 0.3)',
+                          borderColor: 'rgba(30, 58, 138, 0.3)',
                           transform: 'translateY(-1px)',
                         } : {},
                       }}
@@ -811,10 +881,10 @@ const SwipeInterface = () => {
                           size="small"
                           sx={{
                             background: founder.preference_score >= 80 ? 
-                              '#059669' :
+                              '#1e3a8a' :
                               founder.preference_score >= 60 ?
-                              '#2563eb' :
-                              '#6b7280',
+                              '#1e3a8a' :
+                              '#64748b',
                             color: 'white',
                             fontWeight: 600,
                             fontSize: isCurrentCard ? '0.6875rem' : '0.625rem',
@@ -856,10 +926,10 @@ const SwipeInterface = () => {
                           sx={{ 
                             width: { xs: 40, sm: 44 },
                             height: { xs: 40, sm: 44 },
-                            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                            bgcolor: '#1e3a8a',
                             fontSize: { xs: '0.875rem', sm: '1rem' },
                             fontWeight: 600,
-                            boxShadow: isCurrentCard ? '0 2px 8px rgba(37, 99, 235, 0.15)' : '0 1px 4px rgba(0, 0, 0, 0.08)',
+                            boxShadow: isCurrentCard ? '0 2px 8px rgba(30, 58, 138, 0.15)' : '0 1px 4px rgba(0, 0, 0, 0.08)',
                             border: '1.5px solid white',
                             transition: 'all 0.25s ease',
                             flexShrink: 0,
@@ -956,10 +1026,10 @@ const SwipeInterface = () => {
                                         textTransform: 'capitalize',
                                         fontSize: '0.625rem',
                                         height: 20,
-                                        bgcolor: 'rgba(37, 99, 235, 0.1)',
-                                        color: '#2563eb',
+                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                        color: '#1e3a8a',
                                         fontWeight: 500,
-                                        border: '1px solid rgba(37, 99, 235, 0.2)',
+                                        border: '1px solid rgba(30, 58, 138, 0.2)',
                                       }}
                                     />
                                   </Box>
@@ -984,10 +1054,10 @@ const SwipeInterface = () => {
                                         sx={{
                                           fontSize: '0.625rem',
                                           height: 20,
-                                        bgcolor: 'rgba(5, 150, 105, 0.1)',
-                                        color: '#059669',
+                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                        color: '#1e3a8a',
                                         fontWeight: 500,
-                                        border: '1px solid rgba(5, 150, 105, 0.2)',
+                                        border: '1px solid rgba(30, 58, 138, 0.2)',
                                         }}
                                       />
                                     ))}
@@ -998,8 +1068,8 @@ const SwipeInterface = () => {
                                         sx={{
                                           fontSize: '0.625rem',
                                           height: 20,
-                                          bgcolor: 'rgba(20, 184, 166, 0.08)',
-                                          color: '#0d9488',
+                                          bgcolor: 'rgba(30, 58, 138, 0.08)',
+                                          color: '#1e3a8a',
                                           fontWeight: 500,
                                         }}
                                       />
@@ -1093,11 +1163,11 @@ const SwipeInterface = () => {
                             startIcon={<Close sx={{ fontSize: 16 }} />}
                             sx={{ 
                               py: 1.125,
-                              borderRadius: 2,
+                              borderRadius: '12px',
                               borderWidth: 1.5,
                               borderColor: '#e2e8f0',
                               color: '#64748b',
-                              fontWeight: 500,
+                              fontWeight: 600,
                               fontSize: '0.8125rem',
                               textTransform: 'none',
                               transition: 'all 0.2s ease',
@@ -1120,6 +1190,7 @@ const SwipeInterface = () => {
                             Skip
                           </Button>
                           <Button
+                            data-tutorial-id="connect-btn"
                             variant="contained"
                             fullWidth
                             onClick={(e) => {
@@ -1130,12 +1201,13 @@ const SwipeInterface = () => {
                             startIcon={swiping === founder?.id ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Handshake sx={{ fontSize: 16 }} />}
                             sx={{ 
                               py: 1.125,
-                              borderRadius: 2,
-                              background: '#2563eb',
-                              fontWeight: 500,
+                              borderRadius: '12px',
+                              bgcolor: '#1e3a8a',
+                              color: 'white',
+                              fontWeight: 600,
                               fontSize: '0.8125rem',
                               textTransform: 'none',
-                              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                              boxShadow: '0 2px 8px rgba(30, 58, 138, 0.25)',
                               transition: 'all 0.2s ease',
                               WebkitFontSmoothing: 'antialiased',
                               MozOsxFontSmoothing: 'grayscale',
@@ -1145,12 +1217,13 @@ const SwipeInterface = () => {
                                 MozOsxFontSmoothing: 'grayscale',
                               },
                               '&:hover': {
-                                background: '#1d4ed8',
-                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                                bgcolor: '#3b82f6',
+                                boxShadow: '0 4px 12px rgba(30, 58, 138, 0.3)',
                                 transform: 'translateY(-0.5px)',
                               },
                               '&:disabled': {
-                                background: '#2563eb',
+                                bgcolor: '#cbd5e1',
+                                color: '#94a3b8',
                                 opacity: 0.6,
                               },
                             }}
@@ -1169,7 +1242,9 @@ const SwipeInterface = () => {
           </Box>
 
           {/* Navigation and Progress Indicators - Fixed at bottom */}
-          <Box sx={{ 
+          <Box 
+            data-tutorial-id="navigation-controls"
+            sx={{ 
             display: 'flex', 
             flexDirection: 'column',
             alignItems: 'center',
@@ -1233,6 +1308,34 @@ const SwipeInterface = () => {
                 </Typography>
               )}
             </Box>
+
+            {/* Loading More Indicator */}
+            {loadingMore && (
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 0.5,
+                opacity: 0.8,
+              }}>
+                <CircularProgress 
+                  size={14} 
+                  sx={{ 
+                    color: '#1e3a8a',
+                  }} 
+                />
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    color: '#1e3a8a',
+                    fontWeight: 400,
+                  }}
+                >
+                  Loading more projects...
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Box>
       )}
@@ -1269,7 +1372,7 @@ const SwipeInterface = () => {
                   sx={{ 
                     width: 64,
                     height: 64,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                    bgcolor: '#1e3a8a',
                     fontSize: '1.5rem',
                     fontWeight: 600,
                   }}
@@ -1320,7 +1423,10 @@ const SwipeInterface = () => {
                               textTransform: 'capitalize',
                               fontSize: '0.7rem',
                               height: 20,
-                              bgcolor: 'grey.100',
+                              bgcolor: 'rgba(30, 58, 138, 0.1)',
+                              color: '#1e3a8a',
+                              fontWeight: 500,
+                              border: '1px solid rgba(30, 58, 138, 0.2)',
                             }}
                           />
                         )}
@@ -1342,10 +1448,10 @@ const SwipeInterface = () => {
                                 sx={{
                                   fontSize: '0.7rem',
                                   height: 24,
-                                  bgcolor: 'rgba(20, 184, 166, 0.1)',
-                                  color: '#0d9488',
+                                  bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                  color: '#1e3a8a',
                                   fontWeight: 600,
-                                  border: '1px solid rgba(20, 184, 166, 0.3)',
+                                  border: '1px solid rgba(30, 58, 138, 0.3)',
                                 }}
                               />
                             ))}
@@ -1370,7 +1476,10 @@ const SwipeInterface = () => {
                               textTransform: 'capitalize',
                               fontSize: '0.7rem',
                               height: 20,
-                              bgcolor: 'grey.100',
+                              bgcolor: 'rgba(30, 58, 138, 0.1)',
+                              color: '#1e3a8a',
+                              fontWeight: 500,
+                              border: '1px solid rgba(30, 58, 138, 0.2)',
                             }}
                           />
                         )}
@@ -1472,10 +1581,17 @@ const SwipeInterface = () => {
                               minHeight: 44,
                               fontSize: '0.75rem',
                               px: 2,
+                              color: '#64748b',
+                              fontWeight: 500,
+                              textTransform: 'none',
+                              '&.Mui-selected': {
+                                color: '#1e3a8a',
+                                fontWeight: 600,
+                              },
                             },
                             '& .MuiTabs-indicator': {
                               height: 3,
-                              backgroundColor: '#0d9488',
+                              backgroundColor: '#1e3a8a',
                               borderRadius: '3px 3px 0 0',
                             },
                           }}
@@ -1588,7 +1704,18 @@ const SwipeInterface = () => {
                 disabled={swiping === selectedFounder.id}
                 variant="outlined"
                 startIcon={<Close />}
-                sx={{ textTransform: 'none' }}
+                sx={{ 
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
+                  '&:hover': {
+                    borderColor: '#ef4444',
+                    color: '#ef4444',
+                    bgcolor: '#fef2f2',
+                  },
+                }}
               >
                 Skip
               </Button>
@@ -1599,7 +1726,20 @@ const SwipeInterface = () => {
                 disabled={swiping === selectedFounder.id}
                 variant="contained"
                 startIcon={<Handshake />}
-                sx={{ textTransform: 'none' }}
+                sx={{ 
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '12px',
+                  bgcolor: '#1e3a8a',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: '#3b82f6',
+                  },
+                  '&:disabled': {
+                    bgcolor: '#cbd5e1',
+                    color: '#94a3b8',
+                  },
+                }}
               >
                 Connect
               </Button>
@@ -1614,6 +1754,14 @@ const SwipeInterface = () => {
         onClose={() => setAdvancedSearchOpen(false)}
         plan={plan}
       />
+
+      {/* Onboarding Tutorial */}
+      {!loading && founders.length > 0 && (
+        <OnboardingTutorial
+          isFirstTime={showTutorial}
+          onComplete={() => setShowTutorial(false)}
+        />
+      )}
       </Box>
     </Box>
   );

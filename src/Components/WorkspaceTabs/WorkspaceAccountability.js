@@ -37,7 +37,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   const [loading, setLoading] = useState(true);
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
-  const [partnerToRemove, setPartnerToRemove] = useState(null);
+  const [advisorToRemove, setAdvisorToRemove] = useState(null);
   const [scorecard, setScorecard] = useState(null);
   const [scorecardLoading, setScorecardLoading] = useState(false);
   const [quarterlyReviewOpen, setQuarterlyReviewOpen] = useState(false);
@@ -76,7 +76,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
     setScorecardLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/partner-impact-scorecard`,
+        `${API_BASE}/workspaces/${workspaceId}/advisor-impact-scorecard`,
         {
           headers: {
             'X-Clerk-User-Id': user.id,
@@ -86,7 +86,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.has_partner) {
+        if (data.has_advisor) {
           setScorecard(data);
         }
       }
@@ -117,11 +117,11 @@ const WorkspaceAccountability = ({ workspaceId }) => {
 
       if (response.ok) {
         const data = await response.json();
-        // Filter for accountability partners
-        const accountabilityPartners = data.filter(
-          (p) => p.role === 'ACCOUNTABILITY_PARTNER'
+        // Filter for advisors
+        const advisors = data.filter(
+          (p) => p.role === 'ADVISOR'
         );
-        setPartners(accountabilityPartners);
+        setPartners(advisors);
       }
     } catch (err) {
       // Error fetching partners
@@ -131,17 +131,17 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   };
 
 
-  const handleRemovePartnerClick = (partnerUserId) => {
-    setPartnerToRemove(partnerUserId);
+  const handleRemoveAdvisorClick = (advisorUserId) => {
+    setAdvisorToRemove(advisorUserId);
     setConfirmRemoveOpen(true);
   };
 
   const handleConfirmRemove = async () => {
-    if (!partnerToRemove) return;
+    if (!advisorToRemove) return;
 
     try {
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/accountability-partners/${partnerToRemove}`,
+        `${API_BASE}/workspaces/${workspaceId}/advisors/${advisorToRemove}`,
         {
           method: 'DELETE',
           headers: {
@@ -156,7 +156,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       }
 
       setConfirmRemoveOpen(false);
-      setPartnerToRemove(null);
+      setAdvisorToRemove(null);
       fetchPartners();
       fetchScorecard();
     } catch (err) {
@@ -169,10 +169,10 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-            Accountability Partners
+            Advisors
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Add accountability partners to help track progress and provide feedback on your startup
+            Add advisors to help track progress and provide feedback on your startup
           </Typography>
         </Box>
       </Box>
@@ -183,7 +183,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
           startIcon={<Add />}
           onClick={() => {
             if (plan && !plan.accountability?.canUseMarketplace) {
-              alert('Marketplace access requires Pro or Pro+ plan. Upgrade to access accountability partners.');
+              alert('Marketplace access requires Pro or Pro+ plan. Upgrade to access advisors.');
               return;
             }
             setMarketplaceOpen(true);
@@ -197,7 +197,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       {plan && !plan.accountability?.canUseMarketplace && (
         <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
           <Typography variant="body2">
-            <strong>Marketplace access requires Pro or Pro+ plan.</strong> Upgrade to browse and connect with accountability partners from our marketplace. 
+            <strong>Marketplace access requires Pro or Pro+ plan.</strong> Upgrade to browse and connect with advisors from our marketplace. 
             <Button 
               size="small" 
               onClick={() => window.location.href = '/pricing'}
@@ -218,7 +218,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
           <CardContent>
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography color="text.secondary" sx={{ mb: 2 }}>
-                No accountability partners yet
+                No advisors yet
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Browse the marketplace to find available partners
@@ -251,7 +251,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleRemovePartnerClick(partner.user_id)}
+                      onClick={() => handleRemoveAdvisorClick(partner.user_id)}
                     >
                       Remove
                     </Button>
@@ -264,7 +264,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       )}
 
       {/* Partner Impact Scorecard */}
-      {scorecard && scorecard.has_partner && (
+      {scorecard && scorecard.has_advisor && (
         <>
           <Divider sx={{ my: 4 }} />
           <Box>
@@ -277,11 +277,11 @@ const WorkspaceAccountability = ({ workspaceId }) => {
               <Card sx={{ mb: 3, border: '1px solid #e2e8f0', borderRadius: 2 }}>
                 <CardContent>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
-                    Contact Your Partner
+                    Contact Your Advisor
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      {scorecard.partner.name} · {scorecard.contact_info.timezone}
+                      {scorecard.advisor.name} · {scorecard.contact_info.timezone}
                     </Typography>
                     {scorecard.contact_info.contact_note && (
                       <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
@@ -296,7 +296,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                           startIcon={<Email />}
                           href={`mailto:${scorecard.contact_info.email}`}
                         >
-                          Email {scorecard.partner.name.split(' ')[0]}
+                          Email {scorecard.advisor.name.split(' ')[0]}
                         </Button>
                       )}
                       {scorecard.contact_info.meeting_link && (
@@ -384,7 +384,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Box>
                     <Typography variant="body2" sx={{ mb: 1 }}>
-                      How valuable has your accountability partner been this quarter?
+                      How valuable has your advisor been this quarter?
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 0.5 }}>
                       {[1, 2, 3, 4, 5].map((rating) => (
@@ -443,7 +443,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                               'X-Clerk-User-Id': user.id,
                             },
                             body: JSON.stringify({
-                              partner_user_id: scorecard.partner.id,
+                              advisor_user_id: scorecard.advisor.id,
                               quarter: quarterlyReview.quarter,
                               value_rating: quarterlyReview.value_rating,
                               continue_next_quarter: quarterlyReview.continue_next_quarter,
@@ -477,10 +477,10 @@ const WorkspaceAccountability = ({ workspaceId }) => {
 
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          About Accountability Partners
+          About Advisors
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Accountability partners can:
+          Advisors can:
         </Typography>
         <Box component="ul" sx={{ pl: 3, mb: 2 }}>
           <li>
@@ -500,7 +500,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
           </li>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Accountability partners cannot:
+          Advisors cannot:
         </Typography>
         <Box component="ul" sx={{ pl: 3 }}>
           <li>
@@ -532,21 +532,21 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         open={confirmRemoveOpen}
         onClose={() => {
           setConfirmRemoveOpen(false);
-          setPartnerToRemove(null);
+          setAdvisorToRemove(null);
         }}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Remove Accountability Partner</DialogTitle>
+        <DialogTitle>Remove Advisor</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to remove this partner from the workspace? They will lose access to all workspace data.
+            Are you sure you want to remove this advisor from the workspace? They will lose access to all workspace data.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => {
             setConfirmRemoveOpen(false);
-            setPartnerToRemove(null);
+            setAdvisorToRemove(null);
           }}>
             Cancel
           </Button>

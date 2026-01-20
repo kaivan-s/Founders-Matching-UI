@@ -32,7 +32,6 @@ import {
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import { supabase } from '../config/supabase';
-import PartnerOnboardingWizard from './PartnerOnboardingWizard';
 import FeedbackDialog from './FeedbackDialog';
 
 const NetworkBackground = () => {
@@ -213,7 +212,6 @@ const NetworkBackground = () => {
 const LandingPage = () => {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
-  const [partnerWizardOpen, setPartnerWizardOpen] = useState(false);
   const [pendingPartnerOnboarding, setPendingPartnerOnboarding] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
@@ -256,9 +254,9 @@ const LandingPage = () => {
             fontWeight: 800,
             letterSpacing: '-0.03em',
           }}
-          aria-label="CoreTeam - Co-founder Matching Platform"
+          aria-label="GuildSpace - Co-founder Matching Platform"
         >
-          CoreTeam
+          GuildSpace
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {!isSignedIn && (
@@ -538,7 +536,7 @@ const LandingPage = () => {
           </Grid>
         </Box>
 
-        {/* What CoreTeam Does Differently */}
+        {/* What GuildSpace Does Differently */}
         <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 12 } }}>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
@@ -551,7 +549,7 @@ const LandingPage = () => {
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              What CoreTeam Does Differently
+              What GuildSpace Does Differently
             </Typography>
             <Typography 
               variant="body1" 
@@ -804,7 +802,7 @@ const LandingPage = () => {
                   'Full workspace OS',
                   'Equity & roles',
                   'Tasks board',
-                  'Accountability partner marketplace'
+                  'Advisor marketplace'
                 ]
               },
               {
@@ -896,7 +894,7 @@ const LandingPage = () => {
             ))}
           </Grid>
 
-          {/* Accountability Partner Pricing */}
+          {/* Advisor Pricing */}
           <Box sx={{ 
             bgcolor: '#ffffff',
             p: { xs: 4, md: 6 },
@@ -925,7 +923,7 @@ const LandingPage = () => {
                 fontSize: { xs: '1.75rem', md: '2rem' },
               }}
             >
-              For Accountability Partners
+              For Advisors
             </Typography>
             <Grid container spacing={4} sx={{ mb: 3 }}>
               <Grid item xs={12} md={6}>
@@ -1046,7 +1044,7 @@ const LandingPage = () => {
               fontSize: '1.25rem',
             }}
           >
-            CoreTeam
+            GuildSpace
           </Typography>
           <Typography 
             variant="body2" 
@@ -1055,7 +1053,7 @@ const LandingPage = () => {
               fontSize: '0.9rem',
             }}
           >
-            © {new Date().getFullYear()} CoreTeam. All rights reserved.
+            © {new Date().getFullYear()} GuildSpace. All rights reserved.
           </Typography>
           {isSignedIn && (
             <Button
@@ -1076,16 +1074,6 @@ const LandingPage = () => {
           )}
         </Box>
       </Container>
-
-      {/* Partner Onboarding Wizard */}
-      <PartnerOnboardingWizard
-        open={partnerWizardOpen && isSignedIn}
-        onClose={() => setPartnerWizardOpen(false)}
-        onComplete={(profile) => {
-          setPartnerWizardOpen(false);
-          // Partner profile created successfully
-        }}
-      />
 
       {/* Feedback Dialog */}
       <FeedbackDialog

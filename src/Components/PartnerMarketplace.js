@@ -48,7 +48,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
     setError(null);
     try {
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/accountability-partners/marketplace`,
+        `${API_BASE}/workspaces/${workspaceId}/advisors/marketplace`,
         {
           headers: {
             'X-Clerk-User-Id': user.id,
@@ -69,18 +69,18 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
     }
   };
 
-  const handleRequestPartner = async (partnerUserId) => {
-    setRequestingPartnerId(partnerUserId);
+  const handleRequestAdvisor = async (advisorUserId) => {
+    setRequestingPartnerId(advisorUserId);
     try {
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/accountability-partners/request`,
+        `${API_BASE}/workspaces/${workspaceId}/advisors/request`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-Clerk-User-Id': user.id,
           },
-          body: JSON.stringify({ partner_user_id: partnerUserId }),
+          body: JSON.stringify({ advisor_user_id: advisorUserId }),
         }
       );
 
@@ -90,7 +90,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
       }
 
       if (onRequestPartner) {
-        onRequestPartner(partnerUserId);
+        onRequestPartner(advisorUserId);
       }
       
       // Refresh partners list to update request status
@@ -158,7 +158,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', letterSpacing: '-0.01em' }}>
-            Find an Accountability Partner
+            Find an Advisor
           </Typography>
           <IconButton 
             onClick={onClose} 
@@ -305,7 +305,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
                             <Button
                               variant={isRequested || isAccepted ? "outlined" : "contained"}
                               size="small"
-                              onClick={() => handleRequestPartner(partner.user_id)}
+                              onClick={() => handleRequestAdvisor(partner.user_id)}
                               disabled={isRequesting || isRequestDisabled(partner)}
                               startIcon={isRequested ? <CheckCircle fontSize="small" /> : null}
                               color={isAccepted ? "success" : isDeclined ? "error" : "primary"}

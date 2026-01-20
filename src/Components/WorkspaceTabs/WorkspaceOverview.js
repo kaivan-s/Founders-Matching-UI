@@ -50,8 +50,8 @@ import { useWorkspaceDecisions } from '../../hooks/useWorkspace';
 const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   const { participants: allParticipants, loading: participantsLoading, updateParticipant } = useWorkspaceParticipants(workspaceId);
   
-  // Filter out accountability partners from founders section - only show founders/co-founders
-  const participants = allParticipants?.filter(p => p.role !== 'ACCOUNTABILITY_PARTNER') || [];
+  // Filter out advisors from founders section - only show founders/co-founders
+  const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
   const { kpis, loading: kpisLoading } = useWorkspaceKPIs(workspaceId);
   const { equity, loading: equityLoading } = useWorkspaceEquity(workspaceId);
   const { roles, loading: rolesLoading } = useWorkspaceRoles(workspaceId);

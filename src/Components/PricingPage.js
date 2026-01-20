@@ -127,7 +127,7 @@ const PricingPage = () => {
       { icon: <Check />, text: 'Full workspace OS' },
       { icon: <Check />, text: 'Equity & roles' },
       { icon: <Check />, text: 'Tasks board' },
-      { icon: <Check />, text: 'Accountability partner marketplace' },
+      { icon: <Check />, text: 'Advisor marketplace' },
     ],
     PRO_PLUS: [
       { icon: <Business />, text: 'Up to 5 workspaces' },
@@ -291,10 +291,10 @@ const PricingPage = () => {
         })}
       </Grid>
 
-      {/* Accountability Partner Section */}
+      {/* Advisor Section */}
       <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#f8fafc' }}>
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
-          For Accountability Partners
+          For Advisors
         </Typography>
         
         <Grid container spacing={4}>
@@ -357,7 +357,7 @@ const PricingPage = () => {
                   '&:hover': { bgcolor: '#0d9488' },
                 }}
               >
-                Apply as Accountability Partner
+                Apply as Advisor
               </Button>
             </Box>
           </Grid>
