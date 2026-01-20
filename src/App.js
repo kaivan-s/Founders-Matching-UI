@@ -742,9 +742,8 @@ function AppContent() {
       if (location.pathname === '/select-flow') {
         setShowFlowSelector(true);
         setLoading(false);
-        setPartnerChecked(true);
+        setAdvisorChecked(true);
         setOnboardingChecked(true);
-        setIsPartner(false); // Reset partner status on flow selector
         setIsFounder(false); // Reset founder status on flow selector
         return;
       }
@@ -780,7 +779,6 @@ function AppContent() {
 
   const checkFounderStatus = useCallback(async () => {
     try {
-      setIsPartner(false); // Explicitly set to false for founder routes
       const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
         headers: {
           'X-Clerk-User-Id': user.id,
@@ -801,11 +799,11 @@ function AppContent() {
         setShowOnboarding(false);
       }
       setOnboardingChecked(true);
-      setPartnerChecked(true);
+      setAdvisorChecked(true);
     } catch (error) {
       console.error('Error checking founder status:', error);
       setOnboardingChecked(true);
-      setPartnerChecked(true);
+      setAdvisorChecked(true);
     } finally {
       setLoading(false);
     }
