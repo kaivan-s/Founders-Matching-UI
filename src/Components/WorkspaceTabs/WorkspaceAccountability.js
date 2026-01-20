@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 import { useUser } from '@clerk/clerk-react';
-import PartnerMarketplace from '../PartnerMarketplace';
+import AdvisorBrowseMarketplace from '../AdvisorBrowseMarketplace';
 
 const WorkspaceAccountability = ({ workspaceId }) => {
   const { user } = useUser();
@@ -190,7 +190,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
           }}
           disabled={plan && !plan.accountability?.canUseMarketplace}
         >
-          Find Partner in Marketplace
+          Find Advisor in Marketplace
         </Button>
       </Box>
 
@@ -221,7 +221,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                 No advisors yet
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Browse the marketplace to find available partners
+                Browse the marketplace to find available advisors
               </Typography>
             </Box>
           </CardContent>
@@ -263,13 +263,13 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         </Box>
       )}
 
-      {/* Partner Impact Scorecard */}
+      {/* Advisor Impact Scorecard */}
       {scorecard && scorecard.has_advisor && (
         <>
           <Divider sx={{ my: 4 }} />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              Partner Impact This Quarter
+              Advisor Impact This Quarter
             </Typography>
             
             {/* Contact Panel */}
@@ -363,7 +363,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                       KPI Progress Toward Targets
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {scorecard.metrics.kpi_progress.average_progress_pct.toFixed(1)}% of distance covered since partner joined
+                      {scorecard.metrics.kpi_progress.average_progress_pct.toFixed(1)}% of distance covered since advisor joined
                       {scorecard.metrics.kpi_progress.kpis_tracked > 0 && (
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                           Tracking {scorecard.metrics.kpi_progress.kpis_tracked} of {scorecard.metrics.kpi_progress.primary_kpis_count} primary KPIs
@@ -405,7 +405,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                   </Box>
                   <Box>
                     <Typography variant="body2" sx={{ mb: 1 }}>
-                      Do you want to continue with this partner next quarter?
+                      Do you want to continue with this advisor next quarter?
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Button
@@ -429,7 +429,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
                     variant="contained"
                     onClick={async () => {
                       if (!quarterlyReview.value_rating) {
-                        alert('Please rate the partner value');
+                        alert('Please rate the advisor value');
                         return;
                       }
                       setSavingReview(true);
@@ -517,11 +517,11 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       </Box>
 
       {/* Marketplace Dialog */}
-      <PartnerMarketplace
+      <AdvisorBrowseMarketplace
         open={marketplaceOpen}
         onClose={() => setMarketplaceOpen(false)}
         workspaceId={workspaceId}
-        onRequestPartner={() => {
+        onRequestAdvisor={() => {
           setMarketplaceOpen(false);
           fetchPartners();
         }}
@@ -555,7 +555,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
             variant="contained"
             color="error"
           >
-            Remove Partner
+            Remove Advisor
           </Button>
         </DialogActions>
       </Dialog>

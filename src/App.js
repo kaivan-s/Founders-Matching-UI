@@ -23,7 +23,7 @@ import AdvisorWorkspaceView from './Components/AdvisorWorkspaceView';
 import UserFlowSelector from './Components/UserFlowSelector';
 import NewProjectDialog from './Components/NewProjectDialog';
 import PricingPage from './Components/PricingPage';
-import AdvisorLanding from './Components/AccountabilityPartnerLanding';
+import AdvisorLanding from './Components/AdvisorLanding';
 import FeedbackHistory from './Components/FeedbackHistory';
 import FeedbackDialog from './Components/FeedbackDialog';
 import { API_BASE } from './config/api';
@@ -1103,7 +1103,7 @@ function AppContent() {
             </Box>
           </RouteWrapper>
         } />
-        <Route path="/accountable_partner" element={
+        <Route path="/advisor/landing" element={
           <Box sx={{ 
             minHeight: '100vh',
             bgcolor: '#f8fafc',
@@ -1147,7 +1147,7 @@ function App() {
         <SignedOut>
           <Routes>
             {/* Advisor Landing Page */}
-            <Route path="/accountable_partner" element={
+            <Route path="/advisor/landing" element={
               <Box sx={{ 
                 minHeight: '100vh',
                 bgcolor: '#f8fafc',
@@ -1182,12 +1182,12 @@ function AppWithHeader() {
   const location = useLocation();
   
   // Hide global header for advisor routes (advisor has its own navigation)
-  // Also hide for accountable_partner route (public landing page)
+  // Also hide for advisor landing route (public landing page)
   // Hide for select-flow page (both flows have their own headers)
   const isAdvisorRoute = location.pathname.startsWith('/advisor');
-  const isAccountablePartnerRoute = location.pathname === '/accountable_partner';
+  const isAdvisorLandingRoute = location.pathname === '/advisor/landing';
   const isSelectFlowRoute = location.pathname === '/select-flow';
-  const showHeader = !isAdvisorRoute && !isAccountablePartnerRoute && !isSelectFlowRoute;
+  const showHeader = !isAdvisorRoute && !isAdvisorLandingRoute && !isSelectFlowRoute;
 
   return (
     <Box sx={{ 
@@ -1202,12 +1202,12 @@ function AppWithHeader() {
       
       <Box sx={{ 
         flex: 1, 
-        overflow: (isAccountablePartnerRoute || isSelectFlowRoute) ? 'auto' : 'hidden',
+        overflow: (isAdvisorLandingRoute || isSelectFlowRoute) ? 'auto' : 'hidden',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative'
       }}>
-        {isAccountablePartnerRoute ? (
+        {isAdvisorLandingRoute ? (
           <AdvisorLanding />
         ) : (
           <AppContent />

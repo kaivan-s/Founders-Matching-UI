@@ -212,16 +212,7 @@ const NetworkBackground = () => {
 const LandingPage = () => {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
-  const [pendingPartnerOnboarding, setPendingPartnerOnboarding] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
-
-  // Redirect to partner onboarding after sign-in if user clicked "Become a Partner" before signing in
-  useEffect(() => {
-    if (isSignedIn && pendingPartnerOnboarding) {
-      navigate('/partner/onboarding');
-      setPendingPartnerOnboarding(false);
-    }
-  }, [isSignedIn, pendingPartnerOnboarding, navigate]);
 
 
   return (

@@ -135,7 +135,7 @@ const AdvisorLanding = () => {
               Apply Now
             </Button>
           ) : (
-            <SignInButton mode="modal" afterSignInUrl="/accountable_partner" afterSignUpUrl="/accountable_partner">
+            <SignInButton mode="modal" afterSignInUrl="/advisor/landing" afterSignUpUrl="/advisor/landing">
               <Button 
                 variant="outlined" 
                 sx={{ 
@@ -231,7 +231,7 @@ const AdvisorLanding = () => {
               Join as Advisor
             </Button>
           ) : (
-            <SignInButton mode="modal" afterSignInUrl="/accountable_partner" afterSignUpUrl="/accountable_partner">
+            <SignInButton mode="modal" afterSignInUrl="/advisor/landing" afterSignUpUrl="/advisor/landing">
               <Button
                 variant="contained"
                 size="large"
@@ -452,7 +452,7 @@ const AdvisorLanding = () => {
               Get Started Now
             </Button>
           ) : (
-            <SignInButton mode="modal" afterSignInUrl="/accountable_partner" afterSignUpUrl="/accountable_partner">
+            <SignInButton mode="modal" afterSignInUrl="/advisor/landing" afterSignUpUrl="/advisor/landing">
               <Button
                 variant="contained"
                 size="large"

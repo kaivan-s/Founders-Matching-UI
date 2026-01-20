@@ -448,21 +448,21 @@ const AdvisorDashboard = () => {
   const fetchDashboardData = useCallback(async (abortSignal = null) => {
     console.log('AdvisorDashboard fetchDashboardData - Called with user?.id:', user?.id, 'abortSignal:', !!abortSignal);
     if (!user?.id) {
-      console.log('PartnerDashboard fetchDashboardData - No user.id, returning early');
+      console.log('AdvisorDashboard fetchDashboardData - No user.id, returning early');
       return;
     }
     
     // Check if already aborted
     if (abortSignal?.aborted) {
-      console.log('PartnerDashboard fetchDashboardData - Signal already aborted, returning');
+      console.log('AdvisorDashboard fetchDashboardData - Signal already aborted, returning');
       return;
     }
     
-    console.log('PartnerDashboard fetchDashboardData - Setting loading to true');
+    console.log('AdvisorDashboard fetchDashboardData - Setting loading to true');
     setLoading(true);
     try {
-      console.log('PartnerDashboard fetchDashboardData - Fetching profile from:', `${API_BASE}/advisors/profile`);
-      // Fetch partner profile
+      console.log('AdvisorDashboard fetchDashboardData - Fetching profile from:', `${API_BASE}/advisors/profile`);
+      // Fetch advisor profile
       const profileResponse = await fetch(`${API_BASE}/advisors/profile`, {
         headers: {
           'X-Clerk-User-Id': user.id,
@@ -470,16 +470,16 @@ const AdvisorDashboard = () => {
         ...(abortSignal && { signal: abortSignal }),
       });
       
-      console.log('PartnerDashboard fetchDashboardData - Profile response status:', profileResponse.status, 'ok:', profileResponse.ok);
+      console.log('AdvisorDashboard fetchDashboardData - Profile response status:', profileResponse.status, 'ok:', profileResponse.ok);
 
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         console.log('AdvisorDashboard - Profile response:', profileData);
-        console.log('PartnerDashboard - Profile data type:', typeof profileData);
-        console.log('PartnerDashboard - Profile data is null?', profileData === null);
-        console.log('PartnerDashboard - Profile data is undefined?', profileData === undefined);
-        console.log('PartnerDashboard - Profile data keys:', profileData ? Object.keys(profileData) : 'N/A');
-        console.log('PartnerDashboard - Profile data keys length:', profileData ? Object.keys(profileData).length : 0);
+        console.log('AdvisorDashboard - Profile data type:', typeof profileData);
+        console.log('AdvisorDashboard - Profile data is null?', profileData === null);
+        console.log('AdvisorDashboard - Profile data is undefined?', profileData === undefined);
+        console.log('AdvisorDashboard - Profile data keys:', profileData ? Object.keys(profileData) : 'N/A');
+        console.log('AdvisorDashboard - Profile data keys length:', profileData ? Object.keys(profileData).length : 0);
         
         // Check if profile exists - handle null, undefined, and empty object cases
         // Also check if it's an array (shouldn't be, but handle it)
@@ -490,18 +490,18 @@ const AdvisorDashboard = () => {
                               Object.keys(profileData).length > 0;
         
         if (isValidProfile) {
-          console.log('PartnerDashboard - Profile found, setting profile state', profileData);
+          console.log('AdvisorDashboard - Profile found, setting profile state', profileData);
           // Set both states together - React will batch them
           hasFetchedOnceRef.current = true;
           // Use functional update to ensure state is set correctly
           setProfile(() => {
-            console.log('PartnerDashboard - setProfile called with:', profileData);
+            console.log('AdvisorDashboard - setProfile called with:', profileData);
             return profileData;
           });
           setLoading(false);
-          console.log('PartnerDashboard - Profile and loading state updated');
+          console.log('AdvisorDashboard - Profile and loading state updated');
         } else {
-          console.log('PartnerDashboard - Profile validation failed:', {
+          console.log('AdvisorDashboard - Profile validation failed:', {
             isNull: profileData === null,
             isUndefined: profileData === undefined,
             isObject: typeof profileData === 'object',
@@ -510,7 +510,7 @@ const AdvisorDashboard = () => {
             profileData
           });
           // Profile response was ok but empty/null - redirect to onboarding
-          console.log('PartnerDashboard - Profile is null/empty');
+          console.log('AdvisorDashboard - Profile is null/empty');
           hasFetchedOnceRef.current = true;
           setProfile(null);
           setLoading(false);
@@ -519,7 +519,7 @@ const AdvisorDashboard = () => {
           
           // Fetch additional data in the background (non-blocking)
           Promise.all([
-            // Fetch partner requests
+            // Fetch advisor requests
             fetch(`${API_BASE}/advisors/requests`, {
               headers: {
                 'X-Clerk-User-Id': user.id,
@@ -596,7 +596,7 @@ const AdvisorDashboard = () => {
           });
       } else if (profileResponse.status === 404) {
         // Profile doesn't exist yet - redirect to onboarding
-        console.log('PartnerDashboard - Profile not found (404)');
+        console.log('AdvisorDashboard - Profile not found (404)');
         // Mark fetch as complete before setting state
         hasFetchedOnceRef.current = true;
         setProfile(null);
@@ -605,7 +605,7 @@ const AdvisorDashboard = () => {
       } else {
         // Other error - try to parse error message
         const errorData = await profileResponse.json().catch(() => ({}));
-        console.log('PartnerDashboard - Error fetching profile:', errorData);
+        console.log('AdvisorDashboard - Error fetching profile:', errorData);
         // If it's a 200 status but we got an error, might be null response
         if (profileResponse.status === 200) {
           // Mark fetch as complete before setting state
@@ -615,13 +615,13 @@ const AdvisorDashboard = () => {
           return;
         }
         hasFetchedOnceRef.current = true;
-        setError(errorData.error || 'Failed to load partner profile');
+        setError(errorData.error || 'Failed to load advisor profile');
       }
 
     } catch (err) {
       // Handle abort errors - but still mark as fetched to prevent infinite loading
       if (err.name === 'AbortError') {
-        console.log('PartnerDashboard - Request aborted');
+        console.log('AdvisorDashboard - Request aborted');
         // Even if aborted, mark as fetched to prevent infinite loading
         // The component will handle the null profile state
         hasFetchedOnceRef.current = true;
@@ -641,10 +641,10 @@ const AdvisorDashboard = () => {
   const cleanupCountRef = useRef(0);
 
   useEffect(() => {
-    console.log('PartnerDashboard useEffect - user?.id:', user?.id, 'hasFetchedRef.current:', hasFetchedRef.current);
+    console.log('AdvisorDashboard useEffect - user?.id:', user?.id, 'hasFetchedRef.current:', hasFetchedRef.current);
     // Only fetch once when component mounts with a user
     if (user?.id && !hasFetchedRef.current) {
-      console.log('PartnerDashboard useEffect - Starting fetch');
+      console.log('AdvisorDashboard useEffect - Starting fetch');
       hasFetchedRef.current = true;
       hasFetchedOnceRef.current = false; // Reset fetch completion flag
       
@@ -652,7 +652,7 @@ const AdvisorDashboard = () => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
       
-      console.log('PartnerDashboard useEffect - Calling fetchDashboardData');
+      console.log('AdvisorDashboard useEffect - Calling fetchDashboardData');
       fetchDashboardData(controller.signal);
       fetchBillingProfile();
       
@@ -660,7 +660,7 @@ const AdvisorDashboard = () => {
       // React StrictMode causes cleanup to run immediately, which would abort the request
       // So we check if user.id changed before aborting
       return () => {
-        console.log('PartnerDashboard useEffect cleanup - Cleanup called');
+        console.log('AdvisorDashboard useEffect cleanup - Cleanup called');
         // Only abort if user.id changed (component will re-run with new user.id)
         // Don't abort if it's just React StrictMode re-running the effect
         // We can't reliably detect StrictMode, so we'll be conservative and not abort
@@ -669,7 +669,7 @@ const AdvisorDashboard = () => {
         // and hasFetchedRef will be false, so it will fetch again
       };
     } else if (!user?.id) {
-      console.log('PartnerDashboard useEffect - No user.id, resetting refs');
+      console.log('AdvisorDashboard useEffect - No user.id, resetting refs');
       // Reset when user logs out
       hasFetchedRef.current = false;
       hasFetchedOnceRef.current = false;
@@ -685,7 +685,7 @@ const AdvisorDashboard = () => {
     if (loading && !hasFetchedOnceRef.current && user?.id) {
       const timeout = setTimeout(() => {
         if (loading && !hasFetchedOnceRef.current) {
-          console.log('PartnerDashboard - Stuck in loading state, retrying fetch');
+          console.log('AdvisorDashboard - Stuck in loading state, retrying fetch');
           // Reset and retry
           hasFetchedRef.current = false;
           if (abortControllerRef.current) {
@@ -832,7 +832,7 @@ const AdvisorDashboard = () => {
 
     // Set up Supabase Realtime subscription for notifications
     const notificationsChannel = supabase
-      .channel(`partner_notifications_${user.id}`)
+      .channel(`advisor_notifications_${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -848,7 +848,7 @@ const AdvisorDashboard = () => {
         }
       )
       .subscribe((status) => {
-        console.log('🔔 Partner notifications subscription status:', status);
+        console.log('🔔 Advisor notifications subscription status:', status);
       });
 
     // Fallback: Refresh when user returns to the page

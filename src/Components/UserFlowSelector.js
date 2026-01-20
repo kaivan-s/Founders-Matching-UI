@@ -220,7 +220,7 @@ const UserFlowSelector = () => {
                 }} 
               />
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-                I'm an Accountability Partner/Advisor
+                I'm an Advisor
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                 Help founders stay accountable and succeed. Join workspaces, provide guidance, and build your advisory network.
@@ -244,7 +244,7 @@ const UserFlowSelector = () => {
                   },
                 }}
               >
-                Become a Partner
+                Become an Advisor
               </Button>
             </CardContent>
           </Card>

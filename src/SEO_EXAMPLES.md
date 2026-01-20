@@ -26,7 +26,7 @@ const LandingPage = () => {
     },
     {
       question: "What makes Co-Build different from other matching platforms?",
-      answer: "Co-Build goes beyond matching - we help you avoid ghosting, clarify equity splits upfront, and provide tools for building successful partnerships including accountability partner systems and workspace collaboration."
+      answer: "Co-Build goes beyond matching - we help you avoid ghosting, clarify equity splits upfront, and provide tools for building successful partnerships including advisor systems and workspace collaboration."
     },
     // ... more FAQs
   ];
@@ -121,31 +121,31 @@ const WorkspacePage = ({ workspaceId, workspaceName }) => {
 };
 ```
 
-## 6. Accountability Partner Landing Page
+## 6. Advisor Landing Page
 
 ```javascript
 import SEO from './components/SEO';
 import FAQSchema from './components/FAQSchema';
 
-const AccountabilityPartnerLanding = () => {
+const AdvisorLanding = () => {
   const faqs = [
     {
-      question: "What is an accountability partner?",
-      answer: "An accountability partner is an experienced advisor who helps founders stay on track, make better decisions, and achieve their goals through regular check-ins and guidance."
+      question: "What is an advisor?",
+      answer: "An advisor is an experienced professional who helps founders stay on track, make better decisions, and achieve their goals through regular check-ins and guidance."
     },
     {
-      question: "How do I become an accountability partner?",
-      answer: "Sign up as an accountability partner, complete your profile, and start connecting with founders who need guidance and support."
+      question: "How do I become an advisor?",
+      answer: "Sign up as an advisor, complete your profile, and start connecting with founders who need guidance and support."
     }
   ];
 
   return (
     <>
       <SEO
-        title="Become an Accountability Partner"
-        description="Help founders succeed by becoming an accountability partner. Guide startups, provide expertise, and earn while making an impact."
-        url="/accountability-partner"
-        keywords="accountability partner, startup advisor, founder mentor, startup guidance"
+        title="Become an Advisor"
+        description="Help founders succeed by becoming an advisor. Guide startups, provide expertise, and earn while making an impact."
+        url="/advisor/landing"
+        keywords="advisor, startup advisor, founder mentor, startup guidance"
       />
       <FAQSchema faqs={faqs} />
       {/* Rest of page */}

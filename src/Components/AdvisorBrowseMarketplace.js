@@ -29,13 +29,13 @@ import {
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
 
-const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) => {
+const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onRequestAdvisor }) => {
   const { user } = useUser();
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [requestingPartnerId, setRequestingPartnerId] = useState(null);
+  const [requestingAdvisorId, setRequestingAdvisorId] = useState(null);
 
   useEffect(() => {
     if (open && workspaceId) {
@@ -57,7 +57,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch partners');
+        throw new Error('Failed to fetch advisors');
       }
 
       const data = await response.json();
@@ -70,7 +70,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
   };
 
   const handleRequestAdvisor = async (advisorUserId) => {
-    setRequestingPartnerId(advisorUserId);
+    setRequestingAdvisorId(advisorUserId);
     try {
       const response = await fetch(
         `${API_BASE}/workspaces/${workspaceId}/advisors/request`,
@@ -89,16 +89,16 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
         throw new Error(error.error || 'Failed to send request');
       }
 
-      if (onRequestPartner) {
-        onRequestPartner(advisorUserId);
+      if (onRequestAdvisor) {
+        onRequestAdvisor(advisorUserId);
       }
       
-      // Refresh partners list to update request status
+      // Refresh advisors list to update request status
       fetchPartners();
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
-      setRequestingPartnerId(null);
+      setRequestingAdvisorId(null);
     }
   };
 
@@ -124,7 +124,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
     if (partner.request_status === 'DECLINED') {
       return 'Declined';
     }
-    return 'Request Partnership';
+    return 'Request Advisor';
   };
 
   const isRequestDisabled = (partner) => {
@@ -225,7 +225,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
           ) : filteredPartners.length === 0 ? (
             <Box sx={{ textAlign: 'center', p: 6 }}>
               <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {searchQuery ? 'No partners match your search' : 'No available partners found'}
+                {searchQuery ? 'No advisors match your search' : 'No available advisors found'}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Try adjusting your search or check back later
@@ -235,7 +235,7 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {filteredPartners.map((partner) => {
                 const partnerUser = partner.user || {};
-                const isRequesting = requestingPartnerId === partner.user_id;
+                const isRequesting = requestingAdvisorId === partner.user_id;
                 const isRequested = partner.request_status === 'PENDING';
                 const isAccepted = partner.request_status === 'ACCEPTED';
                 const isDeclined = partner.request_status === 'DECLINED';
@@ -453,4 +453,4 @@ const PartnerMarketplace = ({ open, onClose, workspaceId, onRequestPartner }) =>
   );
 };
 
-export default PartnerMarketplace;
+export default AdvisorBrowseMarketplace;
