@@ -17,10 +17,9 @@ import WorkspacePage from './Components/WorkspacePage';
 import WorkspacesList from './Components/WorkspacesList';
 import MyProjects from './Components/MyProjects';
 import OnboardingDialog from './Components/OnboardingDialog';
-import PartnerOnboardingWizard from './Components/PartnerOnboardingWizard';
-import PartnerOnboardingPage from './Components/PartnerOnboardingPage';
-import PartnerDashboard from './Components/PartnerDashboard';
-import PartnerWorkspaceView from './Components/PartnerWorkspaceView';
+import AdvisorOnboarding from './Components/AdvisorOnboarding';
+import AdvisorDashboard from './Components/AdvisorDashboard';
+import AdvisorWorkspaceView from './Components/AdvisorWorkspaceView';
 import UserFlowSelector from './Components/UserFlowSelector';
 import NewProjectDialog from './Components/NewProjectDialog';
 import PricingPage from './Components/PricingPage';
@@ -505,8 +504,8 @@ function NavigationTabs() {
 }
 
 // Wrapper component to handle loading/onboarding states
-function RouteWrapper({ children, loading, partnerChecked, showPartnerOnboarding, showOnboarding, onboardingChecked, isPartner, isFounder, onPartnerOnboardingComplete, onOnboardingComplete, onSelectPartnerFlow }) {
-  if (loading || !partnerChecked) {
+function RouteWrapper({ children, loading, advisorChecked, showAdvisorOnboarding, showOnboarding, onboardingChecked, isAdvisor, isFounder, onAdvisorOnboardingComplete, onOnboardingComplete, onSelectAdvisorFlow }) {
+  if (loading || !advisorChecked) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
         <CircularProgress />
@@ -514,13 +513,9 @@ function RouteWrapper({ children, loading, partnerChecked, showPartnerOnboarding
     );
   }
 
-  if (showPartnerOnboarding) {
+  if (showAdvisorOnboarding) {
     return (
-      <PartnerOnboardingWizard
-        open={showPartnerOnboarding}
-        onComplete={onPartnerOnboardingComplete}
-        onClose={onPartnerOnboardingComplete}
-      />
+      <Navigate to="/advisor/onboarding" replace />
     );
   }
 
@@ -530,29 +525,29 @@ function RouteWrapper({ children, loading, partnerChecked, showPartnerOnboarding
     return children;
   }
 
-  // IMPORTANT: Don't show founder onboarding if user is on partner routes
+  // IMPORTANT: Don't show founder onboarding if user is on advisor routes
   // This prevents advisors from seeing founder onboarding questionnaire
-  const isOnPartnerRoute = currentPath.startsWith('/partner/');
-  if (onboardingChecked && showOnboarding && !isPartner && !isFounder && !isOnPartnerRoute) {
+  const isOnAdvisorRoute = currentPath.startsWith('/advisor/');
+  if (onboardingChecked && showOnboarding && !isAdvisor && !isFounder && !isOnAdvisorRoute) {
     return (
       <OnboardingDialog 
         open={showOnboarding} 
         onComplete={onOnboardingComplete}
-        onSelectPartnerFlow={onSelectPartnerFlow}
+        onSelectAdvisorFlow={onSelectAdvisorFlow}
       />
     );
   }
 
-  if (isPartner) {
-    // Don't redirect if already on partner routes
-    if (currentPath.startsWith('/partner/')) {
+  if (isAdvisor) {
+    // Don't redirect if already on advisor routes
+    if (currentPath.startsWith('/advisor/')) {
       return children;
     }
-    return <Navigate to="/partner/dashboard" replace />;
+    return <Navigate to="/advisor/dashboard" replace />;
   }
 
   // If user is not a founder and not on onboarding, redirect to flow selector
-  if (!isFounder && !showOnboarding && !currentPath.startsWith('/partner/')) {
+  if (!isFounder && !showOnboarding && !currentPath.startsWith('/advisor/')) {
     return <Navigate to="/select-flow" replace />;
   }
 
@@ -566,21 +561,21 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showPartnerOnboarding, setShowPartnerOnboarding] = useState(false);
+  const [showAdvisorOnboarding, setShowAdvisorOnboarding] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [isPartner, setIsPartner] = useState(false);
+  const [isAdvisor, setIsAdvisor] = useState(false);
   const [isFounder, setIsFounder] = useState(false);
-  const [partnerChecked, setPartnerChecked] = useState(false);
+  const [advisorChecked, setAdvisorChecked] = useState(false);
   const [showFlowSelector, setShowFlowSelector] = useState(false);
 
   const checkUserType = useCallback(async () => {
     try {
-      // IMPORTANT: Only check for advisor if user is on partner routes
-      // This prevents founders from being incorrectly identified as partners
-      const isOnPartnerRoute = location.pathname.startsWith('/partner/');
+      // IMPORTANT: Only check for advisor if user is on advisor routes
+      // This prevents founders from being incorrectly identified as advisors
+      const isOnAdvisorRoute = location.pathname.startsWith('/advisor/');
       
-      // Only check advisor profile if on partner routes
-      if (isOnPartnerRoute) {
+      // Only check advisor profile if on advisor routes
+      if (isOnAdvisorRoute) {
         const advisorResponse = await fetch(`${API_BASE}/advisors/profile`, {
           headers: {
             'X-Clerk-User-Id': user.id,
@@ -593,19 +588,19 @@ function AppContent() {
           // Check if we got actual profile data (not null or empty)
           // Handle both null and empty object cases
           if (advisorData !== null && advisorData !== undefined && typeof advisorData === 'object' && Object.keys(advisorData).length > 0) {
-            console.log('Advisor profile found, setting isPartner to true');
-            // User is a partner - show partner dashboard
-            setIsPartner(true);
+            console.log('Advisor profile found, setting isAdvisor to true');
+            // User is an advisor - show advisor dashboard
+            setIsAdvisor(true);
             setIsFounder(false); // Don't check founder status if they're an advisor
             setShowOnboarding(false); // Don't show founder onboarding for advisors
-            setShowPartnerOnboarding(false); // Don't show partner onboarding if profile exists
-            setPartnerChecked(true);
+            setShowAdvisorOnboarding(false); // Don't show advisor onboarding if profile exists
+            setAdvisorChecked(true);
             setOnboardingChecked(true);
             setLoading(false);
             
             // If user is on onboarding page but profile exists, redirect to dashboard
-            if (location.pathname === '/partner/onboarding') {
-              navigate('/partner/dashboard', { replace: true });
+            if (location.pathname === '/advisor/onboarding') {
+              navigate('/advisor/dashboard', { replace: true });
             }
             return;
           } else {
@@ -615,12 +610,12 @@ function AppContent() {
           console.log('Advisor profile check: response not ok, status:', advisorResponse.status);
         }
       } else {
-        // Not on partner route - skip advisor check
-        setIsPartner(false);
+        // Not on advisor route - skip advisor check
+        setIsAdvisor(false);
       }
 
-      // Skip advisor retry check if not on partner routes
-      if (isOnPartnerRoute) {
+      // Skip advisor retry check if not on advisor routes
+      if (isOnAdvisorRoute) {
         // Check if advisor profile might exist but query failed - verify by checking advisor_profiles table directly
         // This handles edge cases where the API might return null even though a profile exists
         let hasAdvisorProfile = false;
@@ -634,9 +629,9 @@ function AppContent() {
           });
           if (founderCheckResponse.ok) {
             const founderData = await founderCheckResponse.json();
-            // If founder exists but onboarding is incomplete, and they're trying to access partner routes,
+            // If founder exists but onboarding is incomplete, and they're trying to access advisor routes,
             // they might be an advisor whose profile check failed
-            if (founderData.exists && !founderData.onboarding_completed && location.pathname.startsWith('/partner/')) {
+            if (founderData.exists && !founderData.onboarding_completed && location.pathname.startsWith('/advisor/')) {
               // Re-check advisor profile - might be a timing issue
               const retryAdvisorResponse = await fetch(`${API_BASE}/advisors/profile`, {
                 headers: {
@@ -647,10 +642,10 @@ function AppContent() {
                 const retryAdvisorData = await retryAdvisorResponse.json();
                 if (retryAdvisorData !== null && retryAdvisorData !== undefined && typeof retryAdvisorData === 'object' && Object.keys(retryAdvisorData).length > 0) {
                   hasAdvisorProfile = true;
-                  setIsPartner(true);
+                  setIsAdvisor(true);
                   setIsFounder(false);
                   setShowOnboarding(false);
-                  setPartnerChecked(true);
+                  setAdvisorChecked(true);
                   setOnboardingChecked(true);
                   setLoading(false);
                   return;
@@ -664,10 +659,10 @@ function AppContent() {
         }
       }
 
-      // Not a partner (or profile doesn't exist yet), check founder status
-      // BUT: Don't show founder onboarding if user is on partner routes (they're likely an advisor)
-      if (!isOnPartnerRoute) {
-        setIsPartner(false);
+      // Not an advisor (or profile doesn't exist yet), check founder status
+      // BUT: Don't show founder onboarding if user is on advisor routes (they're likely an advisor)
+      if (!isOnAdvisorRoute) {
+        setIsAdvisor(false);
         
         const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
           headers: {
@@ -679,7 +674,7 @@ function AppContent() {
         // Check if user exists as founder
         if (onboardingData.exists) {
           setIsFounder(true);
-          // IMPORTANT: Don't show founder onboarding if user is on partner routes
+          // IMPORTANT: Don't show founder onboarding if user is on advisor routes
           // This prevents advisors from seeing founder onboarding questionnaire
           if (!onboardingData.onboarding_completed || 
               !onboardingData.has_purpose || !onboardingData.has_skills) {
@@ -692,23 +687,23 @@ function AppContent() {
           setIsFounder(false);
           setShowOnboarding(false);
           
-          // If user is not a partner either, show flow selector
+          // If user is not an advisor either, show flow selector
           // (This will be handled by checking if they're on /select-flow route)
         }
       } else {
-        // On partner route but no advisor profile found - don't check founder status
+        // On advisor route but no advisor profile found - don't check founder status
         setIsFounder(false);
         setShowOnboarding(false);
       }
       setOnboardingChecked(true);
-      setPartnerChecked(true);
+      setAdvisorChecked(true);
     } catch (error) {
       console.error('Error checking user type:', error);
       // If error, check founder onboarding to be safe
-      // BUT: Don't show onboarding if user is on partner routes
-      const isOnPartnerRoute = location.pathname.startsWith('/partner/');
-      if (!isOnPartnerRoute) {
-        setIsPartner(false);
+      // BUT: Don't show onboarding if user is on advisor routes
+      const isOnAdvisorRoute = location.pathname.startsWith('/advisor/');
+      if (!isOnAdvisorRoute) {
+        setIsAdvisor(false);
         try {
           const onboardingResponse = await fetch(`${API_BASE}/founders/onboarding-status`, {
             headers: {
@@ -730,11 +725,11 @@ function AppContent() {
           setShowOnboarding(true);
         }
       } else {
-        setIsPartner(false);
+        setIsAdvisor(false);
         setIsFounder(false);
       }
       setOnboardingChecked(true);
-      setPartnerChecked(true);
+      setAdvisorChecked(true);
     } finally {
       setLoading(false);
     }
@@ -754,18 +749,18 @@ function AppContent() {
         return;
       }
       
-      // If user is on partner onboarding page, skip user type check
-      // PartnerOnboardingPage will handle its own logic
-      if (location.pathname === '/partner/onboarding') {
+      // If user is on advisor onboarding page, skip user type check
+      // AdvisorOnboarding will handle its own logic
+      if (location.pathname === '/advisor/onboarding') {
         setLoading(false);
-        setPartnerChecked(true);
+        setAdvisorChecked(true);
         setOnboardingChecked(true);
         return;
       }
       
-      // If user is on partner dashboard/marketplace routes, prioritize advisor check
+      // If user is on advisor dashboard/marketplace routes, prioritize advisor check
       // and don't show founder onboarding even if founder profile is incomplete
-      if (location.pathname.startsWith('/partner/')) {
+      if (location.pathname.startsWith('/advisor/')) {
         checkUserType();
         return;
       }
@@ -821,17 +816,17 @@ function AppContent() {
     // User can now access the main app
   };
 
-  const handlePartnerOnboardingComplete = async () => {
-    setShowPartnerOnboarding(false);
+  const handleAdvisorOnboardingComplete = async () => {
+    setShowAdvisorOnboarding(false);
     setShowOnboarding(false);
     
     // Refresh user type to ensure profile was created
     await checkUserType();
   };
 
-  const handleSelectPartnerFlow = () => {
+  const handleSelectAdvisorFlow = () => {
     setShowOnboarding(false);
-    setShowPartnerOnboarding(true);
+    navigate('/advisor/onboarding');
   };
 
   return (
@@ -849,56 +844,56 @@ function AppContent() {
           )
         } />
         
-        {/* Partner routes */}
-        <Route path="/partner/marketplace" element={
-          loading || !partnerChecked ? (
+        {/* Advisor routes */}
+        <Route path="/advisor/marketplace" element={
+          loading || !advisorChecked ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress />
             </Box>
           ) : (
-            // Always render PartnerDashboard - it will handle checking for profile and redirecting if needed
-            <PartnerDashboard />
+            // Always render AdvisorDashboard - it will handle checking for profile and redirecting if needed
+            <AdvisorDashboard />
           )
         } />
-        <Route path="/partner/dashboard" element={
-          loading || !partnerChecked ? (
+        <Route path="/advisor/dashboard" element={
+          loading || !advisorChecked ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress />
             </Box>
           ) : (
-            // Always render PartnerDashboard - it will handle checking for profile and redirecting if needed
-            <PartnerDashboard />
+            // Always render AdvisorDashboard - it will handle checking for profile and redirecting if needed
+            <AdvisorDashboard />
           )
         } />
-        <Route path="/partner/workspaces/:workspaceId" element={
-          loading || !partnerChecked ? (
+        <Route path="/advisor/workspaces/:workspaceId" element={
+          loading || !advisorChecked ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress />
             </Box>
-          ) : isPartner ? (
-            <PartnerWorkspaceView />
+          ) : isAdvisor ? (
+            <AdvisorWorkspaceView />
           ) : (
             <Navigate to="/discover" replace />
           )
         } />
-        <Route path="/partner/onboarding" element={
-          <PartnerOnboardingPage />
+        <Route path="/advisor/onboarding" element={
+          <AdvisorOnboarding onComplete={handleAdvisorOnboardingComplete} />
         } />
-        <Route path="/partner/*" element={<Navigate to="/partner/dashboard" replace />} />
+        <Route path="/advisor/*" element={<Navigate to="/advisor/dashboard" replace />} />
         
         {/* Main app routes */}
         <Route path="/discover" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -916,15 +911,15 @@ function AppContent() {
         <Route path="/interested" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -942,15 +937,15 @@ function AppContent() {
         <Route path="/projects" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -968,15 +963,15 @@ function AppContent() {
         <Route path="/workspaces" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -994,15 +989,15 @@ function AppContent() {
         <Route path="/workspaces/:workspaceId/*" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <WorkspacePage />
           </RouteWrapper>
@@ -1010,15 +1005,15 @@ function AppContent() {
         <Route path="/payments" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -1036,15 +1031,15 @@ function AppContent() {
         <Route path="/pricing" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -1059,15 +1054,15 @@ function AppContent() {
         <Route path="/feedback" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -1085,15 +1080,15 @@ function AppContent() {
         <Route path="/my-feedback" element={
           <RouteWrapper
             loading={loading}
-            partnerChecked={partnerChecked}
-            showPartnerOnboarding={showPartnerOnboarding}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
             showOnboarding={showOnboarding}
             onboardingChecked={onboardingChecked}
-            isPartner={isPartner}
+            isAdvisor={isAdvisor}
             isFounder={isFounder}
-            onPartnerOnboardingComplete={handlePartnerOnboardingComplete}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
             onOnboardingComplete={handleOnboardingComplete}
-            onSelectPartnerFlow={handleSelectPartnerFlow}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <Box sx={{ 
               height: '100%',
@@ -1186,13 +1181,13 @@ function App() {
 function AppWithHeader() {
   const location = useLocation();
   
-  // Hide global header for partner routes (partner has its own navigation)
+  // Hide global header for advisor routes (advisor has its own navigation)
   // Also hide for accountable_partner route (public landing page)
   // Hide for select-flow page (both flows have their own headers)
-  const isPartnerRoute = location.pathname.startsWith('/partner');
+  const isAdvisorRoute = location.pathname.startsWith('/advisor');
   const isAccountablePartnerRoute = location.pathname === '/accountable_partner';
   const isSelectFlowRoute = location.pathname === '/select-flow';
-  const showHeader = !isPartnerRoute && !isAccountablePartnerRoute && !isSelectFlowRoute;
+  const showHeader = !isAdvisorRoute && !isAccountablePartnerRoute && !isSelectFlowRoute;
 
   return (
     <Box sx={{ 

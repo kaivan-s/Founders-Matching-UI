@@ -27,26 +27,24 @@ import {
 } from '@mui/icons-material';
 import { useUser, SignInButton } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import PartnerOnboardingWizard from './PartnerOnboardingWizard';
 
 const AdvisorLanding = () => {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
-  const [wizardOpen, setWizardOpen] = useState(false);
   const [pendingOnboarding, setPendingOnboarding] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
-  // Open wizard after sign-in if user was trying to apply
+  // Navigate to onboarding after sign-in if user was trying to apply
   useEffect(() => {
     if (isSignedIn && pendingOnboarding) {
-      setWizardOpen(true);
+      navigate('/advisor/onboarding');
       setPendingOnboarding(false);
     }
-  }, [isSignedIn, pendingOnboarding]);
+  }, [isSignedIn, pendingOnboarding, navigate]);
 
   const handleGetStarted = () => {
     if (isSignedIn) {
-      setWizardOpen(true);
+      navigate('/advisor/onboarding');
     } else {
       setPendingOnboarding(true);
     }
@@ -116,7 +114,7 @@ const AdvisorLanding = () => {
           {isSignedIn ? (
             <Button 
               variant="outlined" 
-              onClick={() => setWizardOpen(true)}
+              onClick={() => navigate('/advisor/onboarding')}
               sx={{ 
                 textTransform: 'none',
                 borderRadius: '12px',
@@ -482,19 +480,6 @@ const AdvisorLanding = () => {
         </Card>
       </Container>
 
-      {/* Partner Onboarding Wizard */}
-      {isSignedIn && (
-        <PartnerOnboardingWizard
-          open={wizardOpen}
-          onClose={() => setWizardOpen(false)}
-          onComplete={(profile) => {
-            setWizardOpen(false);
-            // Show success dialog
-            setSuccessDialogOpen(true);
-          }}
-          useDirectSupabase={true}
-        />
-      )}
 
       {/* Success Dialog */}
       <Dialog
@@ -560,7 +545,7 @@ const AdvisorLanding = () => {
             variant="contained"
             onClick={() => {
               setSuccessDialogOpen(false);
-              navigate('/partner/dashboard');
+              navigate('/advisor/dashboard');
             }}
             sx={{
               px: 4,

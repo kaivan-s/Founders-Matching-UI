@@ -95,7 +95,7 @@ const UserFlowSelector = () => {
 
   const handleSelectAdvisor = () => {
     // Navigate to advisor onboarding
-    navigate('/partner/onboarding');
+    navigate('/advisor/onboarding');
   };
 
   const handleOnboardingComplete = () => {
@@ -105,7 +105,7 @@ const UserFlowSelector = () => {
   };
 
   const handleSelectPartner = () => {
-    navigate('/partner/onboarding');
+    navigate('/advisor/onboarding');
   };
 
   return (
@@ -256,7 +256,7 @@ const UserFlowSelector = () => {
       <OnboardingDialog
         open={showOnboarding}
         onComplete={handleOnboardingComplete}
-        onSelectPartnerFlow={() => {
+        onSelectAdvisorFlow={() => {
           setShowOnboarding(false);
           handleSelectPartner();
         }}

@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 
-const OnboardingDialog = ({ open, onComplete, onSelectPartnerFlow }) => {
+const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
