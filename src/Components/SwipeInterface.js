@@ -77,14 +77,8 @@ const SwipeInterface = () => {
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
-  const [showTutorial, setShowTutorial] = useState(() => {
-    // Check if user has completed tutorial
-    try {
-      return !localStorage.getItem('discoveryTutorialCompleted');
-    } catch (e) {
-      return false;
-    }
-  });
+  const [showTutorial, setShowTutorial] = useState(false); // Will be set from backend
+  const [tutorialLoading, setTutorialLoading] = useState(true); // Track loading state
 
   const fetchSwipeLimit = useCallback(async () => {
     if (!user?.id) return;
@@ -100,6 +94,51 @@ const SwipeInterface = () => {
       }
     } catch (err) {
       console.error('Error fetching swipe limit:', err);
+    }
+  }, [user]);
+
+  const fetchTutorialStatus = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setTutorialLoading(true);
+      const response = await fetch(`${API_BASE}/founders/tutorial-status`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Show tutorial if it's NOT completed
+        setShowTutorial(!data.tutorial_completed);
+      } else {
+        // On error, default to showing tutorial (safer for first-time users)
+        setShowTutorial(true);
+      }
+    } catch (err) {
+      console.error('Error fetching tutorial status:', err);
+      // On error, default to showing tutorial (safer for first-time users)
+      setShowTutorial(true);
+    } finally {
+      setTutorialLoading(false);
+    }
+  }, [user]);
+
+  const completeTutorial = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/founders/complete-tutorial`, {
+        method: 'POST',
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      if (response.ok) {
+        setShowTutorial(false);
+      } else {
+        console.error('Failed to mark tutorial as completed');
+      }
+    } catch (err) {
+      console.error('Error completing tutorial:', err);
     }
   }, [user]);
 
@@ -224,6 +263,7 @@ const SwipeInterface = () => {
       }
       fetchPlan();
       fetchSwipeLimit();
+      fetchTutorialStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -1756,10 +1796,10 @@ const SwipeInterface = () => {
       />
 
       {/* Onboarding Tutorial */}
-      {!loading && founders.length > 0 && (
+      {!loading && !tutorialLoading && founders.length > 0 && (
         <OnboardingTutorial
           isFirstTime={showTutorial}
-          onComplete={() => setShowTutorial(false)}
+          onComplete={completeTutorial}
         />
       )}
       </Box>

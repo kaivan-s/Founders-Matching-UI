@@ -433,50 +433,98 @@ const AdvisorOnboarding = ({ onComplete }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 4 }}>
-      <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
-        Become an Advisor
-      </Typography>
+    <Box 
+      sx={{ 
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        minHeight: '100vh',
+        bgcolor: '#f5f5f5',
+        p: 3
+      }}
+    >
+      <Paper 
+        sx={{ 
+          width: '100%',
+          maxWidth: 900,
+          height: '90vh',
+          minHeight: 700,
+          maxHeight: 900,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: 2,
+          boxShadow: 3,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Fixed Header */}
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+            Become an Advisor
+          </Typography>
+          
+          <Stepper activeStep={activeStep} sx={{ mb: 0 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Box>
 
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Paper sx={{ p: 4, mb: 3 }}>
-        {renderStepContent()}
-      </Paper>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Button
-          disabled={activeStep === 0 || loading}
-          onClick={handleBack}
+        {/* Scrollable Content Area */}
+        <Box 
+          sx={{ 
+            flex: 1,
+            overflowY: 'auto',
+            p: 4,
+            bgcolor: 'white'
+          }}
         >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={!validateStep() || loading}
-        >
-          {loading ? (
-            <CircularProgress size={24} />
-          ) : activeStep === steps.length - 1 ? (
-            'Submit'
-          ) : (
-            'Next'
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
           )}
-        </Button>
-      </Box>
+
+          <Box sx={{ minHeight: '100%' }}>
+            {renderStepContent()}
+          </Box>
+        </Box>
+
+        {/* Fixed Footer */}
+        <Box 
+          sx={{ 
+            p: 3, 
+            borderTop: 1, 
+            borderColor: 'divider',
+            bgcolor: 'white',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Button
+            disabled={activeStep === 0 || loading}
+            onClick={handleBack}
+            variant="outlined"
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            disabled={!validateStep() || loading}
+          >
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : activeStep === steps.length - 1 ? (
+              'Submit'
+            ) : (
+              'Next'
+            )}
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 };

@@ -124,7 +124,7 @@ const OnboardingTutorial = ({ onComplete, isFirstTime }) => {
   const handleComplete = () => {
     setIsVisible(false);
     setHighlightedElement(null);
-    localStorage.setItem('discoveryTutorialCompleted', 'true');
+    // Tutorial completion is now tracked in backend via onComplete callback
     if (onComplete) {
       onComplete();
     }
