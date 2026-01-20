@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -39,6 +39,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
   
   const [formData, setFormData] = useState({
     // Basic Info
@@ -76,6 +77,41 @@ const AdvisorOnboarding = ({ onComplete }) => {
   });
 
   const steps = ['Basic Information', 'Expertise & Experience', 'Capacity & Preferences', 'Contact & Social', 'Questionnaire'];
+
+  // Check if advisor profile already exists on mount
+  useEffect(() => {
+    const checkExistingProfile = async () => {
+      if (!user?.id) {
+        setCheckingProfile(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/advisors/profile`, {
+          headers: {
+            'X-Clerk-User-Id': user.id,
+          },
+        });
+
+        if (response.ok) {
+          const profileData = await response.json();
+          // Check if we got actual profile data (not null or empty)
+          if (profileData !== null && profileData !== undefined && typeof profileData === 'object' && Object.keys(profileData).length > 0) {
+            // Profile already exists - redirect to dashboard
+            navigate('/advisor/dashboard', { replace: true });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error checking advisor profile:', err);
+        // On error, allow onboarding to proceed
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    checkExistingProfile();
+  }, [user?.id, navigate]);
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
@@ -432,6 +468,23 @@ const AdvisorOnboarding = ({ onComplete }) => {
     }
   };
 
+  // Show loading while checking for existing profile
+  if (checkingProfile) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          bgcolor: '#f5f5f5'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box 
       sx={{ 
@@ -440,30 +493,50 @@ const AdvisorOnboarding = ({ onComplete }) => {
         alignItems: 'flex-start',
         minHeight: '100vh',
         bgcolor: '#f5f5f5',
-        p: 3
+        p: { xs: 2, sm: 3 }
       }}
     >
       <Paper 
         sx={{ 
           width: '100%',
-          maxWidth: 900,
-          height: '90vh',
-          minHeight: 700,
-          maxHeight: 900,
+          maxWidth: { xs: '100%', sm: '90%', md: 800, lg: 900 },
+          height: { xs: 'calc(100vh - 32px)', sm: '85vh', md: '80vh' },
+          minHeight: { xs: 'auto', sm: 600 },
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: 2,
+          borderRadius: { xs: 1, sm: 2 },
           boxShadow: 3,
           overflow: 'hidden'
         }}
       >
         {/* Fixed Header */}
-        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+        <Box sx={{ 
+          p: { xs: 2, sm: 3 }, 
+          borderBottom: 1, 
+          borderColor: 'divider', 
+          bgcolor: 'white',
+          flexShrink: 0
+        }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              mb: { xs: 2, sm: 3 },
+              fontSize: { xs: '1.5rem', sm: '2rem' }
+            }}
+          >
             Become an Advisor
           </Typography>
           
-          <Stepper activeStep={activeStep} sx={{ mb: 0 }}>
+          <Stepper 
+            activeStep={activeStep} 
+            sx={{ 
+              mb: 0,
+              '& .MuiStepLabel-root': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }
+            }}
+          >
             {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -477,8 +550,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
           sx={{ 
             flex: 1,
             overflowY: 'auto',
-            p: 4,
-            bgcolor: 'white'
+            p: { xs: 2, sm: 3, md: 4 },
+            bgcolor: 'white',
+            minHeight: 0
           }}
         >
           {error && (
@@ -495,12 +569,14 @@ const AdvisorOnboarding = ({ onComplete }) => {
         {/* Fixed Footer */}
         <Box 
           sx={{ 
-            p: 3, 
+            p: { xs: 2, sm: 3 }, 
             borderTop: 1, 
             borderColor: 'divider',
             bgcolor: 'white',
             display: 'flex',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            flexShrink: 0,
+            gap: { xs: 1, sm: 2 }
           }}
         >
           <Button

@@ -6,8 +6,8 @@ import { SignedIn, SignedOut, SignIn, SignInButton, UserButton, useUser } from '
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
-import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge } from '@mui/material';
-import { AccountBalanceWallet, AddCircleOutline, Feedback } from '@mui/icons-material';
+import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge, Box as MuiBox } from '@mui/material';
+import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz } from '@mui/icons-material';
 import SwipeInterface from './Components/SwipeInterface';
 import InterestedPage from './Components/InterestedPage';
 import LandingPage from './Components/LandingPage';
@@ -120,10 +120,19 @@ if (!clerkPubKey) {
 function Header() {
   const { user } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [plan, setPlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [isAdvisorMode, setIsAdvisorMode] = useState(false);
+  
+  // Detect if we're in advisor mode based on route
+  useEffect(() => {
+    setIsAdvisorMode(location.pathname.startsWith('/advisor/'));
+  }, [location.pathname]);
+
+  const isHomePage = location.pathname === '/home';
 
   const fetchPlan = useCallback(async () => {
     if (!user || !user.id) {
@@ -155,152 +164,246 @@ function Header() {
   }, [user, fetchPlan]);
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      px: { xs: 3, sm: 4, md: 5 },
-      py: 2.5,
-      borderBottom: '1px solid',
-      borderColor: 'divider',
-      flexShrink: 0,
-      bgcolor: 'background.paper',
-    }}>
-      <Typography 
-        variant="h5" 
-        component="h1" 
-        onClick={() => navigate('/discover')}
-        sx={{ 
-          color: '#1e3a8a',
-          fontWeight: 700,
-          letterSpacing: '-0.02em',
-          cursor: 'pointer',
-          fontSize: { xs: '1.25rem', sm: '1.5rem' },
-          '&:hover': {
-            color: '#2563eb',
-          },
-        }}
-      >
-        GuildSpace
-      </Typography>
-      <SignedIn>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Chip
-            icon={<AccountBalanceWallet />}
-            label={planLoading ? 'Loading...' : plan?.id === 'FREE' ? 'Free Plan' : plan?.id === 'PRO' ? 'Pro' : 'Pro+'}
-            onClick={() => navigate('/pricing')}
-            sx={{
-              bgcolor: plan?.id === 'FREE' ? '#f1f5f9' : '#1e3a8a',
-              color: plan?.id === 'FREE' ? '#475569' : '#ffffff',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              height: 40,
-              borderRadius: '12px', // Consistent 12px radius
-              px: 1,
-              cursor: 'pointer',
-              border: '1px solid',
-              borderColor: plan?.id === 'FREE' ? '#e2e8f0' : 'transparent',
-              '& .MuiChip-icon': {
-                color: plan?.id === 'FREE' ? '#64748b' : 'inherit',
-              },
-              '&:hover': {
-                bgcolor: plan?.id === 'FREE' ? '#e2e8f0' : '#1e40af',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              },
-              transition: 'all 0.2s ease',
-            }}
-          />
-          <Button
-            variant="contained"
-            startIcon={<AddCircleOutline />}
-            onClick={() => setNewProjectDialogOpen(true)}
-            sx={{
-              bgcolor: '#0d9488',
-              px: 3,
-              py: 1,
-              height: 40,
-              fontSize: '0.875rem',
-              borderRadius: '12px', // Consistent 12px radius
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: 'none',
-              '&:hover': {
-                bgcolor: '#14b8a6',
-                boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                transform: 'translateY(-1px)',
-              },
-              transition: 'all 0.2s ease',
-            }}
-          >
-            New Project
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Feedback />}
-            onClick={() => setFeedbackDialogOpen(true)}
-            sx={{
-              borderColor: '#e2e8f0',
-              color: '#1e3a8a',
-              px: 2,
-              py: 0.75,
-              height: 36,
-              fontSize: '0.8125rem',
-              borderRadius: 3,
-              textTransform: 'none',
-              fontWeight: 600,
-              '&:hover': {
-                borderColor: '#0d9488',
-                bgcolor: 'rgba(13, 148, 136, 0.04)',
-              },
-            }}
-          >
-            Feedback
-          </Button>
-          <UserButton />
-        </Box>
-        <NewProjectDialog
-          open={newProjectDialogOpen}
-          onClose={() => setNewProjectDialogOpen(false)}
-          onProjectCreated={(project) => {
-            setNewProjectDialogOpen(false);
-            // Could also trigger a refresh of the discovery feed if needed
-            window.dispatchEvent(new Event('projectCreated'));
+    <>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        px: { xs: 3, sm: 4, md: 5 },
+        py: 2.5,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        flexShrink: 0,
+        bgcolor: 'background.paper',
+      }}>
+        <Typography 
+          variant="h5" 
+          component="h1" 
+          onClick={() => navigate('/home')}
+          sx={{ 
+            color: '#1e3a8a',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            cursor: 'pointer',
+            fontSize: { xs: '1.25rem', sm: '1.5rem' },
+            '&:hover': {
+              color: '#2563eb',
+            },
           }}
-        />
-        <FeedbackDialog
-          open={feedbackDialogOpen}
-          onClose={() => setFeedbackDialogOpen(false)}
-        />
-      </SignedIn>
-      <SignedOut>
-        <SignInButton mode="modal">
-          <Button 
-            variant="contained"
-            sx={{ 
-              bgcolor: '#0d9488',
-              px: 3,
-              py: 1,
-              height: 40,
-              fontSize: '0.875rem',
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 600,
-              color: 'white',
-              boxShadow: 'none',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                bgcolor: '#14b8a6',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
+        >
+          GuildSpace
+        </Typography>
+        <SignedIn>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Simplified header for home page - only show profile icon */}
+            {isHomePage ? (
+              <UserButton />
+            ) : (
+              <>
+                {/* Mode Switcher */}
+                <Button
+                  variant="outlined"
+                  startIcon={isAdvisorMode ? <Business /> : <Handshake />}
+                  endIcon={<SwapHoriz />}
+                  onClick={() => {
+                    if (isAdvisorMode) {
+                      // Switch to founder mode - go to discover
+                      navigate('/discover');
+                    } else {
+                      // Switch to advisor mode - go to advisor dashboard
+                      navigate('/advisor/dashboard');
+                    }
+                  }}
+                  sx={{
+                    borderColor: '#e2e8f0',
+                    color: '#1e3a8a',
+                    px: 2,
+                    py: 0.75,
+                    height: 36,
+                    fontSize: '0.8125rem',
+                    borderRadius: 3,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      borderColor: '#0d9488',
+                      bgcolor: 'rgba(13, 148, 136, 0.04)',
+                    },
+                  }}
+                >
+                  {isAdvisorMode ? 'Founder Mode' : 'Advisor Mode'}
+                </Button>
+
+                {/* Founder Mode Buttons */}
+                {!isAdvisorMode && (
+                  <>
+                    <Chip
+                      icon={<AccountBalanceWallet />}
+                      label={planLoading ? 'Loading...' : plan?.id === 'FREE' ? 'Free Plan' : plan?.id === 'PRO' ? 'Pro' : 'Pro+'}
+                      onClick={() => navigate('/pricing')}
+                      sx={{
+                        bgcolor: plan?.id === 'FREE' ? '#f1f5f9' : '#1e3a8a',
+                        color: plan?.id === 'FREE' ? '#475569' : '#ffffff',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        height: 40,
+                        borderRadius: '12px',
+                        px: 1,
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: plan?.id === 'FREE' ? '#e2e8f0' : 'transparent',
+                        '& .MuiChip-icon': {
+                          color: plan?.id === 'FREE' ? '#64748b' : 'inherit',
+                        },
+                        '&:hover': {
+                          bgcolor: plan?.id === 'FREE' ? '#e2e8f0' : '#1e40af',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        },
+                        transition: 'all 0.2s ease',
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      startIcon={<AddCircleOutline />}
+                      onClick={() => setNewProjectDialogOpen(true)}
+                      sx={{
+                        bgcolor: '#0d9488',
+                        px: 3,
+                        py: 1,
+                        height: 40,
+                        fontSize: '0.875rem',
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        boxShadow: 'none',
+                        '&:hover': {
+                          bgcolor: '#14b8a6',
+                          boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
+                          transform: 'translateY(-1px)',
+                        },
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      New Project
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Feedback />}
+                      onClick={() => setFeedbackDialogOpen(true)}
+                      sx={{
+                        borderColor: '#e2e8f0',
+                        color: '#1e3a8a',
+                        px: 2,
+                        py: 0.75,
+                        height: 36,
+                        fontSize: '0.8125rem',
+                        borderRadius: 3,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                          borderColor: '#0d9488',
+                          bgcolor: 'rgba(13, 148, 136, 0.04)',
+                        },
+                      }}
+                    >
+                      Feedback
+                    </Button>
+                  </>
+                )}
+
+                <UserButton />
+              </>
+            )}
+          </Box>
+        </SignedIn>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button 
+              variant="contained"
+              sx={{ 
+                bgcolor: '#0d9488',
+                px: 3,
+                py: 1,
+                height: 40,
+                fontSize: '0.875rem',
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                color: 'white',
+                boxShadow: 'none',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  bgcolor: '#14b8a6',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
+                },
+              }}
+            >
+              Sign In
+            </Button>
+          </SignInButton>
+        </SignedOut>
+      </Box>
+      {/* Advisor Navigation Tabs - show below header when in advisor mode */}
+      {isAdvisorMode && (
+        <Box sx={{ 
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          px: { xs: 2, sm: 4 },
+          flexShrink: 0,
+        }}>
+          <Tabs 
+            value={location.pathname.includes('/marketplace') ? 1 : 0}
+            onChange={(e, newValue) => {
+              if (newValue === 0) {
+                navigate('/advisor/dashboard');
+              } else if (newValue === 1) {
+                navigate('/advisor/marketplace');
+              }
+            }}
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontSize: '0.9375rem',
+                fontWeight: 500,
+                minHeight: 56,
+                px: 3,
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'text.primary',
+                },
+              },
+              '& .Mui-selected': {
+                color: '#14b8a6',
+                fontWeight: 600,
+              },
+              '& .MuiTabs-indicator': {
+                height: 2,
+                backgroundColor: '#14b8a6',
+                bottom: 0,
               },
             }}
           >
-            Sign In
-          </Button>
-        </SignInButton>
-      </SignedOut>
-    </Box>
+            <Tab label="Dashboard" />
+            <Tab label="Marketplace" />
+          </Tabs>
+        </Box>
+      )}
+      <NewProjectDialog
+        open={newProjectDialogOpen}
+        onClose={() => setNewProjectDialogOpen(false)}
+        onProjectCreated={(project) => {
+          setNewProjectDialogOpen(false);
+          // Could also trigger a refresh of the discovery feed if needed
+          window.dispatchEvent(new Event('projectCreated'));
+        }}
+      />
+      <FeedbackDialog
+        open={feedbackDialogOpen}
+        onClose={() => setFeedbackDialogOpen(false)}
+      />
+    </>
   );
 }
 
@@ -519,9 +622,9 @@ function RouteWrapper({ children, loading, advisorChecked, showAdvisorOnboarding
     );
   }
 
-  // Always allow access to flow selector page
+  // Always allow access to home page
   const currentPath = window.location.pathname;
-  if (currentPath === '/select-flow') {
+  if (currentPath === '/home') {
     return children;
   }
 
@@ -543,12 +646,19 @@ function RouteWrapper({ children, loading, advisorChecked, showAdvisorOnboarding
     if (currentPath.startsWith('/advisor/')) {
       return children;
     }
+    // Allow access to founder routes even if user is an advisor (mode switching)
+    // Founder routes: /discover, /projects, /workspaces, /interested, /pricing, /my-feedback
+    const founderRoutes = ['/discover', '/projects', '/workspaces', '/interested', '/pricing', '/my-feedback'];
+    if (founderRoutes.some(route => currentPath.startsWith(route))) {
+      return children;
+    }
+    // Otherwise redirect to advisor dashboard
     return <Navigate to="/advisor/dashboard" replace />;
   }
 
-  // If user is not a founder and not on onboarding, redirect to flow selector
+  // If user is not a founder and not on onboarding, redirect to home
   if (!isFounder && !showOnboarding && !currentPath.startsWith('/advisor/')) {
-    return <Navigate to="/select-flow" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return children;
@@ -688,7 +798,7 @@ function AppContent() {
           setShowOnboarding(false);
           
           // If user is not an advisor either, show flow selector
-          // (This will be handled by checking if they're on /select-flow route)
+          // (This will be handled by checking if they're on /home route)
         }
       } else {
         // On advisor route but no advisor profile found - don't check founder status
@@ -739,7 +849,7 @@ function AppContent() {
     if (user) {
       // If user is on flow selector page, show it without checking user type
       // This allows users to select their flow regardless of their current status
-      if (location.pathname === '/select-flow') {
+      if (location.pathname === '/home') {
         setShowFlowSelector(true);
         setLoading(false);
         setAdvisorChecked(true);
@@ -831,8 +941,8 @@ function AppContent() {
     <>
       {/* Always render Routes - don't conditionally render them */}
       <Routes>
-        {/* Flow selector route - shown when user is neither founder nor partner */}
-        <Route path="/select-flow" element={
+        {/* Home route - shown when user is neither founder nor advisor */}
+        <Route path="/home" element={
           loading ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
               <CircularProgress />
@@ -1111,7 +1221,7 @@ function AppContent() {
             <AdvisorLanding />
           </Box>
         } />
-        <Route path="/" element={<Navigate to="/select-flow" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
       
       {showPurchaseSuccess && (
@@ -1129,8 +1239,8 @@ function App() {
     domain: clerkDomain || 'clerk.founder-match.in', // Use custom domain if provided, otherwise default
     signInUrl: '/',
     signUpUrl: '/',
-    afterSignInUrl: '/select-flow',
-    afterSignUpUrl: '/select-flow'
+    afterSignInUrl: '/home',
+    afterSignUpUrl: '/home'
   };
 
   return (
@@ -1179,13 +1289,10 @@ function App() {
 function AppWithHeader() {
   const location = useLocation();
   
-  // Hide global header for advisor routes (advisor has its own navigation)
-  // Also hide for advisor landing route (public landing page)
-  // Hide for select-flow page (both flows have their own headers)
-  const isAdvisorRoute = location.pathname.startsWith('/advisor');
+  // Hide header only for public landing pages
   const isAdvisorLandingRoute = location.pathname === '/advisor/landing';
-  const isSelectFlowRoute = location.pathname === '/select-flow';
-  const showHeader = !isAdvisorRoute && !isAdvisorLandingRoute && !isSelectFlowRoute;
+  const isHomeRoute = location.pathname === '/home';
+  const showHeader = !isAdvisorLandingRoute; // Show header on all pages except public landing
 
   return (
     <Box sx={{ 
@@ -1200,7 +1307,7 @@ function AppWithHeader() {
       
       <Box sx={{ 
         flex: 1, 
-        overflow: (isAdvisorLandingRoute || isSelectFlowRoute) ? 'auto' : 'hidden',
+        overflow: (isAdvisorLandingRoute || isHomeRoute) ? 'auto' : 'hidden',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative'

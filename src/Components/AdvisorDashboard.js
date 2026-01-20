@@ -49,7 +49,6 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
-import AdvisorNavigation from './AdvisorNavigation';
 import AdvisorMarketplace from './AdvisorMarketplace';
 import { supabase } from '../config/supabase';
 
@@ -704,7 +703,7 @@ const AdvisorDashboard = () => {
     }
   }, [loading, user?.id, fetchDashboardData]);
 
-  // Determine current tab based on route (no need for state since AdvisorNavigation handles navigation)
+  // Determine current tab based on route (Header handles navigation tabs)
   const currentTab = location.pathname.includes('/marketplace') ? 1 : 0;
 
   // Redirect to onboarding if no profile found after loading completes
@@ -937,7 +936,6 @@ const AdvisorDashboard = () => {
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        <AdvisorNavigation />
         <Box sx={{ 
           flex: 1, 
           overflow: 'auto',
@@ -1052,7 +1050,6 @@ const AdvisorDashboard = () => {
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        <AdvisorNavigation />
         <Box sx={{ 
           flex: 1, 
           overflow: 'auto',
@@ -1166,8 +1163,6 @@ const AdvisorDashboard = () => {
       flexDirection: 'column',
       overflow: 'hidden'
     }}>
-      {/* Partner Navigation */}
-      <AdvisorNavigation />
       
       {/* Dashboard Content */}
       <Box sx={{ 

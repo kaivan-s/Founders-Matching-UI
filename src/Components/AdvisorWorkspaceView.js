@@ -38,7 +38,6 @@ import {
   Business,
   Person,
 } from '@mui/icons-material';
-import AdvisorNavigation from './AdvisorNavigation';
 
 const AdvisorWorkspaceView = () => {
   const { workspaceId } = useParams();
@@ -282,7 +281,6 @@ const AdvisorWorkspaceView = () => {
       flexDirection: 'column',
       overflow: 'hidden'
     }}>
-      <AdvisorNavigation />
       
       <Box sx={{ 
         flex: 1, 

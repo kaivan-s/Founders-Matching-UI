@@ -251,7 +251,7 @@ const LandingPage = () => {
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {!isSignedIn && (
-            <SignInButton mode="modal" afterSignInUrl="/select-flow">
+            <SignInButton mode="modal" afterSignInUrl="/home">
               <Button 
                 variant="outlined" 
                 sx={{ 
@@ -355,7 +355,7 @@ const LandingPage = () => {
             {isSignedIn ? (
               <Button
                 variant="contained"
-                onClick={() => navigate('/select-flow')}
+                onClick={() => navigate('/home')}
                 endIcon={<ArrowForward />}
                 sx={{
                   px: 5,
@@ -375,7 +375,7 @@ const LandingPage = () => {
                 Go to Dashboard
               </Button>
             ) : (
-              <SignInButton mode="modal" afterSignInUrl="/select-flow">
+              <SignInButton mode="modal" afterSignInUrl="/home">
                 <Button
                   variant="contained"
                   endIcon={<ArrowForward />}
