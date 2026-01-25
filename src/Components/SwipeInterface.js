@@ -31,13 +31,15 @@ import {
   Psychology,
   ArrowBack,
   ArrowForward,
-  Search
+  Search,
+  Tune
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
 import AdvancedSearch from './AdvancedSearch';
 import OnboardingTutorial from './OnboardingTutorial';
+import DiscoveryPreferencesDialog from './DiscoveryPreferencesDialog';
 import { API_BASE } from '../config/api';
 
 const SwipeInterface = () => {
@@ -75,6 +77,7 @@ const SwipeInterface = () => {
     }
   });
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
+  const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
   const [showTutorial, setShowTutorial] = useState(false); // Will be set from backend
@@ -185,6 +188,16 @@ const SwipeInterface = () => {
         throw new Error(errorData.error || 'Failed to fetch founders');
       }
       const data = await response.json();
+      
+      // Debug: Log preferences and scores
+      if (currentPreferences && Object.keys(currentPreferences).length > 0) {
+        console.log('Preferences sent:', currentPreferences);
+        console.log('Projects received with scores:', data.map(p => ({ 
+          id: p.id, 
+          title: p.projects?.[0]?.title, 
+          preference_score: p.preference_score 
+        })));
+      }
       
       if (append) {
         // Append new projects to existing list
@@ -334,6 +347,12 @@ const SwipeInterface = () => {
 
   const handlePreferencesChange = (newPreferences) => {
     setPreferences(newPreferences);
+    // Save preferences to localStorage
+    try {
+      localStorage.setItem('discoveryPreferences', JSON.stringify(newPreferences));
+    } catch (e) {
+      console.error('Error saving preferences to localStorage:', e);
+    }
     // Reset pagination when preferences change
     setOffset(0);
     setHasMore(true);
@@ -683,9 +702,36 @@ const SwipeInterface = () => {
                   <FilterBar 
                     onFilterChange={handleFilterChange} 
                     activeFilters={filters} 
-                    onPreferencesChange={handlePreferencesChange} 
+                    onPreferencesChange={handlePreferencesChange}
+                    preferences={preferences}
                   />
                 </Box>
+                <Button
+                  variant="outlined"
+                  startIcon={<Tune />}
+                  onClick={() => setPreferencesDialogOpen(true)}
+                  size="small"
+                  sx={{
+                    borderColor: preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0 
+                      ? '#1e3a8a' 
+                      : '#e2e8f0',
+                    color: preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0 
+                      ? '#1e3a8a' 
+                      : '#64748b',
+                    bgcolor: preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0 
+                      ? 'rgba(30, 58, 138, 0.08)' 
+                      : 'transparent',
+                    fontWeight: preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0 
+                      ? 600 
+                      : 400,
+                    '&:hover': {
+                      borderColor: '#1e3a8a',
+                      bgcolor: 'rgba(30, 58, 138, 0.08)',
+                    },
+                  }}
+                >
+                  Preferences
+                </Button>
                 <Button
                   data-tutorial-id="advanced-search-btn"
                   variant="outlined"
@@ -908,8 +954,8 @@ const SwipeInterface = () => {
                         } : {},
                       }}
                     >
-                    {/* Preference Match Score Badge - Show on ALL cards */}
-                    {founder?.preference_score !== undefined && (
+                    {/* Preference Match Score Badge - Show on ALL cards when score exists */}
+                    {founder?.preference_score !== undefined && founder?.preference_score !== null && (
                       <Box sx={{
                         position: 'absolute',
                         top: 12,
@@ -1793,6 +1839,14 @@ const SwipeInterface = () => {
         open={advancedSearchOpen}
         onClose={() => setAdvancedSearchOpen(false)}
         plan={plan}
+      />
+
+      {/* Discovery Preferences Dialog */}
+      <DiscoveryPreferencesDialog
+        open={preferencesDialogOpen}
+        onClose={() => setPreferencesDialogOpen(false)}
+        onSave={handlePreferencesChange}
+        initialPreferences={preferences}
       />
 
       {/* Onboarding Tutorial */}

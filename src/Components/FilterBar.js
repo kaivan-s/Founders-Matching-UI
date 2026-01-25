@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Chip, IconButton } from '@mui/material';
 import { Clear } from '@mui/icons-material';
 
-const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange }) => {
+const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange, preferences }) => {
   const hasActiveFilters = activeFilters && (
     activeFilters.search ||
     (activeFilters.skills && activeFilters.skills.length > 0) ||
@@ -10,6 +10,8 @@ const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange }) => {
     activeFilters.project_stage ||
     activeFilters.looking_for
   );
+  
+  const hasActivePreferences = preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0;
 
   const handleClearFilter = (filterKey) => {
     if (onFilterChange) {
@@ -35,12 +37,24 @@ const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange }) => {
     }
   };
 
-  if (!hasActiveFilters) {
+  if (!hasActiveFilters && !hasActivePreferences) {
     return null;
   }
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      {hasActivePreferences && (
+        <Chip
+          label="Compatibility Matching Active"
+          size="small"
+          sx={{ 
+            bgcolor: '#1e3a8a', 
+            color: 'white',
+            fontWeight: 600,
+            fontSize: '0.7rem'
+          }}
+        />
+      )}
       {activeFilters.search && (
         <Chip
           label={`Search: ${activeFilters.search}`}

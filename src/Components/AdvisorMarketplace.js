@@ -43,6 +43,15 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
     stage: '',
     location: '',
   });
+  const [preferences, setPreferences] = useState(() => {
+    try {
+      const saved = localStorage.getItem('discoveryPreferences');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      console.error('Error parsing preferences from localStorage:', e);
+      return {};
+    }
+  });
 
   const fetchBillingProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -70,6 +79,12 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
       if (searchQuery) params.append('search', searchQuery);
       if (filters.stage) params.append('project_stage', filters.stage);
       if (filters.location) params.append('location', filters.location);
+      
+      // Add preferences to the request if they exist
+      if (preferences && Object.keys(preferences).length > 0) {
+        params.append('preferences', JSON.stringify(preferences));
+      }
+      
       params.append('limit', '50');
 
       const response = await fetch(`${API_BASE}/projects?${params.toString()}`, {
@@ -89,7 +104,7 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
     } finally {
       setLoading(false);
     }
-  }, [user, searchQuery, filters.stage, filters.location]);
+  }, [user, searchQuery, filters.stage, filters.location, preferences]);
 
   // Fetch billing profile only once on mount
   useEffect(() => {
@@ -263,6 +278,7 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
                     flexDirection: 'column',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
+                    position: 'relative',
                     '&:hover': {
                       transform: 'translateY(-4px)',
                       boxShadow: 4,
@@ -270,6 +286,38 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
                   }}
                   onClick={() => handleProjectClick(project)}
                 >
+                  {/* Preference Match Score Badge */}
+                  {project?.preference_score !== undefined && (
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      zIndex: 10,
+                    }}>
+                      <Chip
+                        label={`${project.preference_score}% Match`}
+                        size="small"
+                        sx={{
+                          background: project.preference_score >= 80 ? 
+                            '#1e3a8a' :
+                            project.preference_score >= 60 ?
+                            '#1e3a8a' :
+                            '#64748b',
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '0.6875rem',
+                          px: 1.25,
+                          py: 0.25,
+                          height: 24,
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+                          '& .MuiChip-label': {
+                            px: 0.5,
+                            letterSpacing: '0.01em',
+                          }
+                        }}
+                      />
+                    </Box>
+                  )}
                   <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                       <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
