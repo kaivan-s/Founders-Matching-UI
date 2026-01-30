@@ -46,7 +46,7 @@ const AdvisorNavigation = () => {
             mr: 2,
           }}
         >
-          GuildSpace
+          Guild Space
         </Typography>
         <Tabs 
           value={getTabValue()} 

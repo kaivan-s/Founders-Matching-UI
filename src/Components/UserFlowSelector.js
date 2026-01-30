@@ -113,7 +113,7 @@ const UserFlowSelector = () => {
       <Container maxWidth="md" sx={{ py: 8 }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
-            Welcome to GuildSpace
+            Welcome to Guild Space
           </Typography>
           <Typography variant="h6" color="text.secondary">
             Choose how you'd like to use the platform

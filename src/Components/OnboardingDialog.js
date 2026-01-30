@@ -200,7 +200,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
             <Box>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
-                  Welcome to GuildSpace! 👋
+                  Welcome to Guild Space! 👋
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#64748b' }}>
                   Let's get to know you better to find your perfect co-founder

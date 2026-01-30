@@ -191,7 +191,7 @@ function Header() {
             },
           }}
         >
-          GuildSpace
+          Guild Space
         </Typography>
         <SignedIn>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -1236,7 +1236,7 @@ function App() {
   // When using a custom Clerk domain, you must specify it here
   const clerkConfig = {
     publishableKey: clerkPubKey,
-    domain: clerkDomain || 'clerk.founder-match.in', // Use custom domain if provided, otherwise default
+    domain: clerkDomain || 'clerk.guild-space.co', // Use custom domain if provided, otherwise default
     signInUrl: '/',
     signUpUrl: '/',
     afterSignInUrl: '/home',

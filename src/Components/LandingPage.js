@@ -245,9 +245,9 @@ const LandingPage = () => {
             fontWeight: 800,
             letterSpacing: '-0.03em',
           }}
-          aria-label="GuildSpace - Co-founder Matching Platform"
+          aria-label="Guild Space - Co-founder Matching Platform"
         >
-          GuildSpace
+          Guild Space
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           {!isSignedIn && (
@@ -527,7 +527,7 @@ const LandingPage = () => {
           </Grid>
         </Box>
 
-        {/* What GuildSpace Does Differently */}
+        {/* What Guild Space Does Differently */}
         <Box sx={{ mt: { xs: 12, md: 16 }, mb: { xs: 10, md: 12 } }}>
           <Box sx={{ textAlign: 'center', mb: 8 }}>
             <Typography 
@@ -540,7 +540,7 @@ const LandingPage = () => {
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              What GuildSpace Does Differently
+              What Guild Space Does Differently
             </Typography>
             <Typography 
               variant="body1" 
@@ -1035,7 +1035,7 @@ const LandingPage = () => {
               fontSize: '1.25rem',
             }}
           >
-            GuildSpace
+            Guild Space
           </Typography>
           <Typography 
             variant="body2" 
@@ -1044,7 +1044,7 @@ const LandingPage = () => {
               fontSize: '0.9rem',
             }}
           >
-            © {new Date().getFullYear()} GuildSpace. All rights reserved.
+            © {new Date().getFullYear()} Guild Space. All rights reserved.
           </Typography>
           {isSignedIn && (
             <Button

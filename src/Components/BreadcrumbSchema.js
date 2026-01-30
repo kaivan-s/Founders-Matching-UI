@@ -15,7 +15,7 @@ const BreadcrumbSchema = ({ items = [] }) => {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": `https://founder-match.in${item.url}`
+      "item": `https://guild-space.co${item.url}`
     }))
   };
 
