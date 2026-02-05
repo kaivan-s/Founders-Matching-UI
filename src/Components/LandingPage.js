@@ -1214,6 +1214,15 @@ const LandingPage = () => {
             >
               Terms & Conditions
             </Button>
+            <Button
+              onClick={() => navigate('/faq')}
+              sx={{
+                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                '&:hover': { color: TEAL },
+              }}
+            >
+              FAQ
+            </Button>
             {isSignedIn && (
               <Button onClick={() => setFeedbackDialogOpen(true)} sx={{
                 textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',

@@ -28,6 +28,7 @@ import FeedbackHistory from './Components/FeedbackHistory';
 import FeedbackDialog from './Components/FeedbackDialog';
 import PrivacyPolicy from './Components/PrivacyPolicy';
 import TermsAndConditions from './Components/TermsAndConditions';
+import FAQ from './Components/FAQ';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -1224,6 +1225,7 @@ function AppContent() {
         } />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/faq" element={<FAQ />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
       
@@ -1272,6 +1274,7 @@ function App() {
             } />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/faq" element={<FAQ />} />
             {/* Normal Landing Page - catch-all for signed-out users */}
             <Route path="*" element={
               <Box sx={{ 
