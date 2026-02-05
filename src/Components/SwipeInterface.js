@@ -72,7 +72,6 @@ const SwipeInterface = () => {
       const saved = localStorage.getItem('discoveryPreferences');
       return saved ? JSON.parse(saved) : {};
     } catch (e) {
-      console.error('Error parsing preferences from localStorage:', e);
       return {};
     }
   });
@@ -96,7 +95,6 @@ const SwipeInterface = () => {
         setSwipeLimit(data);
       }
     } catch (err) {
-      console.error('Error fetching swipe limit:', err);
     }
   }, [user]);
 
@@ -118,7 +116,6 @@ const SwipeInterface = () => {
         setShowTutorial(true);
       }
     } catch (err) {
-      console.error('Error fetching tutorial status:', err);
       // On error, default to showing tutorial (safer for first-time users)
       setShowTutorial(true);
     } finally {
@@ -138,10 +135,8 @@ const SwipeInterface = () => {
       if (response.ok) {
         setShowTutorial(false);
       } else {
-        console.error('Failed to mark tutorial as completed');
       }
     } catch (err) {
-      console.error('Error completing tutorial:', err);
     }
   }, [user]);
 
@@ -191,12 +186,7 @@ const SwipeInterface = () => {
       
       // Debug: Log preferences and scores
       if (currentPreferences && Object.keys(currentPreferences).length > 0) {
-        console.log('Preferences sent:', currentPreferences);
-        console.log('Projects received with scores:', data.map(p => ({ 
-          id: p.id, 
-          title: p.projects?.[0]?.title, 
-          preference_score: p.preference_score 
-        })));
+        // Projects received with scores
       }
       
       if (append) {
@@ -235,7 +225,6 @@ const SwipeInterface = () => {
         setHasMore(false);
       }
     } catch (err) {
-      console.error('Error fetching more founders:', err);
       setHasMore(false); // Stop trying if there's an error
       // Don't show error to user for background loading
     } finally {
@@ -256,7 +245,6 @@ const SwipeInterface = () => {
         setPlan(data);
       }
     } catch (err) {
-      console.error('Error fetching plan:', err);
     }
   }, [user]);
 
@@ -271,7 +259,6 @@ const SwipeInterface = () => {
         const initialPrefs = savedPrefs ? JSON.parse(savedPrefs) : {};
         fetchFounders(filters, initialPrefs, 0, false);
       } catch (e) {
-        console.error('Error parsing preferences from localStorage:', e);
         fetchFounders(filters, {}, 0, false);
       }
       fetchPlan();
@@ -351,7 +338,6 @@ const SwipeInterface = () => {
     try {
       localStorage.setItem('discoveryPreferences', JSON.stringify(newPreferences));
     } catch (e) {
-      console.error('Error saving preferences to localStorage:', e);
     }
     // Reset pagination when preferences change
     setOffset(0);
@@ -469,7 +455,6 @@ const SwipeInterface = () => {
         setSelectedFounder(null);
       }
     } catch (err) {
-      console.error('Error recording swipe:', err);
       const errorMessage = err.message || 'Failed to record swipe. Please try again.';
       setError(errorMessage);
       setTimeout(() => setError(null), 5000);

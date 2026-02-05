@@ -67,7 +67,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
         setNotifications(data);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -92,7 +91,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
         setPendingApprovals(data);
       }
     } catch (error) {
-      console.error('Error fetching pending approvals:', error);
     }
   }, [workspaceId, clerkUserId]);
 
@@ -115,7 +113,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
           }
         }
       } catch (err) {
-        console.error('Error fetching founder ID:', err);
       }
     };
     
@@ -208,7 +205,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
         );
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -233,7 +229,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
         );
       }
     } catch (error) {
-      console.error('Error marking all as read:', error);
     } finally {
       setMarkingRead(false);
     }
@@ -262,7 +257,6 @@ const WorkspaceNotificationsDialog = ({ open, onClose, workspaceId, workspaceNam
         await fetchNotifications();
       }
     } catch (error) {
-      console.error(`Error ${action}ing approval:`, error);
     } finally {
       setProcessingApproval(null);
     }

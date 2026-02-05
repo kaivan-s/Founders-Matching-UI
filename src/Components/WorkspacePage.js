@@ -53,6 +53,8 @@ const WorkspacePage = () => {
   const { user } = useUser();
   const { workspace, loading, error, updateWorkspace } = useWorkspace(workspaceId);
   const [currentFounderId, setCurrentFounderId] = useState(null);
+  const [workspacePlan, setWorkspacePlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
@@ -93,13 +95,40 @@ const WorkspacePage = () => {
           }
         }
       } catch (err) {
-        console.error('Error fetching founder ID:', err);
       }
     };
     if (user) {
       fetchFounderId();
     }
   }, [user]);
+
+  // Fetch workspace plan tier
+  useEffect(() => {
+    const fetchWorkspacePlan = async () => {
+      if (!user?.id || !workspaceId) return;
+      setPlanLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/check-feature?feature=workspaceFeatures.equityFull`, {
+          headers: {
+            'X-Clerk-User-Id': user.id,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setWorkspacePlan(data.workspace_plan || 'FREE');
+        } else {
+          setWorkspacePlan('FREE');
+        }
+      } catch (err) {
+        setWorkspacePlan('FREE');
+      } finally {
+        setPlanLoading(false);
+      }
+    };
+    if (user?.id && workspaceId) {
+      fetchWorkspacePlan();
+    }
+  }, [user?.id, workspaceId]);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingStage, setEditingStage] = useState(false);
   const [titleValue, setTitleValue] = useState('');
@@ -121,7 +150,6 @@ const WorkspacePage = () => {
       const result = await updateWorkspace({ title: titleValue });
       setEditingTitle(false);
     } catch (err) {
-      console.error('Failed to update title:', err);
       alert('Failed to update title. Please try again.');
     }
   };
@@ -136,7 +164,6 @@ const WorkspacePage = () => {
       const result = await updateWorkspace({ stage: stageValue });
       setEditingStage(false);
     } catch (err) {
-      console.error('Failed to update stage:', err);
       alert('Failed to update stage. Please try again.');
     }
   };
@@ -371,6 +398,22 @@ const WorkspacePage = () => {
                         onClick={handleEditStage}
                       />
                     </Tooltip>
+                    {!planLoading && workspacePlan && workspacePlan !== 'FREE' && (
+                      <Chip
+                        label={workspacePlan === 'PRO' ? 'Pro Workspace' : 'Pro+ Workspace'}
+                        size="small"
+                        sx={{
+                          bgcolor: workspacePlan === 'PRO_PLUS' ? '#7c3aed' : '#1e3a8a',
+                          color: '#ffffff',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          height: 24,
+                          '&:hover': {
+                            bgcolor: workspacePlan === 'PRO_PLUS' ? '#6d28d9' : '#1e40af',
+                          }
+                        }}
+                      />
+                    )}
                     <Typography 
                       variant="caption" 
                       sx={{ 

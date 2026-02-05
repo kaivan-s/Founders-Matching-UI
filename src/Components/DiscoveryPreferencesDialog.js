@@ -81,7 +81,6 @@ const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences 
         const savedPrefs = saved ? JSON.parse(saved) : {};
         setPreferences(savedPrefs);
       } catch (e) {
-        console.error('Error loading preferences:', e);
         setPreferences(initialPreferences);
       }
     }

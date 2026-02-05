@@ -28,8 +28,6 @@ const LocationAutocomplete = ({ value, onChange, label, placeholder, helperText,
     const script = document.createElement('script');
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
     if (!apiKey) {
-      console.warn('Google Maps API key not found. Location autocomplete will not work.');
-      console.warn('Please set REACT_APP_GOOGLE_MAPS_API_KEY in your .env file');
       return;
     }
     // Load Google Maps Places API
@@ -42,12 +40,10 @@ const LocationAutocomplete = ({ value, onChange, label, placeholder, helperText,
         if (window.google?.maps?.places) {
       setIsScriptLoaded(true);
         } else {
-          console.error('Google Maps API loaded but Places library not available');
         }
       }, 100);
     };
     script.onerror = () => {
-      console.error('Failed to load Google Maps API. Please check your API key and ensure Places API is enabled.');
     };
     document.head.appendChild(script);
 
@@ -90,7 +86,6 @@ const LocationAutocomplete = ({ value, onChange, label, placeholder, helperText,
       
       setupAutocomplete(muiInput);
     } catch (error) {
-      console.error('Error initializing Google Places Autocomplete:', error);
     }
   };
 
@@ -122,7 +117,6 @@ const LocationAutocomplete = ({ value, onChange, label, placeholder, helperText,
               // Show custom dropdown with predictions
               showCustomDropdown(predictions, muiInput);
           } else if (status !== window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-            console.warn('Google Places API error:', status);
             hideCustomDropdown();
             } else {
               hideCustomDropdown();

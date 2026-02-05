@@ -38,7 +38,6 @@ const PurchaseSuccess = ({ onContinue }) => {
         setCredits(data.credits);
       }
     } catch (err) {
-      console.error('Error fetching credits:', err);
     } finally {
       setLoading(false);
     }

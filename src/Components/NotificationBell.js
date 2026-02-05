@@ -59,7 +59,6 @@ const NotificationBell = ({ workspaceId, clerkUserId }) => {
         setUnreadCount(data.filter(n => !n.read_at).length);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -102,7 +101,6 @@ const NotificationBell = ({ workspaceId, clerkUserId }) => {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -125,7 +123,6 @@ const NotificationBell = ({ workspaceId, clerkUserId }) => {
       );
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all as read:', error);
     }
   };
 
@@ -150,7 +147,6 @@ const NotificationBell = ({ workspaceId, clerkUserId }) => {
         await fetchNotifications();
       }
     } catch (error) {
-      console.error(`Error ${action}ing approval:`, error);
     } finally {
       setProcessingApproval(null);
     }

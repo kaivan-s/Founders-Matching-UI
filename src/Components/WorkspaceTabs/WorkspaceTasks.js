@@ -3,8 +3,6 @@ import { useUser } from '@clerk/clerk-react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Button,
   Chip,
   Avatar,
@@ -21,6 +19,7 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  alpha,
 } from '@mui/material';
 import {
   Add,
@@ -34,10 +33,20 @@ import { format, isPast, parseISO } from 'date-fns';
 
 import { API_BASE } from '../../config/api';
 
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
+
 const STATUSES = {
-  TODO: { label: 'To-do', color: '#64748b' },
-  IN_PROGRESS: { label: 'In Progress', color: '#0ea5e9' },
-  DONE: { label: 'Done', color: '#10b981' },
+  TODO: { label: 'To-do', color: SLATE_400 },
+  IN_PROGRESS: { label: 'In Progress', color: SKY },
+  DONE: { label: 'Done', color: TEAL },
 };
 
 const WorkspaceTasks = ({ workspaceId }) => {
@@ -60,35 +69,36 @@ const WorkspaceTasks = ({ workspaceId }) => {
     kpi_id: null,
     decision_id: null,
   });
-  const [linkType, setLinkType] = useState(''); // 'kpi', 'decision', or ''
+  const [linkType, setLinkType] = useState('');
   const [draggedTask, setDraggedTask] = useState(null);
   const [kpis, setKpis] = useState([]);
   const [decisions, setDecisions] = useState([]);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchPlan();
+    if (user?.id && workspaceId) {
+      fetchWorkspaceFeatureAccess();
     }
-  }, [user?.id]);
+  }, [user?.id, workspaceId]);
 
-  const fetchPlan = async () => {
-    if (!user?.id) return;
+  const fetchWorkspaceFeatureAccess = async () => {
+    if (!user?.id || !workspaceId) return;
     setPlanLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/billing/my-plan`, {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/check-feature?feature=workspaceFeatures.tasksBoard`, {
         headers: {
           'X-Clerk-User-Id': user.id,
         },
       });
       if (response.ok) {
-        const planData = await response.json();
-        setPlan(planData);
+        const data = await response.json();
+        setPlan({ 
+          id: data.workspace_plan || 'FREE', 
+          workspaceFeatures: { tasksBoard: data.has_access } 
+        });
       } else {
-        // Default to FREE if fetch fails
         setPlan({ id: 'FREE', workspaceFeatures: { tasksBoard: false } });
       }
     } catch (err) {
-      // Default to FREE on error
       setPlan({ id: 'FREE', workspaceFeatures: { tasksBoard: false } });
     } finally {
       setPlanLoading(false);
@@ -284,33 +294,43 @@ const WorkspaceTasks = ({ workspaceId }) => {
     return tasks.filter((task) => task.status === status);
   };
 
-  // Check if user has access to tasks board
-  // If plan is null/undefined, default to no access (FREE plan)
   const hasTasksAccess = plan && plan.workspaceFeatures?.tasksBoard === true;
   
   if (planLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
+        <CircularProgress sx={{ color: TEAL }} />
       </Box>
     );
   }
   
-  // Block access if plan is null (not loaded) or if tasksBoard is false
   if (!plan || !hasTasksAccess) {
     return (
       <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 4 }}>
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+        <Alert 
+          severity="info" 
+          sx={{ 
+            mb: 3,
+            bgcolor: alpha(SKY, 0.1),
+            border: '1px solid',
+            borderColor: alpha(SKY, 0.3),
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
             Upgrade Required
           </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2, color: SLATE_500 }}>
             Tasks board is available in Pro and Pro+ plans.
           </Typography>
           <Button
             variant="contained"
             onClick={() => window.location.href = '/pricing'}
-            sx={{ bgcolor: '#14b8a6', '&:hover': { bgcolor: '#0d9488' } }}
+            sx={{ 
+              bgcolor: TEAL, 
+              '&:hover': { bgcolor: TEAL_LIGHT },
+              textTransform: 'none',
+            }}
           >
             View Pricing Plans
           </Button>
@@ -335,17 +355,21 @@ const WorkspaceTasks = ({ workspaceId }) => {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" p={4}>
-        <CircularProgress />
+        <CircularProgress sx={{ color: TEAL }} />
       </Box>
     );
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Alert severity="error" sx={{ m: 3, borderRadius: 2 }}>
+        {error}
+      </Alert>
+    );
   }
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -376,16 +400,16 @@ const WorkspaceTasks = ({ workspaceId }) => {
       </Box>
 
       {/* Kanban Board */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
         {Object.entries(STATUSES).map(([status, config]) => (
           <Box
             key={status}
             sx={{
-              bgcolor: 'background.paper',
+              bgcolor: '#fff',
               borderRadius: 2,
               border: '1px solid',
-              borderColor: 'divider',
-              height: '600px',
+              borderColor: SLATE_200,
+              height: 600,
               display: 'flex',
               flexDirection: 'column',
             }}
@@ -397,7 +421,7 @@ const WorkspaceTasks = ({ workspaceId }) => {
               sx={{
                 p: 2,
                 borderBottom: '1px solid',
-                borderColor: 'divider',
+                borderColor: SLATE_200,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -410,7 +434,13 @@ const WorkspaceTasks = ({ workspaceId }) => {
               <Chip
                 label={getTasksByStatus(status).length}
                 size="small"
-                sx={{ bgcolor: config.color, color: 'white' }}
+                sx={{ 
+                  bgcolor: alpha(config.color, 0.1),
+                  color: config.color,
+                  border: `1px solid ${alpha(config.color, 0.3)}`,
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                }}
               />
             </Box>
 
@@ -418,109 +448,145 @@ const WorkspaceTasks = ({ workspaceId }) => {
             <Box 
               sx={{ 
                 flex: 1, 
-                p: 1, 
+                p: 1.5, 
                 overflowY: 'auto', 
                 minHeight: 0,
+                bgcolor: BG,
                 '&::-webkit-scrollbar': {
                   width: '6px',
                 },
                 '&::-webkit-scrollbar-track': {
-                  background: '#f1f5f9',
-                  borderRadius: '4px',
+                  background: 'transparent',
                 },
                 '&::-webkit-scrollbar-thumb': {
-                  background: '#cbd5e1',
-                  borderRadius: '4px',
+                  background: SLATE_200,
+                  borderRadius: '3px',
                   '&:hover': {
-                    background: '#94a3b8',
+                    background: SLATE_400,
                   },
                 },
               }}
             >
-              {getTasksByStatus(status).map((task) => (
-                <Card
-                  key={task.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task)}
-                  sx={{
-                    mb: 1,
-                    cursor: 'move',
-                    opacity: draggedTask?.id === task.id ? 0.5 : 1,
-                    border: task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'DONE' ? '2px solid #ef4444' : '1px solid',
-                    borderColor: task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'DONE' ? '#ef4444' : 'divider',
-                  }}
-                >
-                  <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                      {task.title}
-                    </Typography>
+              {getTasksByStatus(status).length === 0 ? (
+                <Box sx={{ 
+                  textAlign: 'center', 
+                  py: 4,
+                  opacity: 0.5,
+                }}>
+                  <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                    No tasks
+                  </Typography>
+                </Box>
+              ) : (
+                getTasksByStatus(status).map((task) => {
+                  const isOverdue = task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'DONE';
+                  
+                  return (
+                    <Box
+                      key={task.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, task)}
+                      sx={{
+                        mb: 1.5,
+                        p: 2,
+                        bgcolor: '#fff',
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: isOverdue ? '#ef4444' : SLATE_200,
+                        cursor: 'move',
+                        opacity: draggedTask?.id === task.id ? 0.5 : 1,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: `0 2px 8px ${alpha(SLATE_900, 0.1)}`,
+                          transform: 'translateY(-2px)',
+                        },
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5, color: SLATE_900 }}>
+                        {task.title}
+                      </Typography>
 
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                      {task.owner && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <Person sx={{ fontSize: 14, color: 'text.secondary' }} />
-                          <Typography variant="caption" color="text.secondary">
-                            {task.owner.name}
-                          </Typography>
-                        </Box>
-                      )}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {task.owner && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Avatar
+                              sx={{
+                                width: 20,
+                                height: 20,
+                                bgcolor: alpha(SKY, 0.1),
+                                color: SKY,
+                                fontSize: '0.65rem',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {task.owner.name?.split(' ').map(n => n[0]).join('') || '?'}
+                            </Avatar>
+                            <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                              {task.owner.name}
+                            </Typography>
+                          </Box>
+                        )}
 
-                      {task.due_date && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <CalendarToday sx={{ fontSize: 14, color: 'text.secondary' }} />
-                          <Typography
-                            variant="caption"
-                            color={task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'DONE' ? 'error' : 'text.secondary'}
-                          >
-                            {format(parseISO(task.due_date), 'MMM d, yyyy')}
-                          </Typography>
-                        </Box>
-                      )}
+                        {task.due_date && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CalendarToday sx={{ fontSize: 14, color: isOverdue ? '#ef4444' : SLATE_400 }} />
+                            <Typography
+                              variant="caption"
+                              sx={{ color: isOverdue ? '#ef4444' : SLATE_500 }}
+                            >
+                              {format(parseISO(task.due_date), 'MMM d, yyyy')}
+                            </Typography>
+                          </Box>
+                        )}
 
-                      {task.kpi && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <TrendingUp sx={{ fontSize: 14, color: 'primary.main' }} />
-                          <Typography variant="caption" color="primary.main">
-                            KPI: {task.kpi.label}
-                          </Typography>
-                        </Box>
-                      )}
+                        {task.kpi && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TrendingUp sx={{ fontSize: 14, color: SKY }} />
+                            <Typography variant="caption" sx={{ color: SKY }}>
+                              KPI: {task.kpi.label}
+                            </Typography>
+                          </Box>
+                        )}
 
-                      {task.decision && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <CheckCircleOutline sx={{ fontSize: 14, color: 'secondary.main' }} />
-                          <Typography variant="caption" color="secondary.main">
-                            Decision
-                          </Typography>
-                        </Box>
-                      )}
+                        {task.decision && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CheckCircleOutline sx={{ fontSize: 14, color: TEAL }} />
+                            <Typography variant="caption" sx={{ color: TEAL }}>
+                              Decision
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
                     </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                  );
+                })
+              )}
             </Box>
 
-            {/* Add Task Button - Fixed at Bottom */}
+            {/* Add Task Button */}
             <Box
               sx={{
-                p: 1,
+                p: 1.5,
                 borderTop: '1px solid',
-                borderColor: 'divider',
+                borderColor: SLATE_200,
                 flexShrink: 0,
               }}
             >
               <Button
-                startIcon={<Add />}
+                startIcon={<Add sx={{ fontSize: 18 }} />}
                 onClick={() => openAddDialog(status)}
                 sx={{
                   width: '100%',
                   textTransform: 'none',
-                  color: 'text.secondary',
+                  color: SLATE_500,
                   border: '1px dashed',
-                  borderColor: 'divider',
+                  borderColor: SLATE_200,
+                  borderRadius: 2,
+                  py: 1,
                   '&:hover': {
-                    borderColor: 'primary.main',
-                    bgcolor: 'rgba(14, 165, 233, 0.05)',
+                    borderColor: TEAL,
+                    bgcolor: alpha(TEAL, 0.05),
+                    color: TEAL,
                   },
                 }}
               >
@@ -532,15 +598,27 @@ const WorkspaceTasks = ({ workspaceId }) => {
       </Box>
 
       {/* Add Task Dialog */}
-      <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Task</DialogTitle>
-        <DialogContent>
+      <Dialog 
+        open={addDialogOpen} 
+        onClose={() => setAddDialogOpen(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: SLATE_900, fontWeight: 600, borderBottom: '1px solid', borderColor: SLATE_200 }}>
+          Add Task
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
           <TextField
             fullWidth
             label="Title"
             value={newTask.title}
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-            sx={{ mb: 2, mt: 1 }}
+            sx={{ mb: 2 }}
             required
           />
 
@@ -626,15 +704,20 @@ const WorkspaceTasks = ({ workspaceId }) => {
             value={newTask.due_date}
             onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
             InputLabelProps={{ shrink: true }}
-            sx={{ mb: 2 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+          <Button onClick={() => setAddDialogOpen(false)} sx={{ color: SLATE_500 }}>
+            Cancel
+          </Button>
           <Button
             onClick={handleCreateTask}
             variant="contained"
             disabled={!newTask.title.trim() || (!newTask.kpi_id && !newTask.decision_id)}
+            sx={{
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: TEAL_LIGHT },
+            }}
           >
             Add Task
           </Button>
@@ -645,4 +728,3 @@ const WorkspaceTasks = ({ workspaceId }) => {
 };
 
 export default WorkspaceTasks;
-

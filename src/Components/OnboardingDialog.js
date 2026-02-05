@@ -173,7 +173,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
         onComplete(formData);
       }
     } catch (error) {
-      console.error('Error saving onboarding data:', error);
       alert('Failed to save your information. Please try again.');
     } finally {
       setLoading(false);

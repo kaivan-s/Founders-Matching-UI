@@ -5,14 +5,24 @@ import {
   Typography,
   TextField,
   Button,
-  Paper,
   CircularProgress,
   Avatar,
   IconButton,
+  alpha,
 } from '@mui/material';
-import { Send, Handshake } from '@mui/icons-material';
+import { Send, Handshake, Circle } from '@mui/icons-material';
 import { supabase } from '../config/supabase';
 import { API_BASE } from '../config/api';
+
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
 
 const WorkspaceChat = ({ matchId, currentFounderId }) => {
   const { user } = useUser();
@@ -23,20 +33,14 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const messagesEndRef = useRef(null);
-  
-
-  // Note: fetchMessages was removed and integrated directly into useEffect
-  // to avoid dependency issues and repeated API calls
 
   useEffect(() => {
     if (!matchId || !user?.id) {
       return;
     }
     
-    // Initial fetch - only once when matchId changes
     let isMounted = true;
     
-    // Fetch initial messages
     const fetchInitialMessages = async () => {
       try {
         if (!isMounted) return;
@@ -59,7 +63,6 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
         }
       } catch (err) {
         if (isMounted) {
-          console.error('❌ Error fetching initial messages:', err);
           setLoadingMessages(false);
         }
       }
@@ -68,7 +71,6 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
     setLoadingMessages(true);
     fetchInitialMessages();
     
-    // Set up Supabase Realtime subscription for new messages
     const subscription = supabase
         .channel(`messages_${matchId}`)
         .on('postgres_changes', 
@@ -79,9 +81,7 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
             filter: `match_id=eq.${matchId}`
           }, 
           (payload) => {
-            // Add the new message to the list (avoid duplicates and replace optimistic messages)
             setMessages(prev => {
-              // Check if this is replacing an optimistic message
               const optimisticIndex = prev.findIndex(msg => 
                 msg.is_optimistic && 
                 msg.content === payload.new.content && 
@@ -89,16 +89,14 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
               );
               
               if (optimisticIndex !== -1) {
-                // Replace optimistic message with real message
                 const updated = [...prev];
                 updated[optimisticIndex] = payload.new;
                 return updated;
               }
               
-              // Check for actual duplicates
               const messageExists = prev.some(msg => msg.id === payload.new.id);
               if (messageExists) {
-                return prev; // Don't add duplicate
+                return prev;
               }
               
               return [...prev, payload.new];
@@ -110,7 +108,6 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
             setConnectionStatus('connected');
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
             setConnectionStatus('disconnected');
-            console.error('Realtime subscription error:', status, err);
           }
         });
 
@@ -118,7 +115,7 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [matchId, user?.id]); // Depend on both matchId and user.id
+  }, [matchId, user?.id]);
 
   useEffect(() => {
     if (autoScrollEnabled && messagesEndRef.current) {
@@ -132,14 +129,13 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
     const messageContent = messageInput.trim();
     setSendingMessage(true);
     
-    // Optimistic update - add message immediately for better UX
     const optimisticMessage = {
-      id: `temp_${Date.now()}`, // Temporary ID
+      id: `temp_${Date.now()}`,
       content: messageContent,
       sender_id: currentFounderId,
       match_id: matchId,
       created_at: new Date().toISOString(),
-      is_optimistic: true // Flag to identify optimistic messages
+      is_optimistic: true
     };
     
     setMessages(prev => [...prev, optimisticMessage]);
@@ -163,15 +159,11 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
 
       const newMessage = await response.json();
       
-      // Replace optimistic message with real message when it arrives
       setMessages(prev => prev.map(msg => 
         msg.id === optimisticMessage.id ? newMessage : msg
       ));
     } catch (err) {
-      console.error('Error sending message:', err);
-      // Remove optimistic message on error
       setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-      // Restore message input on error
       setMessageInput(messageContent);
     } finally {
       setSendingMessage(false);
@@ -200,6 +192,13 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
     }
   };
 
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
   if (!matchId) {
     return (
       <Box sx={{ 
@@ -210,26 +209,27 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
         alignItems: 'center',
         textAlign: 'center',
         p: 4,
-        bgcolor: '#f8fafc',
-        borderRadius: '16px',
-        border: '1px solid #e2e8f0',
+        bgcolor: BG,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: SLATE_200,
       }}>
         <Box sx={{ 
-          width: 80, 
-          height: 80, 
+          width: 64, 
+          height: 64, 
           borderRadius: '50%', 
-          bgcolor: '#e2e8f0', 
+          bgcolor: alpha(TEAL, 0.1), 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          mb: 3
+          mb: 2
         }}>
-          <Handshake sx={{ fontSize: 40, color: '#94a3b8' }} />
+          <Handshake sx={{ fontSize: 32, color: TEAL }} />
         </Box>
-        <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 600, mb: 1 }}>
+        <Typography variant="h6" sx={{ color: SLATE_900, fontWeight: 600, mb: 1 }}>
           No chat available
         </Typography>
-        <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 300 }}>
+        <Typography variant="body2" sx={{ color: SLATE_500, maxWidth: 300 }}>
           This workspace doesn't have an associated match for messaging.
         </Typography>
       </Box>
@@ -238,17 +238,35 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
 
   return (
     <Box sx={{ 
-      height: '600px', // Increased height
+      height: '100%',
+      minHeight: 600,
       display: 'flex',
       flexDirection: 'column',
-      bgcolor: '#ffffff',
-      borderRadius: '16px',
-      border: '1px solid #e2e8f0',
+      bgcolor: '#fff',
+      borderRadius: 2,
+      border: '1px solid',
+      borderColor: SLATE_200,
       overflow: 'hidden',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
     }}>
-      {/* Messages Header - could add recipient info here later */}
-      
+      {/* Connection Status */}
+      {connectionStatus === 'disconnected' && (
+        <Box sx={{
+          px: 2,
+          py: 1,
+          bgcolor: alpha('#f59e0b', 0.1),
+          borderBottom: '1px solid',
+          borderColor: alpha('#f59e0b', 0.2),
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}>
+          <Circle sx={{ fontSize: 8, color: '#f59e0b' }} />
+          <Typography variant="caption" sx={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+            Reconnecting...
+          </Typography>
+        </Box>
+      )}
+
       {/* Messages List */}
       <Box sx={{ 
         flex: 1,
@@ -257,7 +275,20 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
         display: 'flex',
         flexDirection: 'column',
         gap: 1.5,
-        bgcolor: '#f8fafc',
+        bgcolor: BG,
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: SLATE_200,
+          borderRadius: '3px',
+          '&:hover': {
+            background: SLATE_400,
+          },
+        },
       }}
       onScroll={(e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -269,8 +300,8 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
       }}
       >
         {loadingMessages && messages.length === 0 ? (
-          <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-            <CircularProgress size={32} sx={{ color: '#0ea5e9' }} />
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <CircularProgress sx={{ color: TEAL }} />
           </Box>
         ) : messages.length === 0 ? (
           <Box sx={{ 
@@ -280,25 +311,23 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
             justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            opacity: 0.8
           }}>
             <Box sx={{ 
               width: 64, 
               height: 64, 
-              borderRadius: '24px', 
-              bgcolor: 'white', 
+              borderRadius: 2, 
+              bgcolor: alpha(TEAL, 0.1), 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              mb: 2,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              mb: 2
             }}>
-              <Handshake sx={{ fontSize: 32, color: '#0ea5e9' }} />
+              <Handshake sx={{ fontSize: 32, color: TEAL }} />
             </Box>
-            <Typography variant="subtitle1" sx={{ color: '#0f172a', fontWeight: 600, mb: 0.5 }}>
+            <Typography variant="subtitle1" sx={{ color: SLATE_900, fontWeight: 600, mb: 0.5 }}>
               Start the conversation
             </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b' }}>
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
               Send a message to begin chatting.
             </Typography>
           </Box>
@@ -307,7 +336,6 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
             {messages.map((message, index) => {
               const isOwnMessage = message.sender_id === currentFounderId;
               
-              // Check if we need to show a date separator
               const showDateSeparator = index === 0 || 
                 new Date(message.created_at).toDateString() !== 
                 new Date(messages[index - 1].created_at).toDateString();
@@ -315,15 +343,17 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
               return (
                 <React.Fragment key={message.id}>
                   {showDateSeparator && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 1.5 }}>
                       <Typography sx={{ 
-                        fontSize: '0.75rem', 
-                        color: '#64748b', 
-                        bgcolor: '#e2e8f0', 
+                        fontSize: '0.7rem', 
+                        color: SLATE_400, 
+                        bgcolor: '#fff', 
                         px: 1.5, 
                         py: 0.5, 
-                        borderRadius: '12px',
-                        fontWeight: 500
+                        borderRadius: 2,
+                        fontWeight: 500,
+                        border: '1px solid',
+                        borderColor: SLATE_200,
                       }}>
                         {formatDate(message.created_at)}
                       </Typography>
@@ -334,32 +364,46 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
                     sx={{
                       display: 'flex',
                       justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+                      alignItems: 'flex-end',
+                      gap: 1,
                       mb: 0.5,
                     }}
                   >
-                    <Paper
-                      elevation={0}
+                    {!isOwnMessage && (
+                      <Avatar
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          bgcolor: alpha(SKY, 0.1),
+                          color: SKY,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {message.sender?.name?.split(' ').map(n => n[0]).join('') || '?'}
+                      </Avatar>
+                    )}
+                    <Box
                       sx={{
-                        p: '8px 14px',
                         maxWidth: '70%',
-                        bgcolor: isOwnMessage 
-                          ? '#0ea5e9' 
-                          : '#ffffff',
-                        color: isOwnMessage ? 'white' : '#0f172a',
-                        borderRadius: isOwnMessage 
-                          ? '18px 18px 4px 18px' 
-                          : '18px 18px 18px 4px',
+                        bgcolor: isOwnMessage ? TEAL : '#fff',
+                        color: isOwnMessage ? '#fff' : SLATE_900,
+                        borderRadius: 2,
+                        px: 2,
+                        py: 1.25,
+                        border: isOwnMessage ? 'none' : '1px solid',
+                        borderColor: SLATE_200,
                         boxShadow: isOwnMessage 
-                          ? '0 2px 4px rgba(14, 165, 233, 0.15)' 
-                          : '0 2px 4px rgba(0, 0, 0, 0.05)',
-                        border: isOwnMessage ? 'none' : '1px solid #e2e8f0',
+                          ? `0 2px 8px ${alpha(TEAL, 0.2)}` 
+                          : `0 1px 3px ${alpha(SLATE_900, 0.05)}`,
                       }}
                     >
                       <Typography variant="body2" sx={{ 
-                        fontSize: '0.925rem', 
-                        lineHeight: 1.5,
+                        fontSize: '0.9rem', 
+                        lineHeight: 1.6,
                         whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
+                        wordBreak: 'break-word',
+                        mb: 0.5,
                       }}>
                         {message.content}
                       </Typography>
@@ -367,20 +411,29 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
                         variant="caption" 
                         sx={{ 
                           display: 'block',
-                          mt: 0.5,
                           textAlign: 'right',
-                          opacity: isOwnMessage ? 0.8 : 0.5,
-                          fontSize: '0.65rem',
-                          fontWeight: 500,
-                          color: isOwnMessage ? 'white' : '#64748b'
+                          opacity: 0.7,
+                          fontSize: '0.7rem',
+                          color: isOwnMessage ? 'rgba(255,255,255,0.8)' : SLATE_400,
                         }}
                       >
-                        {new Date(message.created_at).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
+                        {formatTime(message.created_at)}
                       </Typography>
-                    </Paper>
+                    </Box>
+                    {isOwnMessage && (
+                      <Avatar
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          bgcolor: alpha(TEAL, 0.1),
+                          color: TEAL,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {user?.firstName?.[0] || 'Y'}
+                      </Avatar>
+                    )}
                   </Box>
                 </React.Fragment>
               );
@@ -390,25 +443,27 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
         )}
       </Box>
 
-      {/* Message Input Area */}
+      {/* Message Input */}
       <Box sx={{
-        p: 1.5,
-        bgcolor: '#ffffff',
-        borderTop: '1px solid #e2e8f0',
+        p: 2,
+        bgcolor: '#fff',
+        borderTop: '1px solid',
+        borderColor: SLATE_200,
       }}>
         <Box sx={{ 
           display: 'flex', 
           gap: 1, 
           alignItems: 'flex-end',
-          bgcolor: '#f8fafc',
-          p: 0.75,
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          transition: 'border-color 0.2s',
+          bgcolor: BG,
+          p: 1,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: SLATE_200,
+          transition: 'all 0.2s',
           '&:focus-within': {
-            borderColor: '#0ea5e9',
-            bgcolor: '#ffffff',
-            boxShadow: '0 0 0 2px rgba(14, 165, 233, 0.1)'
+            borderColor: TEAL,
+            bgcolor: '#fff',
+            boxShadow: `0 0 0 3px ${alpha(TEAL, 0.1)}`,
           }
         }}>
           <TextField
@@ -425,11 +480,17 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
               disableUnderline: true,
             }}
             sx={{
-              px: 1.5,
-              py: 0.5,
               '& .MuiInputBase-root': {
-                fontSize: '0.95rem',
-                padding: 0,
+                fontSize: '0.9rem',
+                px: 1.5,
+                py: 0.5,
+              },
+              '& .MuiInputBase-input': {
+                color: SLATE_900,
+                '&::placeholder': {
+                  color: SLATE_400,
+                  opacity: 1,
+                },
               },
             }}
           />
@@ -437,25 +498,26 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
             onClick={handleSendMessage}
             disabled={!messageInput.trim() || sendingMessage}
             sx={{
-              width: 40,
-              height: 40,
-              bgcolor: !messageInput.trim() ? 'transparent' : '#0ea5e9',
-              color: !messageInput.trim() ? '#94a3b8' : 'white',
+              width: 36,
+              height: 36,
+              bgcolor: messageInput.trim() ? TEAL : 'transparent',
+              color: messageInput.trim() ? '#fff' : SLATE_400,
+              borderRadius: 2,
               transition: 'all 0.2s',
               '&:hover': {
-                bgcolor: !messageInput.trim() ? 'transparent' : '#0284c7',
-                transform: !messageInput.trim() ? 'none' : 'scale(1.05)',
+                bgcolor: messageInput.trim() ? TEAL_LIGHT : alpha(SLATE_400, 0.1),
+                transform: messageInput.trim() ? 'scale(1.05)' : 'none',
               },
               '&.Mui-disabled': {
                 bgcolor: 'transparent',
-                color: '#cbd5e1'
+                color: SLATE_200,
               }
             }}
           >
             {sendingMessage ? (
-              <CircularProgress size={20} color="inherit" />
+              <CircularProgress size={18} sx={{ color: 'inherit' }} />
             ) : (
-              <Send sx={{ fontSize: 20, ml: 0.5 }} />
+              <Send sx={{ fontSize: 18 }} />
             )}
           </IconButton>
         </Box>
@@ -465,4 +527,3 @@ const WorkspaceChat = ({ matchId, currentFounderId }) => {
 };
 
 export default WorkspaceChat;
-

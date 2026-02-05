@@ -5,8 +5,6 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Card,
-  CardContent,
   Button,
   Chip,
   IconButton,
@@ -19,9 +17,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper,
   Tabs,
   Tab,
+  alpha,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import { 
@@ -35,6 +33,16 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
+
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
 
 const MyProjects = () => {
   const { user } = useUser();
@@ -121,7 +129,7 @@ const MyProjects = () => {
         throw new Error(errorData.error || 'Failed to update project');
       }
 
-      await fetchProjects(); // Refresh the list
+      await fetchProjects();
       setEditDialogOpen(false);
       setEditingProject(null);
       setError(null);
@@ -166,7 +174,7 @@ const MyProjects = () => {
         throw new Error(errorData.error || 'Failed to delete project');
       }
 
-      await fetchProjects(); // Refresh the list
+      await fetchProjects();
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
       setError(null);
@@ -178,24 +186,19 @@ const MyProjects = () => {
   };
 
   const getStageColor = (stage) => {
-    switch (stage) {
-      case 'idea':
-        return 'default';
-      case 'mvp':
-        return 'primary';
-      case 'early-stage':
-        return 'secondary';
-      case 'growth':
-        return 'success';
-      default:
-        return 'default';
-    }
+    const colors = {
+      idea: { bg: alpha(SLATE_400, 0.1), color: SLATE_500 },
+      mvp: { bg: alpha(SKY, 0.1), color: SKY },
+      'early-stage': { bg: alpha(TEAL, 0.1), color: TEAL },
+      growth: { bg: alpha(TEAL, 0.1), color: TEAL },
+    };
+    return colors[stage] || colors.idea;
   };
 
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-        <CircularProgress />
+        <CircularProgress sx={{ color: TEAL }} />
       </Box>
     );
   }
@@ -207,7 +210,6 @@ const MyProjects = () => {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-
       {error && (
         <Alert 
           severity="error" 
@@ -225,13 +227,19 @@ const MyProjects = () => {
         '&::-webkit-scrollbar': {
           width: '6px',
         },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent',
+        },
         '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(13, 148, 136, 0.2)', // Teal
-          borderRadius: '10px',
+          background: SLATE_200,
+          borderRadius: '3px',
+          '&:hover': {
+            background: SLATE_400,
+          },
         },
       }}>
         <Box sx={{ mb: 2, px: 0.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem', fontWeight: 400 }}>
+          <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 400, color: SLATE_500 }}>
             {projects.length} {projects.length === 1 ? 'project' : 'projects'} created
           </Typography>
         </Box>
@@ -250,60 +258,66 @@ const MyProjects = () => {
               justifyContent: 'center',
               width: 80,
               height: 80,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)', // Teal
+              borderRadius: 2,
+              bgcolor: alpha(TEAL, 0.1),
               mb: 3,
             }}>
-              <Business sx={{ fontSize: 40, color: 'white' }} />
+              <Business sx={{ fontSize: 40, color: TEAL }} />
             </Box>
-            <Typography variant="h5" gutterBottom sx={{ mb: 1, fontWeight: 700 }}>
+            <Typography variant="h5" gutterBottom sx={{ mb: 1, fontWeight: 700, color: SLATE_900 }}>
               No projects yet
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
               Click "New Project" in the header to create your first project.
             </Typography>
           </Box>
         ) : (
           <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr', md: '1fr', lg: 'repeat(2, 1fr)' } }}>
-            {projects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card
-                  onClick={() => handleProjectClick(project)}
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: '#0d9488', // Teal
-                      boxShadow: '0 8px 24px rgba(13, 148, 136, 0.1)',
-                      transform: 'translateY(-4px)',
-                    },
-                  }}
+            {projects.map((project, index) => {
+              const stageColor = getStageColor(project.stage);
+              return (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box
+                    onClick={() => handleProjectClick(project)}
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: '#fff',
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: SLATE_200,
+                      p: 2.5,
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        borderColor: TEAL,
+                        boxShadow: `0 4px 12px ${alpha(TEAL, 0.1)}`,
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1e3a8a' }}> {/* Navy */}
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
                           {project.title}
                         </Typography>
                         <Chip
                           label={projectStages.find(s => s.value === project.stage)?.label || project.stage}
                           size="small"
-                          color={getStageColor(project.stage)}
                           sx={{
+                            bgcolor: stageColor.bg,
+                            color: stageColor.color,
+                            border: `1px solid ${alpha(stageColor.color, 0.3)}`,
                             textTransform: 'capitalize',
-                            fontSize: '0.75rem',
+                            fontSize: '0.7rem',
                             height: 24,
+                            fontWeight: 500,
                           }}
                         />
                       </Box>
@@ -315,13 +329,13 @@ const MyProjects = () => {
                             handleEditClick(project);
                           }}
                           sx={{
-                            color: '#0d9488', // Teal
+                            color: TEAL,
                             '&:hover': {
-                              bgcolor: 'rgba(13, 148, 136, 0.1)',
+                              bgcolor: alpha(TEAL, 0.1),
                             },
                           }}
                         >
-                          <Edit fontSize="small" />
+                          <Edit sx={{ fontSize: 18 }} />
                         </IconButton>
                         <IconButton
                           size="small"
@@ -330,23 +344,23 @@ const MyProjects = () => {
                             handleDeleteClick(project);
                           }}
                           sx={{
-                            color: 'error.main',
+                            color: '#ef4444',
                             '&:hover': {
-                              bgcolor: 'rgba(239, 68, 68, 0.1)',
+                              bgcolor: alpha('#ef4444', 0.1),
                             },
                           }}
                         >
-                          <Delete fontSize="small" />
+                          <Delete sx={{ fontSize: 18 }} />
                         </IconButton>
                       </Box>
                     </Box>
 
                     <Typography 
                       variant="body2" 
-                      color="text.secondary"
                       sx={{ 
                         flex: 1,
                         mb: 2,
+                        color: SLATE_500,
                         display: '-webkit-box',
                         WebkitLineClamp: 4,
                         WebkitBoxOrient: 'vertical',
@@ -358,14 +372,14 @@ const MyProjects = () => {
                     </Typography>
 
                     {project.created_at && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{ color: SLATE_400 }}>
                         Created {new Date(project.created_at).toLocaleDateString()}
                       </Typography>
                     )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                  </Box>
+                </motion.div>
+              );
+            })}
           </Box>
         )}
       </Box>
@@ -380,16 +394,16 @@ const MyProjects = () => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { borderRadius: 2 }
         }}
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Edit Project
           </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               fullWidth
               label="Project Title"
@@ -397,11 +411,6 @@ const MyProjects = () => {
               onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
               required
               disabled={saving}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                }
-              }}
             />
             
             <TextField
@@ -413,11 +422,6 @@ const MyProjects = () => {
               rows={4}
               required
               disabled={saving}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                }
-              }}
             />
             
             <FormControl fullWidth>
@@ -428,7 +432,6 @@ const MyProjects = () => {
                 label="Project Stage"
                 onChange={(e) => setEditFormData({ ...editFormData, stage: e.target.value })}
                 disabled={saving}
-                sx={{ borderRadius: 2 }}
               >
                 {projectStages.map(stage => (
                   <MenuItem key={stage.value} value={stage.value}>
@@ -439,14 +442,14 @@ const MyProjects = () => {
             </FormControl>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2.5, pt: 0 }}>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
           <Button 
             onClick={() => {
               setEditDialogOpen(false);
               setEditingProject(null);
             }}
             disabled={saving}
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: 'none', color: SLATE_500 }}
           >
             Cancel
           </Button>
@@ -454,9 +457,10 @@ const MyProjects = () => {
             onClick={handleSaveEdit}
             variant="contained"
             disabled={saving || !editFormData.title.trim() || !editFormData.description.trim()}
-            startIcon={saving ? <CircularProgress size={20} /> : <Check />}
+            startIcon={saving ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <Check />}
             sx={{
-              background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: TEAL_LIGHT },
               textTransform: 'none',
               px: 3,
             }}
@@ -474,27 +478,27 @@ const MyProjects = () => {
           setProjectToDelete(null);
         }}
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { borderRadius: 2 }
         }}
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Delete Project
           </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Typography>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography sx={{ color: SLATE_900 }}>
             Are you sure you want to delete "{projectToDelete?.title}"? This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2.5, pt: 0 }}>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
           <Button 
             onClick={() => {
               setDeleteDialogOpen(false);
               setProjectToDelete(null);
             }}
             disabled={deleting}
-            sx={{ textTransform: 'none' }}
+            sx={{ textTransform: 'none', color: SLATE_500 }}
           >
             Cancel
           </Button>
@@ -502,9 +506,10 @@ const MyProjects = () => {
             onClick={handleConfirmDelete}
             variant="contained"
             disabled={deleting}
-            color="error"
-            startIcon={deleting ? <CircularProgress size={20} /> : <Delete />}
+            startIcon={deleting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <Delete />}
             sx={{
+              bgcolor: '#ef4444',
+              '&:hover': { bgcolor: '#dc2626' },
               textTransform: 'none',
             }}
           >
@@ -521,8 +526,9 @@ const MyProjects = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: SLATE_200,
             height: '90vh',
             maxHeight: '800px',
             display: 'flex',
@@ -537,45 +543,50 @@ const MyProjects = () => {
               justifyContent: 'space-between', 
               alignItems: 'center',
               pb: 2,
+              borderBottom: '1px solid',
+              borderColor: SLATE_200,
             }}>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900 }}>
                   {selectedProject.title}
                 </Typography>
                 {selectedProject.stage && (
                   <Chip 
                     label={projectStages.find(s => s.value === selectedProject.stage)?.label || selectedProject.stage}
                     size="small"
-                    color={getStageColor(selectedProject.stage)}
                     sx={{ 
+                      bgcolor: getStageColor(selectedProject.stage).bg,
+                      color: getStageColor(selectedProject.stage).color,
+                      border: `1px solid ${alpha(getStageColor(selectedProject.stage).color, 0.3)}`,
                       textTransform: 'capitalize',
                       fontSize: '0.7rem',
                       height: 24,
+                      fontWeight: 500,
                     }}
                   />
                 )}
               </Box>
-              <IconButton onClick={handleCloseViewDialog} size="small">
+              <IconButton onClick={handleCloseViewDialog} size="small" sx={{ color: SLATE_500 }}>
                 <Close />
               </IconButton>
             </DialogTitle>
             <DialogContent 
-              dividers
               sx={{ 
                 flex: 1, 
                 overflow: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
+                pt: 3,
               }}
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {/* Project Description */}
                 {selectedProject.description && (
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block', color: SLATE_500 }}>
                       DESCRIPTION
                     </Typography>
-                    <Typography variant="body2" sx={{ lineHeight: 1.7 }}>
+                    <Typography variant="body2" sx={{ lineHeight: 1.7, color: SLATE_900 }}>
                       {selectedProject.description}
                     </Typography>
                   </Box>
@@ -584,7 +595,6 @@ const MyProjects = () => {
                 {/* Compatibility Answers */}
                 {selectedProject.compatibility_answers && 
                  Object.keys(selectedProject.compatibility_answers).length > 0 && (() => {
-                  // Group questions by category
                   const categories = [
                     'Work style',
                     'Vision & funding',
@@ -603,16 +613,16 @@ const MyProjects = () => {
                   return (
                     <Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                        <Psychology sx={{ color: 'primary.main', fontSize: 20 }} />
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
+                        <Psychology sx={{ color: TEAL, fontSize: 20 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, display: 'block', color: SLATE_500 }}>
                           Compatibility Questionnaire
                         </Typography>
                       </Box>
                       <Box sx={{ 
-                        bgcolor: 'rgba(30, 58, 138, 0.05)', // Light Navy
+                        bgcolor: BG,
                         borderRadius: 2,
                         border: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: SLATE_200,
                         overflow: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
@@ -626,14 +636,21 @@ const MyProjects = () => {
                           scrollButtons="auto"
                           sx={{
                             borderBottom: '1px solid',
-                            borderColor: 'divider',
-                            bgcolor: 'white',
+                            borderColor: SLATE_200,
+                            bgcolor: '#fff',
                             flexShrink: 0,
                             '& .MuiTab-root': {
                               textTransform: 'none',
                               minHeight: 48,
-                              fontSize: '0.7rem',
+                              fontSize: '0.75rem',
                               fontWeight: 600,
+                              color: SLATE_500,
+                              '&.Mui-selected': {
+                                color: TEAL,
+                              },
+                            },
+                            '& .MuiTabs-indicator': {
+                              bgcolor: TEAL,
                             },
                           }}
                         >
@@ -660,7 +677,6 @@ const MyProjects = () => {
                                 const selectedOption = question.options.find(opt => opt.value === answerValue);
                                 if (!selectedOption) return null;
                                 
-                                // Get short answer text (remove A/B/C prefix and keep it concise)
                                 const shortAnswer = selectedOption.label.replace(/^[A-D]\.\s*/, '').split('–')[0].trim();
                                 
                                 return (
@@ -669,31 +685,31 @@ const MyProjects = () => {
                                     key={question.id}
                                     sx={{ 
                                       borderBottom: '1px solid',
-                                      borderColor: 'divider',
+                                      borderColor: SLATE_200,
                                       '&:last-child': { borderBottom: 'none' },
                                     }}
                                   >
                                     <Box 
                                       component="td" 
                                       sx={{ 
-                                        py: 1,
+                                        py: 1.5,
                                         pr: 2,
                                         width: '45%',
                                         verticalAlign: 'top',
                                       }}
                                     >
-                                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                      <Typography variant="caption" sx={{ fontWeight: 500, color: SLATE_500 }}>
                                         {question.question.replace(/\?$/, '')}
                                       </Typography>
                                     </Box>
                                     <Box 
                                       component="td" 
                                       sx={{ 
-                                        py: 1,
+                                        py: 1.5,
                                         verticalAlign: 'top',
                                       }}
                                     >
-                                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 500, color: SLATE_900 }}>
                                         {shortAnswer}
                                       </Typography>
                                     </Box>
@@ -714,21 +730,21 @@ const MyProjects = () => {
                   <Box sx={{ 
                     textAlign: 'center', 
                     py: 4,
-                    color: 'text.secondary',
                   }}>
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ color: SLATE_500 }}>
                       No compatibility questionnaire answers available for this project.
                     </Typography>
                   </Box>
                 )}
               </Box>
             </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
+            <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
               <Button 
                 onClick={handleCloseViewDialog}
                 variant="contained"
                 sx={{
-                  background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+                  bgcolor: TEAL,
+                  '&:hover': { bgcolor: TEAL_LIGHT },
                   textTransform: 'none',
                   px: 3,
                 }}
@@ -744,4 +760,3 @@ const MyProjects = () => {
 };
 
 export default MyProjects;
-

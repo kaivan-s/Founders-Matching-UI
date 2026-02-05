@@ -3,8 +3,6 @@ import { useUser } from '@clerk/clerk-react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   IconButton,
   CircularProgress,
   Alert,
@@ -21,6 +19,7 @@ import {
   Chip,
   Tooltip,
   LinearProgress,
+  alpha,
 } from '@mui/material';
 import {
   Add,
@@ -32,6 +31,16 @@ import {
 } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
 import { API_BASE } from '../../config/api';
+
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
 
 const CATEGORIES = ['General', 'Legal', 'Financial', 'Product', 'Hiring'];
 
@@ -92,7 +101,6 @@ const WorkspaceDocuments = ({ workspaceId }) => {
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // Validate file type
       const ext = file.name.split('.').pop().toLowerCase();
       const allowedExts = ['pdf', 'xlsx', 'xls', 'csv'];
       if (!allowedExts.includes(ext)) {
@@ -100,7 +108,6 @@ const WorkspaceDocuments = ({ workspaceId }) => {
         return;
       }
 
-      // Validate file size (20MB)
       if (file.size > 20 * 1024 * 1024) {
         setError('File size exceeds 20MB limit.');
         return;
@@ -225,11 +232,11 @@ const WorkspaceDocuments = ({ workspaceId }) => {
 
   const getCategoryColor = (cat) => {
     const colors = {
-      General: { bg: '#e2e8f0', color: '#475569' },
-      Legal: { bg: '#fef3c7', color: '#92400e' },
-      Financial: { bg: '#dbeafe', color: '#1e40af' },
-      Product: { bg: '#d1fae5', color: '#065f46' },
-      Hiring: { bg: '#fce7f3', color: '#9f1239' },
+      General: { bg: alpha(SLATE_400, 0.1), color: SLATE_500 },
+      Legal: { bg: alpha('#f59e0b', 0.1), color: '#f59e0b' },
+      Financial: { bg: alpha(SKY, 0.1), color: SKY },
+      Product: { bg: alpha(TEAL, 0.1), color: TEAL },
+      Hiring: { bg: alpha('#ec4899', 0.1), color: '#ec4899' },
     };
     return colors[cat] || colors.General;
   };
@@ -237,23 +244,15 @@ const WorkspaceDocuments = ({ workspaceId }) => {
   if (loading && documents.length === 0) {
     return (
       <Box display="flex" justifyContent="center" p={4}>
-        <CircularProgress />
+        <CircularProgress sx={{ color: TEAL }} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      maxWidth: '1200px',
-      mx: 'auto',
-      width: '100%',
-      height: '100%',
-      minHeight: 'calc(100vh - 300px)',
-    }}>
+    <Box sx={{ p: 3, maxWidth: '1200px', mx: 'auto' }}>
       {/* Header with filters and add button */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <FormControl size="small" sx={{ minWidth: 150 }}>
           <InputLabel>Category</InputLabel>
           <Select
@@ -278,53 +277,32 @@ const WorkspaceDocuments = ({ workspaceId }) => {
           sx={{ flex: 1, minWidth: 200 }}
         />
 
-        <Tooltip title="Upload document">
-          <IconButton
-            color="primary"
-            onClick={() => setUploadDialogOpen(true)}
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'primary.dark',
-              },
-            }}
-          >
-            <Add />
-          </IconButton>
-        </Tooltip>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setUploadDialogOpen(true)}
+          sx={{
+            bgcolor: TEAL,
+            '&:hover': { bgcolor: TEAL_LIGHT },
+            textTransform: 'none',
+          }}
+        >
+          Upload Document
+        </Button>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2, borderRadius: 2 }} 
+          onClose={() => setError(null)}
+        >
           {error}
         </Alert>
       )}
 
-      {/* Documents List - Scrollable */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: 'auto',
-          minHeight: 0,
-          maxHeight: 'calc(100vh - 400px)',
-          pr: 1,
-          '&::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: '#f1f5f9',
-            borderRadius: '4px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#cbd5e1',
-            borderRadius: '4px',
-            '&:hover': {
-              background: '#94a3b8',
-            },
-          },
-        }}
-      >
+      {/* Documents List */}
+      <Box>
         {documents.length === 0 ? (
           <Box
             sx={{
@@ -333,115 +311,141 @@ const WorkspaceDocuments = ({ workspaceId }) => {
               alignItems: 'center',
               justifyContent: 'center',
               py: 8,
-              color: 'text.secondary',
+              bgcolor: BG,
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: SLATE_200,
             }}
           >
-            <Description sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
-            <Typography variant="h6" sx={{ mb: 1 }}>
+            <Box sx={{
+              width: 64,
+              height: 64,
+              borderRadius: 2,
+              bgcolor: alpha(TEAL, 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 2,
+            }}>
+              <Description sx={{ fontSize: 32, color: TEAL }} />
+            </Box>
+            <Typography variant="h6" sx={{ mb: 1, color: SLATE_900, fontWeight: 600 }}>
               No documents yet
             </Typography>
-            <Typography variant="body2">
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
               Upload your first document to get started
             </Typography>
           </Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {documents.map((doc) => (
-              <Card
+              <Box
                 key={doc.id}
                 sx={{
+                  p: 2.5,
+                  bgcolor: '#fff',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: SLATE_200,
                   transition: 'all 0.2s',
                   '&:hover': {
-                    boxShadow: 3,
+                    boxShadow: `0 4px 12px ${alpha(SLATE_900, 0.1)}`,
                     transform: 'translateY(-2px)',
                   },
                 }}
               >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <Box
-                      sx={{
-                        bgcolor: 'primary.light',
-                        color: 'white',
-                        borderRadius: 1,
-                        p: 1.5,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Description />
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box
+                    sx={{
+                      bgcolor: alpha(TEAL, 0.1),
+                      color: TEAL,
+                      borderRadius: 2,
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Description sx={{ fontSize: 24 }} />
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '1rem',
+                          color: SLATE_900,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {doc.original_filename}
+                      </Typography>
+                      <Chip
+                        label={doc.category}
+                        size="small"
+                        sx={{
+                          bgcolor: getCategoryColor(doc.category).bg,
+                          color: getCategoryColor(doc.category).color,
+                          border: `1px solid ${alpha(getCategoryColor(doc.category).color, 0.3)}`,
+                          fontWeight: 600,
+                          fontSize: '0.7rem',
+                          height: 24,
+                        }}
+                      />
                     </Box>
 
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {doc.original_filename}
-                        </Typography>
-                        <Chip
-                          label={doc.category}
-                          size="small"
-                          sx={{
-                            bgcolor: getCategoryColor(doc.category).bg,
-                            color: getCategoryColor(doc.category).color,
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                          }}
-                        />
-                      </Box>
+                    {doc.description && (
+                      <Typography
+                        variant="body2"
+                        sx={{ mb: 1.5, color: SLATE_500, lineHeight: 1.6 }}
+                      >
+                        {doc.description}
+                      </Typography>
+                    )}
 
-                      {doc.description && (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mb: 1 }}
-                        >
-                          {doc.description}
-                        </Typography>
-                      )}
-
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatFileSize(doc.size_bytes)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          • {format(parseISO(doc.created_at), 'MMM d, yyyy')}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      <Tooltip title="Download">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDownload(doc.id)}
-                          sx={{ color: 'primary.main' }}
-                        >
-                          <Download fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(doc.id)}
-                          sx={{ color: 'error.main' }}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                        {formatFileSize(doc.size_bytes)}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                        • {format(parseISO(doc.created_at), 'MMM d, yyyy')}
+                      </Typography>
                     </Box>
                   </Box>
-                </CardContent>
-              </Card>
+
+                  <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                    <Tooltip title="Download">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDownload(doc.id)}
+                        sx={{ 
+                          color: SKY,
+                          '&:hover': { bgcolor: alpha(SKY, 0.1) },
+                        }}
+                      >
+                        <Download sx={{ fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDelete(doc.id)}
+                        sx={{ 
+                          color: '#ef4444',
+                          '&:hover': { bgcolor: alpha('#ef4444', 0.1) },
+                        }}
+                      >
+                        <Delete sx={{ fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+              </Box>
             ))}
           </Box>
         )}
@@ -453,8 +457,13 @@ const WorkspaceDocuments = ({ workspaceId }) => {
         onClose={() => !uploading && setUploadDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          },
+        }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ color: SLATE_900, fontWeight: 600, borderBottom: '1px solid', borderColor: SLATE_200 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="h6">Upload Document</Typography>
             {!uploading && (
@@ -467,20 +476,38 @@ const WorkspaceDocuments = ({ workspaceId }) => {
                   setDescription('');
                   setError(null);
                 }}
+                sx={{ color: SLATE_500 }}
               >
                 <Close />
               </IconButton>
             )}
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 3 }}>
           {uploading && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1.5, color: SLATE_900 }}>
                 Uploading... {Math.round(uploadProgress)}%
               </Typography>
-              <LinearProgress variant="determinate" value={uploadProgress} />
+              <LinearProgress 
+                variant="determinate" 
+                value={uploadProgress}
+                sx={{
+                  height: 8,
+                  borderRadius: 1,
+                  bgcolor: alpha(TEAL, 0.1),
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: TEAL,
+                  },
+                }}
+              />
             </Box>
+          )}
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+              {error}
+            </Alert>
           )}
 
           <Box sx={{ mb: 2 }}>
@@ -500,13 +527,15 @@ const WorkspaceDocuments = ({ workspaceId }) => {
                 fullWidth
                 disabled={uploading}
                 sx={{
-                  py: 2,
+                  py: 2.5,
                   borderStyle: 'dashed',
                   borderWidth: 2,
-                  borderColor: selectedFile ? 'success.main' : 'divider',
+                  borderColor: selectedFile ? TEAL : SLATE_200,
+                  borderRadius: 2,
+                  color: selectedFile ? TEAL : SLATE_500,
                   '&:hover': {
-                    borderColor: 'primary.main',
-                    bgcolor: 'rgba(14, 165, 233, 0.05)',
+                    borderColor: TEAL,
+                    bgcolor: alpha(TEAL, 0.05),
                   },
                 }}
               >
@@ -514,7 +543,7 @@ const WorkspaceDocuments = ({ workspaceId }) => {
               </Button>
             </label>
             {selectedFile && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              <Typography variant="caption" sx={{ mt: 1, display: 'block', color: SLATE_500 }}>
                 Size: {formatFileSize(selectedFile.size)}
               </Typography>
             )}
@@ -548,7 +577,7 @@ const WorkspaceDocuments = ({ workspaceId }) => {
             helperText={`${description.length}/1000 characters`}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
           <Button
             onClick={() => {
               setUploadDialogOpen(false);
@@ -558,6 +587,7 @@ const WorkspaceDocuments = ({ workspaceId }) => {
               setError(null);
             }}
             disabled={uploading}
+            sx={{ color: SLATE_500 }}
           >
             Cancel
           </Button>
@@ -566,6 +596,10 @@ const WorkspaceDocuments = ({ workspaceId }) => {
             variant="contained"
             disabled={!selectedFile || uploading}
             startIcon={<CloudUpload />}
+            sx={{
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: TEAL_LIGHT },
+            }}
           >
             Upload
           </Button>
@@ -576,4 +610,3 @@ const WorkspaceDocuments = ({ workspaceId }) => {
 };
 
 export default WorkspaceDocuments;
-

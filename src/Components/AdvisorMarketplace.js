@@ -48,7 +48,6 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
       const saved = localStorage.getItem('discoveryPreferences');
       return saved ? JSON.parse(saved) : {};
     } catch (e) {
-      console.error('Error parsing preferences from localStorage:', e);
       return {};
     }
   });
@@ -66,7 +65,6 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
         setBillingProfile(data);
       }
     } catch (err) {
-      console.error('Error fetching billing profile:', err);
     }
   }, [user]);
 

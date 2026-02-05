@@ -103,7 +103,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
           }
         }
       } catch (err) {
-        console.error('Error checking advisor profile:', err);
         // On error, allow onboarding to proceed
       } finally {
         setCheckingProfile(false);

@@ -48,7 +48,6 @@ const UserFlowSelector = () => {
           setPartnerPaid(billing?.onboarding_paid || false);
         }
       } catch (error) {
-        console.error('Error checking partner billing:', error);
       } finally {
         setLoading(false);
       }
@@ -85,7 +84,6 @@ const UserFlowSelector = () => {
       // If onboarding is complete, navigate to discover
       navigate('/discover');
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
       // On error, show onboarding dialog to be safe
       setShowOnboarding(true);
     } finally {

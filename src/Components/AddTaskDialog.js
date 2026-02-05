@@ -56,7 +56,6 @@ const AddTaskDialog = ({ open, onClose, workspaceId, kpiId = null, decisionId = 
         }
       }
     } catch (err) {
-      console.error('Error fetching founder ID:', err);
     }
   };
 
@@ -70,7 +69,6 @@ const AddTaskDialog = ({ open, onClose, workspaceId, kpiId = null, decisionId = 
         setFounders(data || []);
       }
     } catch (err) {
-      console.error('Error fetching founders:', err);
     }
   };
 
@@ -112,7 +110,6 @@ const AddTaskDialog = ({ open, onClose, workspaceId, kpiId = null, decisionId = 
         }, 1500);
       }
     } catch (err) {
-      console.error('Error creating task:', err);
     } finally {
       setSubmitting(false);
     }

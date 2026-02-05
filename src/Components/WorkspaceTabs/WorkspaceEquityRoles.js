@@ -13,9 +13,6 @@ import {
   Slider,
   Chip,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
   IconButton,
   Alert,
   CircularProgress,
@@ -35,10 +32,11 @@ import {
   Tab,
   Tooltip,
 } from '@mui/material';
-import { Add, Delete, CheckCircle, Description, Save, ContentCopy, HourglassEmpty, Cancel, Check, Close, Info } from '@mui/icons-material';
+import { CheckCircle, Description, ContentCopy, HourglassEmpty, Cancel, Check, Close, PlayArrow, Settings } from '@mui/icons-material';
 import { useWorkspaceEquity, useWorkspaceRoles, useWorkspaceParticipants } from '../../hooks/useWorkspace';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../../config/api';
+import EquityQuestionnaireWizard from './EquityQuestionnaireWizard';
 
 const VESTING_PRESETS = [
   { label: '4 years, 1-year cliff', years: 4, cliffMonths: 12 },
@@ -51,11 +49,27 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   const [plan, setPlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
   const { equity, loading: equityLoading, createScenario, setCurrentScenario, refetch: refetchEquity } = useWorkspaceEquity(workspaceId);
-  const { roles, loading: rolesLoading, upsertRole } = useWorkspaceRoles(workspaceId);
+  const { roles, upsertRole } = useWorkspaceRoles(workspaceId);
   const { participants: allParticipants } = useWorkspaceParticipants(workspaceId);
   
   // Filter out advisors - only show founders/co-founders in equity and roles
   const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
+  
+  // New wizard mode state - show wizard by default if no current equity scenario exists
+  const [showWizard, setShowWizard] = useState(false);
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
+  
+  // Check if equity setup has been completed (has an approved current scenario)
+  useEffect(() => {
+    if (!equityLoading && equity) {
+      const hasApprovedScenario = equity.current && equity.current.status === 'approved';
+      setHasCompletedSetup(hasApprovedScenario);
+      // Show wizard by default if no setup completed
+      if (!hasApprovedScenario && !showWizard) {
+        setShowWizard(true);
+      }
+    }
+  }, [equity, equityLoading]);
   
   const [equityPercentages, setEquityPercentages] = useState({});
   const [vestingPreset, setVestingPreset] = useState('4 years, 1-year cliff');
@@ -75,25 +89,29 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch plan to check feature access
+  // Fetch workspace feature access (based on highest plan tier among participants)
   useEffect(() => {
-    if (user?.id) {
-      fetchPlan();
+    if (user?.id && workspaceId) {
+      fetchWorkspaceFeatureAccess();
     }
-  }, [user?.id]);
+  }, [user?.id, workspaceId]);
 
-  const fetchPlan = async () => {
-    if (!user?.id) return;
+  const fetchWorkspaceFeatureAccess = async () => {
+    if (!user?.id || !workspaceId) return;
     setPlanLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/billing/my-plan`, {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/check-feature?feature=workspaceFeatures.equityFull`, {
         headers: {
           'X-Clerk-User-Id': user.id,
         },
       });
       if (response.ok) {
-        const planData = await response.json();
-        setPlan(planData);
+        const data = await response.json();
+        // Create plan-like object with workspace-level access
+        setPlan({ 
+          id: data.workspace_plan || 'FREE', 
+          workspaceFeatures: { equityFull: data.has_access } 
+        });
       } else {
         // Default to FREE if fetch fails
         setPlan({ id: 'FREE', workspaceFeatures: { equityFull: false } });
@@ -186,27 +204,36 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   };
 
   // Initialize equity percentages from current scenario or equal split
+  // Only run once when data is first available, not on every change
   useEffect(() => {
     if (participants && participants.length > 0) {
-      if (equity?.current) {
-        const currentData = equity.current.data;
-        const percentages = {};
-        currentData.users?.forEach((u) => {
-          // Only include users who are founders (not advisors)
-          if (participants.some(p => p.user_id === u.userId)) {
-            percentages[u.userId] = u.percent;
-          }
-        });
-        setEquityPercentages(percentages);
-      } else {
-        // Equal split among founders only
-        const equalPercent = 100 / participants.length;
-        const percentages = {};
-        participants.forEach((p) => {
-          percentages[p.user_id] = equalPercent;
-        });
-        setEquityPercentages(percentages);
-      }
+      setEquityPercentages(prev => {
+        // If we already have percentages for all participants, don't update
+        const hasAllParticipants = participants.every(p => prev[p.user_id] !== undefined);
+        if (hasAllParticipants && Object.keys(prev).length > 0) {
+          return prev;
+        }
+        
+        if (equity?.current) {
+          const currentData = equity.current.data;
+          const percentages = {};
+          currentData.users?.forEach((u) => {
+            // Only include users who are founders (not advisors)
+            if (participants.some(p => p.user_id === u.userId)) {
+              percentages[u.userId] = u.percent;
+            }
+          });
+          return percentages;
+        } else {
+          // Equal split among founders only
+          const equalPercent = 100 / participants.length;
+          const percentages = {};
+          participants.forEach((p) => {
+            percentages[p.user_id] = equalPercent;
+          });
+          return percentages;
+        }
+      });
     }
   }, [participants, equity]);
 
@@ -470,8 +497,74 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
     );
   }
 
+  // Show the wizard for new setups or when explicitly requested
+  if (showWizard) {
+    return (
+      <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
+        {/* Header with toggle back to legacy view */}
+        {hasCompletedSetup && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Settings />}
+              onClick={() => setShowWizard(false)}
+              sx={{ borderColor: '#e2e8f0', color: '#64748b' }}
+            >
+              View Summary
+            </Button>
+          </Box>
+        )}
+        
+        <EquityQuestionnaireWizard
+          workspaceId={workspaceId}
+          participants={participants}
+          onComplete={() => {
+            setShowWizard(false);
+            setHasCompletedSetup(true);
+            refetchEquity();
+          }}
+        />
+      </Box>
+    );
+  }
+
   return (
     <>
+    {/* CTA to start/edit equity setup wizard */}
+    <Box sx={{ mb: 3 }}>
+      <Card sx={{ 
+        border: '2px solid #0ea5e9', 
+        borderRadius: '16px', 
+        background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%)'
+      }}>
+        <CardContent sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
+              {hasCompletedSetup ? 'Equity Setup Complete' : 'Complete Your Equity Setup'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {hasCompletedSetup 
+                ? 'Your equity split has been approved by both founders.' 
+                : 'Use our guided questionnaire to calculate fair equity splits.'}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<PlayArrow />}
+            onClick={() => setShowWizard(true)}
+            sx={{ 
+              bgcolor: '#0ea5e9', 
+              '&:hover': { bgcolor: '#0284c7' },
+              px: 3,
+            }}
+          >
+            {hasCompletedSetup ? 'Edit Agreement' : 'Start Setup'}
+          </Button>
+        </CardContent>
+      </Card>
+    </Box>
+
     <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
       {/* Left Column: Equity Scenarios */}
       <Grid item xs={12} md={6}>

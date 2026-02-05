@@ -65,7 +65,6 @@ const PricingPage = () => {
         }
       }
     } catch (err) {
-      console.error('Error fetching plans:', err);
     } finally {
       setLoading(false);
     }
@@ -327,24 +326,24 @@ const PricingPage = () => {
           <Grid item xs={12} md={6}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Per-Workspace Earnings
+                Compensation Model
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Set your rate between $50–$150/month per workspace
+                Advisors receive equity in the projects they handle, not monetary payment
               </Typography>
               
               <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2, mb: 2 }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Example:</strong> You set rate at $80/month
+                  <strong>How it works:</strong>
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  • Founder pays: $100/month (includes 25% platform fee)
+                  • You'll receive equity in the project you're advising
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  • You receive: $60/month
+                  • Equity terms are determined per project
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  • Platform fee: $20/month (25%)
+                  • Details will be discussed when you accept an advisor request
                 </Typography>
               </Box>
 

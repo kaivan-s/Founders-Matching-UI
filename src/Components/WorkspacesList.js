@@ -32,6 +32,7 @@ const WorkspacesList = () => {
   const [notificationsDialogOpen, setNotificationsDialogOpen] = useState(false);
   const [selectedWorkspaceForNotifications, setSelectedWorkspaceForNotifications] = useState(null);
   const [founderId, setFounderId] = useState(null);
+  const [workspacePlans, setWorkspacePlans] = useState({}); // Map of workspace_id -> plan tier
 
   useEffect(() => {
     fetchWorkspaces();
@@ -51,21 +52,16 @@ const WorkspacesList = () => {
         
         if (response.ok) {
           const data = await response.json();
-          console.log('👤 Profile check response:', data);
           
           if (data.has_profile && data.profile) {
             const founderId = data.profile.id;
-            console.log('👤 Founder ID fetched:', founderId);
             setFounderId(founderId);
           } else {
-            console.warn('⚠️ No profile found for user');
           }
         } else {
           const errorData = await response.json();
-          console.error('❌ Error response from profile check:', errorData);
         }
       } catch (err) {
-        console.error('❌ Error fetching founder ID:', err);
       }
     };
     
@@ -77,11 +73,9 @@ const WorkspacesList = () => {
     try {
       const workspaceIds = workspaces.map(w => w.id);
       if (workspaceIds.length === 0 || !user?.id) {
-        console.log('⏭️ Skipping fetchNotificationSummaries - no workspaces or user');
         return;
       }
       
-      console.log('📊 Fetching notification summaries for workspaces:', workspaceIds);
       const params = new URLSearchParams();
       workspaceIds.forEach(id => params.append('workspace_ids[]', id));
       
@@ -96,14 +90,11 @@ const WorkspacesList = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Notification summaries received:', data);
         setNotificationSummaries(data);
       } else {
         const errorData = await response.json();
-        console.error('❌ Error response from API:', errorData);
       }
     } catch (err) {
-      console.error('❌ Error fetching notification summaries:', err);
     }
   }, [workspaces, user]);
 
@@ -111,7 +102,6 @@ const WorkspacesList = () => {
   useEffect(() => {
     if (workspaces.length === 0 || !founderId || !user?.id) return;
     
-    console.log('🔔 Setting up notification subscriptions for founder:', founderId);
     
     // Initial fetch
     fetchNotificationSummaries();
@@ -128,13 +118,11 @@ const WorkspacesList = () => {
           filter: `user_id=eq.${founderId}`,
         },
         (payload) => {
-          console.log('🔔 Realtime notification event received:', payload);
           // When notification changes, refresh summaries
           fetchNotificationSummaries();
         }
       )
       .subscribe((status) => {
-        console.log('🔔 Notifications subscription status:', status);
       });
     
     // Set up Supabase Realtime subscription for approvals
@@ -149,13 +137,11 @@ const WorkspacesList = () => {
           filter: `approver_user_id=eq.${founderId}`,
         },
         (payload) => {
-          console.log('✅ Realtime approval event received (as approver):', payload);
           // When approval changes, refresh summaries
           fetchNotificationSummaries();
         }
       )
       .subscribe((status) => {
-        console.log('✅ Approvals subscription status (as approver):', status);
       });
     
     // Also subscribe to approvals where user is proposer (to update when approved/rejected)
@@ -170,18 +156,15 @@ const WorkspacesList = () => {
           filter: `proposed_by_user_id=eq.${founderId}`,
         },
         (payload) => {
-          console.log('📝 Realtime approval event received (as proposer):', payload);
           fetchNotificationSummaries();
         }
       )
       .subscribe((status) => {
-        console.log('📝 Approvals subscription status (as proposer):', status);
       });
     
     // Fallback: Refresh when user returns to the page (in case realtime missed something)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('👁️ Page visible - refreshing notification summaries');
         fetchNotificationSummaries();
       }
     };
@@ -189,7 +172,6 @@ const WorkspacesList = () => {
     
     // Cleanup subscriptions
     return () => {
-      console.log('🧹 Cleaning up notification subscriptions');
       supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(approvalsChannel);
       supabase.removeChannel(proposerApprovalsChannel);
@@ -212,10 +194,46 @@ const WorkspacesList = () => {
 
       const data = await response.json();
       setWorkspaces(data);
+      
+      // Fetch workspace plans for all workspaces
+      if (data.length > 0 && user?.id) {
+        fetchWorkspacePlans(data);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWorkspacePlans = async (workspacesList) => {
+    if (!user?.id) return;
+    
+    try {
+      // Fetch plans for all workspaces in parallel
+      const planPromises = workspacesList.map(async (workspace) => {
+        try {
+          const response = await fetch(`${API_BASE}/workspaces/${workspace.id}/check-feature?feature=workspaceFeatures.equityFull`, {
+            headers: {
+              'X-Clerk-User-Id': user.id,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            return { workspaceId: workspace.id, plan: data.workspace_plan || 'FREE' };
+          }
+        } catch (err) {
+        }
+        return { workspaceId: workspace.id, plan: 'FREE' };
+      });
+      
+      const plans = await Promise.all(planPromises);
+      const plansMap = {};
+      plans.forEach(({ workspaceId, plan }) => {
+        plansMap[workspaceId] = plan;
+      });
+      setWorkspacePlans(plansMap);
+    } catch (err) {
     }
   };
 
@@ -398,6 +416,21 @@ const WorkspacesList = () => {
                           height: 24,
                         }}
                       />
+                      
+                      {/* Workspace Plan Badge */}
+                      {workspacePlans[workspace.id] && workspacePlans[workspace.id] !== 'FREE' && (
+                        <Chip
+                          label={workspacePlans[workspace.id] === 'PRO' ? 'Pro' : 'Pro+'}
+                          size="small"
+                          sx={{
+                            bgcolor: workspacePlans[workspace.id] === 'PRO_PLUS' ? '#7c3aed' : '#1e3a8a',
+                            color: '#ffffff',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            height: 24,
+                          }}
+                        />
+                      )}
                       
                       {/* Notification Summary */}
                       {/* 

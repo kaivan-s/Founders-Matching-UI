@@ -56,12 +56,11 @@ export const useWorkspace = (workspaceId) => {
       }
       
       const data = await response.json();
-      console.log('Workspace update response:', data);
       // Update the workspace state with the full response data
       setWorkspace(data);
       return data;
     } catch (err) {
-      console.error('Update workspace error:', err);
+      // Error updating workspace
       throw err;
     }
   }, [user, workspaceId]);

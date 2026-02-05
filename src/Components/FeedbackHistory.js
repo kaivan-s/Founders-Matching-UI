@@ -3,8 +3,6 @@ import { useUser } from '@clerk/clerk-react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Chip,
   CircularProgress,
   Alert,
@@ -14,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  alpha,
 } from '@mui/material';
 import {
   BugReport,
@@ -33,6 +32,16 @@ import { API_BASE } from '../config/api';
 import FeedbackDialog from './FeedbackDialog';
 import { useNavigate } from 'react-router-dom';
 
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
+
 const categoryIcons = {
   Bug: <BugReport />,
   UX: <DesignServices />,
@@ -42,12 +51,12 @@ const categoryIcons = {
 };
 
 const statusColors = {
-  'New': { color: '#64748b', bgcolor: '#f1f5f9' },
-  'Under review': { color: '#0284c7', bgcolor: '#e0f2fe' },
-  'Planned': { color: '#7c3aed', bgcolor: '#f3e8ff' },
-  'In progress': { color: '#f59e0b', bgcolor: '#fef3c7' },
-  'Implemented': { color: '#059669', bgcolor: '#d1fae5' },
-  'Rejected': { color: '#dc2626', bgcolor: '#fee2e2' },
+  'New': { color: SLATE_500, bgcolor: alpha(SLATE_400, 0.1) },
+  'Under review': { color: SKY, bgcolor: alpha(SKY, 0.1) },
+  'Planned': { color: NAVY, bgcolor: alpha(NAVY, 0.1) },
+  'In progress': { color: '#f59e0b', bgcolor: alpha('#f59e0b', 0.1) },
+  'Implemented': { color: TEAL, bgcolor: alpha(TEAL, 0.1) },
+  'Rejected': { color: '#ef4444', bgcolor: alpha('#ef4444', 0.1) },
 };
 
 const FeedbackHistory = () => {
@@ -59,7 +68,6 @@ const FeedbackHistory = () => {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
-  // Calculate summary statistics
   const totalFeedback = feedback.length;
   const implementedCount = feedback.filter(f => f.status === 'Implemented').length;
   const activeBenefitsCount = feedback.filter(f => f.reward_amount_cents > 0 && f.reward_paid === true).length;
@@ -105,14 +113,14 @@ const FeedbackHistory = () => {
 
   const formatReward = (cents) => {
     if (!cents || cents === 0) return null;
-    const rupees = cents / 100;
-    return `₹${rupees.toFixed(0)}`;
+    const dollars = cents / 100;
+    return `$${dollars.toFixed(0)}`;
   };
 
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-        <CircularProgress />
+        <CircularProgress sx={{ color: TEAL }} />
       </Box>
     );
   }
@@ -120,10 +128,10 @@ const FeedbackHistory = () => {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
-        <Button onClick={fetchFeedback} variant="outlined">
+        <Button onClick={fetchFeedback} variant="outlined" sx={{ borderColor: TEAL, color: TEAL }}>
           Retry
         </Button>
       </Box>
@@ -146,10 +154,10 @@ const FeedbackHistory = () => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: '#1e3a8a' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900 }}>
             My Feedback & Benefits
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: SLATE_500 }}>
             Track your feedback and rewards
           </Typography>
         </Box>
@@ -157,10 +165,11 @@ const FeedbackHistory = () => {
           variant="contained"
           onClick={() => setFeedbackDialogOpen(true)}
           sx={{
-            bgcolor: '#0d9488',
+            bgcolor: TEAL,
             '&:hover': {
-              bgcolor: '#14b8a6',
+              bgcolor: TEAL_LIGHT,
             },
+            textTransform: 'none',
           }}
         >
           Give Feedback
@@ -170,46 +179,45 @@ const FeedbackHistory = () => {
       {/* Summary Section */}
       {feedback.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Card
+          <Box
             sx={{
-              bgcolor: 'background.paper',
+              bgcolor: '#fff',
               border: '1px solid',
-              borderColor: 'divider',
+              borderColor: SLATE_200,
               borderRadius: 2,
+              p: 3,
             }}
           >
-            <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#1e3a8a' }}>
-                Summary
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
-                    {totalFeedback}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    You've submitted {totalFeedback} {totalFeedback === 1 ? 'feedback item' : 'feedback items'}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#059669' }}>
-                    {implementedCount}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {implementedCount === 1 ? 'Implemented' : 'Implemented'}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#0d9488' }}>
-                    {activeBenefitsCount}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Active benefits
-                  </Typography>
-                </Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: SLATE_900 }}>
+              Summary
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                  {totalFeedback}
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                  You've submitted {totalFeedback} {totalFeedback === 1 ? 'feedback item' : 'feedback items'}
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: TEAL }}>
+                  {implementedCount}
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                  {implementedCount === 1 ? 'Implemented' : 'Implemented'}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: TEAL }}>
+                  {activeBenefitsCount}
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                  Active benefits
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       )}
 
@@ -226,11 +234,11 @@ const FeedbackHistory = () => {
         >
           <Box
             sx={{
-              bgcolor: 'background.paper',
-              borderRadius: 3,
+              bgcolor: '#fff',
+              borderRadius: 2,
               p: 6,
               border: '1px solid',
-              borderColor: 'divider',
+              borderColor: SLATE_200,
               maxWidth: '400px',
             }}
           >
@@ -241,27 +249,28 @@ const FeedbackHistory = () => {
                 justifyContent: 'center',
                 width: 64,
                 height: 64,
-                borderRadius: '50%',
-                bgcolor: '#0d9488',
+                borderRadius: 2,
+                bgcolor: alpha(TEAL, 0.1),
                 mb: 3,
               }}
             >
-              <Lightbulb sx={{ fontSize: 32, color: 'white' }} />
+              <Lightbulb sx={{ fontSize: 32, color: TEAL }} />
             </Box>
-            <Typography variant="h5" gutterBottom sx={{ mb: 1, fontWeight: 700 }}>
+            <Typography variant="h5" gutterBottom sx={{ mb: 1, fontWeight: 700, color: SLATE_900 }}>
               No feedback yet
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
               Share your ideas, report bugs, or suggest improvements. We value your input!
             </Typography>
             <Button
               variant="contained"
               onClick={() => setFeedbackDialogOpen(true)}
               sx={{
-                bgcolor: '#0d9488',
+                bgcolor: TEAL,
                 '&:hover': {
-                  bgcolor: '#14b8a6',
+                  bgcolor: TEAL_LIGHT,
                 },
+                textTransform: 'none',
               }}
             >
               Submit Your First Feedback
@@ -269,13 +278,27 @@ const FeedbackHistory = () => {
           </Box>
         </Box>
       ) : (
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ flex: 1, overflowY: 'auto', pr: 1,
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: SLATE_200,
+            borderRadius: '3px',
+            '&:hover': {
+              background: SLATE_400,
+            },
+          },
+        }}>
           {feedback.map((item) => {
             const statusStyle = statusColors[item.status] || statusColors['New'];
             const reward = formatReward(item.reward_amount_cents);
 
             return (
-              <Card
+              <Box
                 key={item.id}
                 onClick={() => {
                   setSelectedFeedback(item);
@@ -283,96 +306,123 @@ const FeedbackHistory = () => {
                 }}
                 sx={{
                   mb: 2,
+                  bgcolor: '#fff',
                   border: '1px solid',
-                  borderColor: 'divider',
+                  borderColor: SLATE_200,
                   borderRadius: 2,
-                  transition: 'all 0.2s ease',
+                  p: 2.5,
+                  transition: 'all 0.2s',
                   cursor: 'pointer',
                   '&:hover': {
-                    borderColor: '#0d9488',
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)',
+                    borderColor: TEAL,
+                    boxShadow: `0 4px 12px ${alpha(TEAL, 0.1)}`,
                     transform: 'translateY(-2px)',
                   },
                 }}
               >
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                    <Box sx={{ flex: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Box sx={{ color: '#0d9488' }}>{categoryIcons[item.category] || categoryIcons.Other}</Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e3a8a' }}>
-                          {item.title}
-                        </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Box sx={{ color: TEAL, display: 'flex', alignItems: 'center' }}>
+                        {categoryIcons[item.category] || categoryIcons.Other}
                       </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                        {item.title}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mb: 1.5,
+                        color: SLATE_500,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {item.description}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
+                      <Chip
+                        label={item.category}
+                        size="small"
+                        icon={categoryIcons[item.category] || categoryIcons.Other}
+                        sx={{
+                          bgcolor: alpha(TEAL, 0.1),
+                          color: TEAL,
+                          border: `1px solid ${alpha(TEAL, 0.3)}`,
+                          fontWeight: 500,
+                          fontSize: '0.7rem',
+                          height: 24,
+                        }}
+                      />
+                      <Chip
+                        label={item.status}
+                        size="small"
+                        sx={{
+                          bgcolor: statusStyle.bgcolor,
+                          color: statusStyle.color,
+                          border: `1px solid ${alpha(statusStyle.color, 0.3)}`,
+                          fontWeight: 500,
+                          fontSize: '0.7rem',
+                          height: 24,
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ ml: 'auto', color: SLATE_400 }}>
+                        {formatDate(item.created_at)}
+                      </Typography>
+                    </Box>
+                    {/* Benefits Line */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        mt: 1,
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: item.reward_amount_cents > 0 && item.reward_paid 
+                          ? alpha(TEAL, 0.05) 
+                          : item.reward_amount_cents > 0 
+                          ? alpha('#f59e0b', 0.05) 
+                          : BG,
+                        border: '1px solid',
+                        borderColor: item.reward_amount_cents > 0 && item.reward_paid 
+                          ? alpha(TEAL, 0.2) 
+                          : item.reward_amount_cents > 0 
+                          ? alpha('#f59e0b', 0.2) 
+                          : SLATE_200,
+                      }}
+                    >
+                      <CardGiftcard
+                        sx={{
+                          fontSize: 16,
+                          color: item.reward_amount_cents > 0 && item.reward_paid 
+                            ? TEAL 
+                            : item.reward_amount_cents > 0 
+                            ? '#f59e0b' 
+                            : SLATE_400,
+                        }}
+                      />
                       <Typography
                         variant="body2"
-                        color="text.secondary"
                         sx={{
-                          mb: 1.5,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
+                          color: item.reward_amount_cents > 0 && item.reward_paid 
+                            ? TEAL 
+                            : item.reward_amount_cents > 0 
+                            ? '#f59e0b' 
+                            : SLATE_500,
+                          fontWeight: item.reward_amount_cents > 0 ? 500 : 400,
                         }}
                       >
-                        {item.description}
+                        {getBenefitsText(item)}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
-                        <Chip
-                          label={item.category}
-                          size="small"
-                          icon={categoryIcons[item.category] || categoryIcons.Other}
-                          sx={{
-                            bgcolor: 'rgba(13, 148, 136, 0.1)',
-                            color: '#0d9488',
-                            fontWeight: 500,
-                          }}
-                        />
-                        <Chip
-                          label={item.status}
-                          size="small"
-                          sx={{
-                            bgcolor: statusStyle.bgcolor,
-                            color: statusStyle.color,
-                            fontWeight: 500,
-                          }}
-                        />
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                          {formatDate(item.created_at)}
-                        </Typography>
-                      </Box>
-                      {/* Benefits Line */}
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          mt: 1,
-                          p: 1,
-                          borderRadius: 1,
-                          bgcolor: item.reward_amount_cents > 0 && item.reward_paid ? '#d1fae5' : item.reward_amount_cents > 0 ? '#fef3c7' : '#f1f5f9',
-                        }}
-                      >
-                        <CardGiftcard
-                          sx={{
-                            fontSize: 16,
-                            color: item.reward_amount_cents > 0 && item.reward_paid ? '#059669' : item.reward_amount_cents > 0 ? '#f59e0b' : '#64748b',
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: item.reward_amount_cents > 0 && item.reward_paid ? '#059669' : item.reward_amount_cents > 0 ? '#f59e0b' : '#64748b',
-                            fontWeight: item.reward_amount_cents > 0 ? 500 : 400,
-                          }}
-                        >
-                          {getBenefitsText(item)}
-                        </Typography>
-                      </Box>
                     </Box>
                   </Box>
-                </CardContent>
-              </Card>
+                </Box>
+              </Box>
             );
           })}
         </Box>
@@ -386,33 +436,39 @@ const FeedbackHistory = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: 2,
           },
         }}
       >
         {selectedFeedback && (
           <>
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
+            <DialogTitle sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              borderBottom: '1px solid',
+              borderColor: SLATE_200,
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
                 Feedback Details
               </Typography>
-              <IconButton onClick={() => setDetailDialogOpen(false)} size="small">
+              <IconButton onClick={() => setDetailDialogOpen(false)} size="small" sx={{ color: SLATE_500 }}>
                 <Close />
               </IconButton>
             </DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{ pt: 3 }}>
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ mb: 0.5, color: SLATE_500, fontWeight: 600 }}>
                   Title
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600, mb: 2 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600, mb: 2, color: SLATE_900 }}>
                   {selectedFeedback.title}
                 </Typography>
 
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ mb: 0.5, color: SLATE_500, fontWeight: 600 }}>
                   Description
                 </Typography>
-                <Typography variant="body2" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
+                <Typography variant="body2" sx={{ mb: 2, whiteSpace: 'pre-wrap', color: SLATE_900, lineHeight: 1.6 }}>
                   {selectedFeedback.description}
                 </Typography>
 
@@ -422,16 +478,22 @@ const FeedbackHistory = () => {
                     size="small"
                     icon={categoryIcons[selectedFeedback.category] || categoryIcons.Other}
                     sx={{
-                      bgcolor: 'rgba(13, 148, 136, 0.1)',
-                      color: '#0d9488',
+                      bgcolor: alpha(TEAL, 0.1),
+                      color: TEAL,
+                      border: `1px solid ${alpha(TEAL, 0.3)}`,
+                      fontSize: '0.7rem',
+                      height: 24,
                     }}
                   />
                   <Chip
                     label={selectedFeedback.status}
                     size="small"
                     sx={{
-                      bgcolor: statusColors[selectedFeedback.status]?.bgcolor || '#f1f5f9',
-                      color: statusColors[selectedFeedback.status]?.color || '#64748b',
+                      bgcolor: statusColors[selectedFeedback.status]?.bgcolor || alpha(SLATE_400, 0.1),
+                      color: statusColors[selectedFeedback.status]?.color || SLATE_500,
+                      border: `1px solid ${alpha(statusColors[selectedFeedback.status]?.color || SLATE_400, 0.3)}`,
+                      fontSize: '0.7rem',
+                      height: 24,
                     }}
                   />
                 </Box>
@@ -440,31 +502,45 @@ const FeedbackHistory = () => {
                 <Box
                   sx={{
                     p: 2,
-                    bgcolor: selectedFeedback.reward_amount_cents > 0 && selectedFeedback.reward_paid ? '#d1fae5' : selectedFeedback.reward_amount_cents > 0 ? '#fef3c7' : '#f1f5f9',
+                    bgcolor: selectedFeedback.reward_amount_cents > 0 && selectedFeedback.reward_paid 
+                      ? alpha(TEAL, 0.05) 
+                      : selectedFeedback.reward_amount_cents > 0 
+                      ? alpha('#f59e0b', 0.05) 
+                      : BG,
                     borderRadius: 2,
                     mb: 2,
+                    border: '1px solid',
+                    borderColor: selectedFeedback.reward_amount_cents > 0 && selectedFeedback.reward_paid 
+                      ? alpha(TEAL, 0.2) 
+                      : selectedFeedback.reward_amount_cents > 0 
+                      ? alpha('#f59e0b', 0.2) 
+                      : SLATE_200,
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <CardGiftcard
                       sx={{
                         fontSize: 20,
-                        color: selectedFeedback.reward_amount_cents > 0 && selectedFeedback.reward_paid ? '#059669' : selectedFeedback.reward_amount_cents > 0 ? '#f59e0b' : '#64748b',
+                        color: selectedFeedback.reward_amount_cents > 0 && selectedFeedback.reward_paid 
+                          ? TEAL 
+                          : selectedFeedback.reward_amount_cents > 0 
+                          ? '#f59e0b' 
+                          : SLATE_400,
                       }}
                     />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
                       Benefits
                     </Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ mb: selectedFeedback.reward_amount_cents > 0 ? 1 : 0 }}>
+                  <Typography variant="body2" sx={{ mb: selectedFeedback.reward_amount_cents > 0 ? 1 : 0, color: SLATE_900 }}>
                     {getBenefitsText(selectedFeedback)}
                   </Typography>
                   {selectedFeedback.reward_amount_cents > 0 && (
                     <>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900 }}>
                         Reward: {formatReward(selectedFeedback.reward_amount_cents)}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
                         Status: {selectedFeedback.reward_paid ? 'Paid' : 'Pending'}
                         {selectedFeedback.reward_paid_at && (
                           <> • Paid on {formatDate(selectedFeedback.reward_paid_at)}</>
@@ -476,7 +552,7 @@ const FeedbackHistory = () => {
 
                 {/* Status History */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: SLATE_500 }}>
                     Status History
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -484,23 +560,31 @@ const FeedbackHistory = () => {
                       label={selectedFeedback.status}
                       size="small"
                       sx={{
-                        bgcolor: statusColors[selectedFeedback.status]?.bgcolor || '#f1f5f9',
-                        color: statusColors[selectedFeedback.status]?.color || '#64748b',
+                        bgcolor: statusColors[selectedFeedback.status]?.bgcolor || alpha(SLATE_400, 0.1),
+                        color: statusColors[selectedFeedback.status]?.color || SLATE_500,
+                        border: `1px solid ${alpha(statusColors[selectedFeedback.status]?.color || SLATE_400, 0.3)}`,
+                        fontSize: '0.7rem',
+                        height: 24,
                       }}
                     />
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ color: SLATE_500 }}>
                       Updated: {formatDate(selectedFeedback.updated_at)}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" sx={{ color: SLATE_400 }}>
                   Submitted: {formatDate(selectedFeedback.created_at)}
                 </Typography>
               </Box>
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-              <Button onClick={() => setDetailDialogOpen(false)}>Close</Button>
+            <DialogActions sx={{ px: 3, pb: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+              <Button 
+                onClick={() => setDetailDialogOpen(false)}
+                sx={{ color: SLATE_500 }}
+              >
+                Close
+              </Button>
             </DialogActions>
           </>
         )}
@@ -511,7 +595,7 @@ const FeedbackHistory = () => {
         open={feedbackDialogOpen}
         onClose={() => {
           setFeedbackDialogOpen(false);
-          fetchFeedback(); // Refresh list after submission
+          fetchFeedback();
         }}
       />
     </Box>
@@ -519,4 +603,3 @@ const FeedbackHistory = () => {
 };
 
 export default FeedbackHistory;
-

@@ -135,7 +135,6 @@ const AdvisorWorkspaceView = () => {
               }
             }
           } catch (e) {
-            console.error(`Error fetching review for check-in ${checkin.id}:`, e);
           }
         }
         setCheckinReviews(reviewsMap);
@@ -153,7 +152,6 @@ const AdvisorWorkspaceView = () => {
           setTasks(tasksData || []);
         }
       } catch (e) {
-        console.log('Tasks endpoint not available');
       }
 
       // Get project info from workspace data
@@ -178,7 +176,6 @@ const AdvisorWorkspaceView = () => {
       }
 
     } catch (err) {
-      console.error('Error fetching workspace data:', err);
       setError(err.message || 'Failed to load workspace data');
     } finally {
       setLoading(false);

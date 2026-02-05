@@ -26,6 +26,8 @@ import PricingPage from './Components/PricingPage';
 import AdvisorLanding from './Components/AdvisorLanding';
 import FeedbackHistory from './Components/FeedbackHistory';
 import FeedbackDialog from './Components/FeedbackDialog';
+import PrivacyPolicy from './Components/PrivacyPolicy';
+import TermsAndConditions from './Components/TermsAndConditions';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -151,7 +153,7 @@ function Header() {
         setPlan(data);
       }
     } catch (err) {
-      console.error('Error fetching plan:', err);
+      // Error fetching plan
     } finally {
       setPlanLoading(false);
     }
@@ -437,7 +439,7 @@ function NavigationTabs() {
         });
       }
     } catch (err) {
-      console.error('Error fetching notification counts:', err);
+      // Error fetching notification counts
     } finally {
       setLoadingCounts(false);
     }
@@ -540,17 +542,15 @@ function NavigationTabs() {
               {notificationCounts.interests > 0 && (
                 <Box
                   sx={{
-                    backgroundColor: '#ef4444',
+                    backgroundColor: '#0d9488',
                     color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    minWidth: '20px',
-                    height: '20px',
-                    lineHeight: '20px',
-                    padding: '0 6px',
-                    borderRadius: '10px',
-                    border: '2px solid #ffffff',
-                    boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    minWidth: '18px',
+                    height: '18px',
+                    lineHeight: '18px',
+                    padding: '0 5px',
+                    borderRadius: '9px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -576,17 +576,15 @@ function NavigationTabs() {
               {notificationCounts.workspaces > 0 && (
                 <Box
                   sx={{
-                    backgroundColor: '#ef4444',
+                    backgroundColor: '#0d9488',
                     color: '#ffffff',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    minWidth: '20px',
-                    height: '20px',
-                    lineHeight: '20px',
-                    padding: '0 6px',
-                    borderRadius: '10px',
-                    border: '2px solid #ffffff',
-                    boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    minWidth: '18px',
+                    height: '18px',
+                    lineHeight: '18px',
+                    padding: '0 5px',
+                    borderRadius: '9px',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -694,11 +692,9 @@ function AppContent() {
 
         if (advisorResponse.ok) {
           const advisorData = await advisorResponse.json();
-          console.log('Advisor profile response:', advisorData);
           // Check if we got actual profile data (not null or empty)
           // Handle both null and empty object cases
           if (advisorData !== null && advisorData !== undefined && typeof advisorData === 'object' && Object.keys(advisorData).length > 0) {
-            console.log('Advisor profile found, setting isAdvisor to true');
             // User is an advisor - show advisor dashboard
             setIsAdvisor(true);
             setIsFounder(false); // Don't check founder status if they're an advisor
@@ -713,11 +709,7 @@ function AppContent() {
               navigate('/advisor/dashboard', { replace: true });
             }
             return;
-          } else {
-            console.log('Advisor profile check: profile is null/empty, advisorData:', advisorData);
           }
-        } else {
-          console.log('Advisor profile check: response not ok, status:', advisorResponse.status);
         }
       } else {
         // Not on advisor route - skip advisor check
@@ -765,7 +757,7 @@ function AppContent() {
           }
         } catch (e) {
           // Ignore errors in this check
-          console.log('Error in advisor profile retry check:', e);
+          // Error in advisor profile retry check
         }
       }
 
@@ -808,7 +800,7 @@ function AppContent() {
       setOnboardingChecked(true);
       setAdvisorChecked(true);
     } catch (error) {
-      console.error('Error checking user type:', error);
+      // Error checking user type
       // If error, check founder onboarding to be safe
       // BUT: Don't show onboarding if user is on advisor routes
       const isOnAdvisorRoute = location.pathname.startsWith('/advisor/');
@@ -911,7 +903,7 @@ function AppContent() {
       setOnboardingChecked(true);
       setAdvisorChecked(true);
     } catch (error) {
-      console.error('Error checking founder status:', error);
+      // Error checking founder status
       setOnboardingChecked(true);
       setAdvisorChecked(true);
     } finally {
@@ -1221,6 +1213,8 @@ function AppContent() {
             <AdvisorLanding />
           </Box>
         } />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
       
@@ -1267,6 +1261,8 @@ function App() {
                 <AdvisorLanding />
               </Box>
             } />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
             {/* Normal Landing Page - catch-all for signed-out users */}
             <Route path="*" element={
               <Box sx={{ 
