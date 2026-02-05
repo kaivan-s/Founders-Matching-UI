@@ -8,8 +8,8 @@ import {
   TextField,
   Chip,
   LinearProgress,
-  Paper,
   Fade,
+  alpha,
 } from '@mui/material';
 import LocationAutocomplete from './LocationAutocomplete';
 import { API_BASE } from '../config/api';
@@ -23,13 +23,22 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 
+const NAVY = '#1e3a8a';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+const SKY = '#0ea5e9';
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_400 = '#94a3b8';
+const SLATE_200 = '#e2e8f0';
+const BG = '#f8fafc';
+
 const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
   const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [userType, setUserType] = useState('founder'); // Default to 'founder' since user already selected discover from founders option
+  const [userType, setUserType] = useState('founder');
   
-  // Form data
   const [formData, setFormData] = useState({
     purpose: '',
     skills: [],
@@ -39,17 +48,15 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
     email: '',
   });
   
-  // Temporary states for input
   const [skillInput, setSkillInput] = useState('');
 
-  const totalSteps = 2; // Removed project addition step
+  const totalSteps = 2;
   const progress = userType ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
-  // Reset step and pre-fill name and email from Clerk user object when dialog opens
   useEffect(() => {
     if (open) {
       setCurrentStep(0);
-      setUserType('founder'); // Always default to founder since user selected discover from founders option
+      setUserType('founder');
       if (user) {
         setFormData(prev => ({
           ...prev,
@@ -133,7 +140,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
   };
 
   const handleComplete = async () => {
-    // Validate required fields
     if (!formData.name || !formData.name.trim()) {
       alert('Please enter your full name');
       return;
@@ -146,7 +152,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
     
     setLoading(true);
     try {
-      // Save onboarding data to backend
       const response = await fetch(`${API_BASE}/founders/onboarding`, {
         method: 'POST',
         headers: {
@@ -168,7 +173,6 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
         throw new Error('Failed to save onboarding data');
       }
 
-      // Call the onComplete callback
       if (onComplete) {
         onComplete(formData);
       }
@@ -191,43 +195,42 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
   };
 
   const renderStepContent = () => {
-    // Founder onboarding steps (original steps)
     switch (currentStep) {
       case 0:
         return (
           <Fade in timeout={300}>
             <Box>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
                   Welcome to Guild Space! 👋
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#64748b' }}>
+                <Typography variant="body1" sx={{ color: SLATE_500 }}>
                   Let's get to know you better to find your perfect co-founder
                 </Typography>
               </Box>
               
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, mb: 3 }}>
                 Why are you here?
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {purposes.map((purpose) => (
-                  <Paper
+                  <Box
                     key={purpose.value}
                     onClick={() => handlePurposeSelect(purpose.value)}
                     sx={{
-                      p: 3,
+                      p: 2.5,
+                      bgcolor: formData.purpose === purpose.value ? alpha(TEAL, 0.05) : '#fff',
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: formData.purpose === purpose.value ? TEAL : SLATE_200,
                       cursor: 'pointer',
-                      border: '2px solid',
-                      borderColor: formData.purpose === purpose.value ? '#0ea5e9' : 'rgba(226, 232, 240, 0.8)',
-                      background: formData.purpose === purpose.value 
-                        ? 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(14, 165, 233, 0.02) 100%)'
-                        : '#ffffff',
-                      transition: 'all 0.3s ease',
+                      transition: 'all 0.2s',
+                      position: 'relative',
                       '&:hover': {
-                        borderColor: '#0ea5e9',
+                        borderColor: TEAL,
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+                        boxShadow: `0 4px 12px ${alpha(TEAL, 0.1)}`,
                       },
                     }}
                   >
@@ -236,25 +239,29 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                         p: 1.5,
                         borderRadius: 2,
                         bgcolor: formData.purpose === purpose.value 
-                          ? 'rgba(14, 165, 233, 0.1)' 
-                          : 'rgba(100, 116, 139, 0.1)',
-                        color: formData.purpose === purpose.value ? '#0ea5e9' : '#64748b',
+                          ? alpha(TEAL, 0.1) 
+                          : alpha(SLATE_400, 0.1),
+                        color: formData.purpose === purpose.value ? TEAL : SLATE_400,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
                       }}>
                         {purpose.icon}
                       </Box>
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900, mb: 0.5 }}>
                           {purpose.label}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#64748b' }}>
+                        <Typography variant="body2" sx={{ color: SLATE_500 }}>
                           {purpose.description}
                         </Typography>
                       </Box>
                       {formData.purpose === purpose.value && (
-                        <CheckCircle sx={{ color: '#0ea5e9' }} />
+                        <CheckCircle sx={{ color: TEAL, flexShrink: 0 }} />
                       )}
                     </Box>
-                  </Paper>
+                  </Box>
                 ))}
               </Box>
             </Box>
@@ -265,10 +272,10 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
         return (
           <Fade in timeout={300}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
                 Tell us about yourself
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
                 We need some basic information to get started
               </Typography>
               
@@ -295,10 +302,10 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                 sx={{ mb: 4 }}
               />
               
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1, mt: 2 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: SLATE_900, mb: 1, mt: 2 }}>
                 Where are you located?
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
                 This helps us show you relevant projects and co-founders in your area
               </Typography>
               
@@ -311,10 +318,10 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                 sx={{ mb: 4 }}
               />
               
-              <Typography variant="h5" sx={{ fontWeight: 600, color: '#0f172a', mb: 1, mt: 4 }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, color: SLATE_900, mb: 1, mt: 4 }}>
                 What are your skills and expertise?
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
                 Add the skills that best describe what you bring to a founding team
               </Typography>
               
@@ -330,17 +337,13 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                         handleAddSkill();
                       }
                     }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                      }
-                    }}
                   />
                   <Button
                     variant="contained"
                     onClick={handleAddSkill}
                     sx={{
-                      background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                      bgcolor: TEAL,
+                      '&:hover': { bgcolor: TEAL_LIGHT },
                       textTransform: 'none',
                       px: 3,
                     }}
@@ -349,8 +352,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                   </Button>
                 </Box>
                 
-                {/* Quick add common skills */}
-                <Typography variant="caption" sx={{ color: '#64748b', mb: 1, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: SLATE_500, mb: 1, display: 'block' }}>
                   Quick add:
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -362,10 +364,14 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                       onClick={() => setFormData({ ...formData, skills: [...formData.skills, skill] })}
                       sx={{
                         cursor: 'pointer',
-                        bgcolor: 'rgba(100, 116, 139, 0.08)',
+                        bgcolor: alpha(SLATE_400, 0.1),
+                        color: SLATE_500,
+                        border: `1px solid ${alpha(SLATE_400, 0.3)}`,
+                        fontSize: '0.75rem',
                         '&:hover': {
-                          bgcolor: 'rgba(14, 165, 233, 0.1)',
-                          color: '#0ea5e9',
+                          bgcolor: alpha(TEAL, 0.1),
+                          color: TEAL,
+                          borderColor: alpha(TEAL, 0.3),
                         }
                       }}
                     />
@@ -373,10 +379,9 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                 </Box>
               </Box>
               
-              {/* Selected skills */}
               {formData.skills.length > 0 && (
                 <Box>
-                  <Typography variant="subtitle2" sx={{ color: '#64748b', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ color: SLATE_500, mb: 2, fontWeight: 600 }}>
                     Your skills ({formData.skills.length}):
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -386,14 +391,15 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                         label={skill}
                         onDelete={() => handleRemoveSkill(skill)}
                         sx={{
-                          bgcolor: 'rgba(14, 165, 233, 0.08)',
-                          color: '#0ea5e9',
-                          border: '1px solid rgba(14, 165, 233, 0.15)',
+                          bgcolor: alpha(TEAL, 0.1),
+                          color: TEAL,
+                          border: `1px solid ${alpha(TEAL, 0.3)}`,
                           fontWeight: 500,
+                          fontSize: '0.75rem',
                           '& .MuiChip-deleteIcon': {
-                            color: '#0ea5e9',
+                            color: TEAL,
                             '&:hover': {
-                              color: '#0284c7',
+                              color: TEAL_LIGHT,
                             }
                           }
                         }}
@@ -418,92 +424,106 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
       fullWidth
       disableEscapeKeyDown
       onClose={(event, reason) => {
-        // Prevent closing by clicking outside or pressing escape
         if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
           return;
         }
       }}
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: 2,
           maxHeight: '90vh',
         }
       }}
     >
       <Box sx={{ position: 'relative' }}>
-        {/* Progress bar - only show for founder onboarding */}
         {userType === 'founder' && (
-        <LinearProgress 
-          variant="determinate" 
-          value={progress}
-          sx={{
-            height: 6,
-            borderRadius: '3px 3px 0 0',
-            bgcolor: 'rgba(14, 165, 233, 0.1)',
-            '& .MuiLinearProgress-bar': {
-              background: 'linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%)',
-              borderRadius: 1,
-            }
-          }}
-        />
+          <LinearProgress 
+            variant="determinate" 
+            value={progress}
+            sx={{
+              height: 4,
+              borderRadius: '2px 2px 0 0',
+              bgcolor: alpha(TEAL, 0.1),
+              '& .MuiLinearProgress-bar': {
+                bgcolor: TEAL,
+                borderRadius: 1,
+              }
+            }}
+          />
         )}
         
         <DialogContent sx={{ p: 4 }}>
-          {/* Step indicator - only show when user has selected founder */}
           {userType === 'founder' && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <Typography variant="caption" sx={{ color: '#64748b' }}>
-              Step {currentStep + 1} of {totalSteps}
-            </Typography>
-          </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+              <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500 }}>
+                Step {currentStep + 1} of {totalSteps}
+              </Typography>
+            </Box>
           )}
           
-          {/* Content */}
           <Box sx={{ minHeight: 400 }}>
             {renderStepContent()}
           </Box>
           
-          {/* Navigation buttons - only show when user has selected founder */}
           {userType === 'founder' && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3, borderTop: '1px solid rgba(226, 232, 240, 0.8)' }}>
-            <Button
-              startIcon={<ArrowBack />}
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              sx={{ textTransform: 'none' }}
-            >
-              Back
-            </Button>
-            
-            {currentStep === totalSteps - 1 ? (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              mt: 4, 
+              pt: 3, 
+              borderTop: '1px solid',
+              borderColor: SLATE_200,
+            }}>
               <Button
-                variant="contained"
-                onClick={handleComplete}
-                disabled={loading}
-                sx={{
-                  background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                startIcon={<ArrowBack />}
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                sx={{ 
                   textTransform: 'none',
-                  px: 4,
+                  color: currentStep === 0 ? SLATE_400 : SLATE_500,
+                  '&:hover': {
+                    bgcolor: alpha(SLATE_200, 0.5),
+                  },
                 }}
               >
-                {loading ? 'Saving...' : 'Complete Setup'}
+                Back
               </Button>
-            ) : (
-              <Button
-                variant="contained"
-                endIcon={<ArrowForward />}
-                onClick={handleNext}
-                disabled={!canProceed()}
-                sx={{
-                  background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                  textTransform: 'none',
-                  px: 4,
-                }}
-              >
-                Next
-              </Button>
-            )}
-          </Box>
+              
+              {currentStep === totalSteps - 1 ? (
+                <Button
+                  variant="contained"
+                  onClick={handleComplete}
+                  disabled={loading}
+                  sx={{
+                    bgcolor: TEAL,
+                    '&:hover': { bgcolor: TEAL_LIGHT },
+                    textTransform: 'none',
+                    px: 4,
+                  }}
+                >
+                  {loading ? 'Saving...' : 'Complete Setup'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  endIcon={<ArrowForward />}
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  sx={{
+                    bgcolor: TEAL,
+                    '&:hover': { bgcolor: TEAL_LIGHT },
+                    '&:disabled': {
+                      bgcolor: alpha(SLATE_400, 0.2),
+                      color: SLATE_400,
+                    },
+                    textTransform: 'none',
+                    px: 4,
+                  }}
+                >
+                  Next
+                </Button>
+              )}
+            </Box>
           )}
         </DialogContent>
       </Box>
