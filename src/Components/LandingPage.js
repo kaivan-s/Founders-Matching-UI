@@ -21,6 +21,7 @@ import {
   BarChart,
   Groups,
   AutoAwesome,
+  Instagram,
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import FeedbackDialog from './FeedbackDialog';
@@ -1221,6 +1222,19 @@ const LandingPage = () => {
                 Feedback
               </Button>
             )}
+            <Button
+              component="a"
+              href="https://www.instagram.com/guild.space/"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                minWidth: 'auto', p: 0.5,
+                '&:hover': { color: TEAL },
+              }}
+            >
+              <Instagram sx={{ fontSize: 18 }} />
+            </Button>
             <Typography variant="caption" sx={{ color: SLATE_400 }}>
               &copy; {new Date().getFullYear()} Guild Space
             </Typography>
