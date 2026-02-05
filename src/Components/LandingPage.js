@@ -352,6 +352,552 @@ const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* ─── Bento Grid Showcase ─── */}
+      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
+          <Typography variant="overline" sx={{ color: TEAL, fontWeight: 700, letterSpacing: '0.12em', fontSize: '0.75rem' }}>
+            See It In Action
+          </Typography>
+          <Typography variant="h3" sx={{
+            fontWeight: 700, mt: 1.5, color: SLATE_900,
+            fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
+          }}>
+            Your partnership, organized
+          </Typography>
+        </Box>
+
+        {/* Bento Grid */}
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' },
+          gap: 2.5,
+        }}>
+
+          {/* ─ Card 1: Discovery Carousel (wide, 8 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 8' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 12px 32px ${alpha(TEAL, 0.1)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.08), color: TEAL, display: 'flex' }}>
+                <Bolt sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Swipe & Discover
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              Browse project profiles in a carousel. Match scores show compatibility at a glance.
+            </Typography>
+            {/* Mini filter bar */}
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              {['All', 'MVP Ready', 'Pre-seed', 'Idea Stage'].map((f, i) => (
+                <Box key={i} sx={{
+                  px: 1.5, py: 0.5, borderRadius: 5, fontSize: '0.65rem', fontWeight: 600,
+                  bgcolor: i === 0 ? TEAL : 'transparent', color: i === 0 ? '#fff' : SLATE_400,
+                  border: '1px solid', borderColor: i === 0 ? TEAL : SLATE_200,
+                  cursor: 'default',
+                }}>
+                  {f}
+                </Box>
+              ))}
+            </Box>
+            {/* Carousel mockup */}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
+              {[
+                { name: 'Alex Chen', loc: 'San Francisco', project: 'FinTech SaaS', stage: 'MVP', skills: ['React', 'Node.js', 'AWS'], match: 92, scale: 0.88, opacity: 0.6 },
+                { name: 'Sarah Kim', loc: 'New York', project: 'AI Health Platform', stage: 'Pre-seed', skills: ['Python', 'ML', 'Product'], match: 87, scale: 1, opacity: 1 },
+                { name: 'James Liu', loc: 'London', project: 'EdTech Marketplace', stage: 'Idea', skills: ['Sales', 'Growth', 'Finance'], match: 78, scale: 0.88, opacity: 0.6 },
+              ].map((p, i) => (
+                <Box key={i} sx={{
+                  flex: i === 1 ? '0 0 200px' : '0 0 160px', p: 2, borderRadius: 2.5, position: 'relative',
+                  bgcolor: BG, border: i === 1 ? `2px solid ${alpha(TEAL, 0.3)}` : '1px solid', borderColor: i === 1 ? alpha(TEAL, 0.3) : SLATE_200,
+                  transform: `scale(${p.scale})`, opacity: p.opacity,
+                  boxShadow: i === 1 ? `0 8px 24px ${alpha(TEAL, 0.12)}` : 'none',
+                  display: { xs: i === 1 ? 'block' : 'none', sm: 'block' },
+                }}>
+                  {/* Match badge */}
+                  <Box sx={{
+                    position: 'absolute', top: 8, right: 8,
+                    px: 1, py: 0.25, borderRadius: 1,
+                    bgcolor: p.match >= 90 ? alpha(TEAL, 0.12) : p.match >= 80 ? alpha(SKY, 0.12) : alpha(SLATE_400, 0.12),
+                    color: p.match >= 90 ? TEAL : p.match >= 80 ? SKY : SLATE_500,
+                    fontSize: '0.6rem', fontWeight: 700,
+                  }}>
+                    {p.match}% match
+                  </Box>
+                  {/* Avatar */}
+                  <Box sx={{
+                    width: 36, height: 36, borderRadius: '50%', mb: 1.5,
+                    bgcolor: alpha(i === 0 ? TEAL : i === 1 ? SKY : NAVY, 0.15),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: i === 0 ? TEAL : i === 1 ? SKY : NAVY, fontWeight: 700, fontSize: '0.8rem',
+                    border: '2px solid #fff', boxShadow: `0 2px 8px ${alpha(SLATE_900, 0.1)}`,
+                  }}>
+                    {p.name.split(' ').map(n => n[0]).join('')}
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: '0.8rem', mb: 0.25 }}>
+                    {p.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400, display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, fontSize: '0.65rem' }}>
+                    {p.loc}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 600, display: 'block', mb: 0.5, fontSize: '0.7rem' }}>
+                    {p.project}
+                  </Typography>
+                  <Box sx={{ px: 1, py: 0.25, borderRadius: 1, display: 'inline-block', mb: 1, bgcolor: alpha(SKY, 0.1), color: SKY, fontSize: '0.6rem', fontWeight: 600 }}>
+                    {p.stage}
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {p.skills.slice(0, i === 1 ? 3 : 2).map((s, j) => (
+                      <Box key={j} sx={{ px: 0.75, py: 0.15, borderRadius: 0.75, fontSize: '0.55rem', fontWeight: 500, bgcolor: alpha(TEAL, 0.08), color: TEAL }}>
+                        {s}
+                      </Box>
+                    ))}
+                    {i !== 1 && p.skills.length > 2 && (
+                      <Box sx={{ px: 0.75, py: 0.15, borderRadius: 0.75, fontSize: '0.55rem', fontWeight: 500, bgcolor: alpha(SLATE_400, 0.08), color: SLATE_400 }}>
+                        +{p.skills.length - 2}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+            {/* Swipe action bar */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2.5 }}>
+              <Box sx={{
+                px: 2.5, py: 0.75, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1,
+                border: '1px solid', borderColor: SLATE_200, cursor: 'default',
+              }}>
+                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600 }}>Skip</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {[0, 1, 2, 3, 4].map(d => (
+                  <Box key={d} sx={{ width: d === 2 ? 8 : 5, height: d === 2 ? 8 : 5, borderRadius: '50%', bgcolor: d === 2 ? TEAL : SLATE_200 }} />
+                ))}
+              </Box>
+              <Box sx={{
+                px: 2.5, py: 0.75, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1,
+                bgcolor: TEAL, cursor: 'default',
+              }}>
+                <Handshake sx={{ fontSize: 14, color: '#fff' }} />
+                <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>Connect</Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ─ Card 2: Equity & Agreements (tall, 4 cols, spans 2 rows) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 4' },
+            gridRow: { xs: 'auto', md: 'span 2' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(SKY, 0.4), boxShadow: `0 12px 32px ${alpha(SKY, 0.1)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(SKY, 0.08), color: SKY, display: 'flex' }}>
+                <Handshake sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Equity & Agreements
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              7-step guided questionnaire, AI-calculated splits, and auto-generated legal docs.
+            </Typography>
+
+            {/* Questionnaire steps mockup */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, mb: 1, display: 'block', letterSpacing: '0.06em' }}>
+                QUESTIONNAIRE
+              </Typography>
+              {[
+                { label: 'Startup Context', done: true },
+                { label: 'My Details', done: true },
+                { label: 'Vesting Terms', done: true },
+                { label: 'Calculate Split', done: false },
+              ].map((step, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }}>
+                  <Box sx={{
+                    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                    bgcolor: step.done ? TEAL : 'transparent',
+                    border: step.done ? 'none' : `2px solid ${SLATE_200}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {step.done && <CheckCircle sx={{ fontSize: 14, color: '#fff' }} />}
+                    {!step.done && (
+                      <Typography variant="caption" sx={{ fontSize: '0.6rem', color: SLATE_400, fontWeight: 600 }}>{i + 1}</Typography>
+                    )}
+                  </Box>
+                  <Typography variant="caption" sx={{
+                    color: step.done ? SLATE_500 : SLATE_400, fontWeight: step.done ? 500 : 400,
+                  }}>
+                    {step.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Split result mockup */}
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: BG, border: '1px solid', borderColor: SLATE_200, mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, letterSpacing: '0.06em' }}>
+                  RECOMMENDED SPLIT
+                </Typography>
+                <Box sx={{ px: 1, py: 0.15, borderRadius: 1, bgcolor: alpha(TEAL, 0.1), color: TEAL, fontSize: '0.6rem', fontWeight: 600 }}>
+                  AI
+                </Box>
+              </Box>
+              {[
+                { name: 'Founder A', pct: 52, color: TEAL },
+                { name: 'Founder B', pct: 45, color: SKY },
+                { name: 'Advisor', pct: 3, color: NAVY },
+              ].map((f, i) => (
+                <Box key={i} sx={{ mb: i < 2 ? 1.25 : 0 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.35 }}>
+                    <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.7rem' }}>{f.name}</Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_900, fontWeight: 700, fontSize: '0.7rem' }}>{f.pct}%</Typography>
+                  </Box>
+                  <Box sx={{ height: 6, borderRadius: 3, bgcolor: alpha(f.color, 0.15), overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', width: `${f.pct}%`, bgcolor: f.color, borderRadius: 3 }} />
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Approval status mockup */}
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: alpha(TEAL, 0.04), border: '1px solid', borderColor: alpha(TEAL, 0.15), mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Shield sx={{ fontSize: 16, color: TEAL }} />
+                <Typography variant="caption" sx={{ color: TEAL, fontWeight: 600 }}>BOTH APPROVED</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                {['Founder A', 'Founder B'].map((name, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <CheckCircle sx={{ fontSize: 12, color: TEAL }} />
+                    <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>{name}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            {/* Download */}
+            <Box sx={{
+              mt: 'auto', p: 1.5, borderRadius: 2, bgcolor: SLATE_900,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
+            }}>
+              <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>Download Agreement</Typography>
+              <ArrowForward sx={{ fontSize: 14, color: '#fff' }} />
+            </Box>
+          </Box>
+
+          {/* ─ Card 3: Kanban Task Board (5 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 5' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(NAVY, 0.4), boxShadow: `0 12px 32px ${alpha(NAVY, 0.08)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(NAVY, 0.08), color: NAVY, display: 'flex' }}>
+                <Groups sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Workspace Kanban
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              Drag-and-drop task board. Assign owners, set due dates, link to KPIs.
+            </Typography>
+            {/* 3-column kanban mockup */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
+              {[
+                { col: 'To-do', colColor: SLATE_400, tasks: [
+                  { title: 'Market research', owner: 'SK', due: 'Feb 10', overdue: false },
+                ] },
+                { col: 'In Progress', colColor: SKY, tasks: [
+                  { title: 'MVP wireframes', owner: 'AC', due: 'Feb 8', overdue: false },
+                  { title: 'Pitch deck v2', owner: 'SK', due: 'Feb 5', overdue: true },
+                ] },
+                { col: 'Done', colColor: TEAL, tasks: [
+                  { title: 'Domain setup', owner: 'AC', due: 'Jan 28', overdue: false },
+                ] },
+              ].map((column, ci) => (
+                <Box key={ci}>
+                  {/* Column header */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: column.colColor }} />
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_900, fontSize: '0.7rem' }}>
+                      {column.col}
+                    </Typography>
+                    <Box sx={{
+                      ml: 'auto', width: 18, height: 18, borderRadius: '50%',
+                      bgcolor: alpha(column.colColor, 0.12), color: column.colColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.6rem', fontWeight: 700,
+                    }}>
+                      {column.tasks.length}
+                    </Box>
+                  </Box>
+                  {/* Tasks */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {column.tasks.map((t, ti) => (
+                      <Box key={ti} sx={{
+                        p: 1.25, borderRadius: 1.5, bgcolor: BG,
+                        border: '1px solid', borderColor: t.overdue ? alpha('#ef4444', 0.3) : SLATE_200,
+                      }}>
+                        <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', mb: 0.75, fontSize: '0.7rem', lineHeight: 1.3 }}>
+                          {t.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Box sx={{
+                            width: 18, height: 18, borderRadius: '50%',
+                            bgcolor: alpha(SKY, 0.15), color: SKY,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.5rem', fontWeight: 700,
+                          }}>
+                            {t.owner}
+                          </Box>
+                          <Typography variant="caption" sx={{
+                            fontSize: '0.55rem', fontWeight: 500,
+                            color: t.overdue ? '#ef4444' : SLATE_400,
+                          }}>
+                            {t.due}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* ─ Card 4: Partnership Health (3 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 3' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 12px 32px ${alpha(TEAL, 0.08)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.08), color: TEAL, display: 'flex' }}>
+                <TrendingUp sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Partnership Health
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              90-day milestones and live health tracking.
+            </Typography>
+
+            {/* Health badge */}
+            <Box sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 2,
+              px: 1.5, py: 0.5, borderRadius: 5,
+              bgcolor: alpha(TEAL, 0.08), color: TEAL,
+            }}>
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: TEAL }} />
+              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>Healthy</Typography>
+            </Box>
+
+            {/* Milestones mockup */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {[
+                { label: 'Equity agreed', done: true },
+                { label: 'Roles defined', done: true },
+                { label: 'First 3 KPIs set', done: false },
+              ].map((m, i) => (
+                <Box key={i} sx={{
+                  display: 'flex', alignItems: 'center', gap: 1,
+                  px: 1.5, py: 1, borderRadius: 1.5,
+                  bgcolor: m.done ? alpha(TEAL, 0.05) : BG,
+                  border: '1px solid', borderColor: m.done ? alpha(TEAL, 0.15) : SLATE_200,
+                }}>
+                  <CheckCircle sx={{ fontSize: 16, color: m.done ? TEAL : SLATE_200 }} />
+                  <Typography variant="caption" sx={{ color: m.done ? SLATE_900 : SLATE_400, fontWeight: m.done ? 600 : 400, fontSize: '0.7rem' }}>
+                    {m.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Progress */}
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ flex: 1, height: 5, borderRadius: 3, bgcolor: alpha(TEAL, 0.12), overflow: 'hidden' }}>
+                <Box sx={{ width: '66%', height: '100%', bgcolor: TEAL, borderRadius: 3 }} />
+              </Box>
+              <Typography variant="caption" sx={{ color: TEAL, fontWeight: 700, fontSize: '0.7rem' }}>2/3</Typography>
+            </Box>
+          </Box>
+
+          {/* ─ Card 5: Chat & Check-ins (full width) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 12' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 12px 32px ${alpha(TEAL, 0.1)}` },
+          }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {/* Chat side */}
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                  <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.08), color: TEAL, display: 'flex' }}>
+                    <People sx={{ fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                    Workspace Chat
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+                  Real-time messaging within your workspace. Keep all discussions in one place.
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {/* Date separator */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, my: 0.5 }}>
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: SLATE_200 }} />
+                    <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem', fontWeight: 500 }}>Today</Typography>
+                    <Box sx={{ flex: 1, height: '1px', bgcolor: SLATE_200 }} />
+                  </Box>
+                  {/* Other message */}
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
+                    <Box sx={{
+                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                      bgcolor: alpha(SKY, 0.15), color: SKY,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.55rem', fontWeight: 700,
+                    }}>SK</Box>
+                    <Box sx={{
+                      maxWidth: '75%', px: 1.5, py: 1, borderRadius: '12px 12px 12px 4px',
+                      bgcolor: BG, border: '1px solid', borderColor: SLATE_200,
+                    }}>
+                      <Typography variant="caption" sx={{ color: SLATE_900, lineHeight: 1.5, fontSize: '0.7rem' }}>
+                        I've updated the pitch deck with the new market data. Can you review?
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, fontSize: '0.55rem', mt: 0.5 }}>
+                        10:24 AM
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {/* Own message */}
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                    <Box sx={{
+                      maxWidth: '75%', px: 1.5, py: 1, borderRadius: '12px 12px 4px 12px',
+                      bgcolor: TEAL, boxShadow: `0 2px 8px ${alpha(TEAL, 0.25)}`,
+                    }}>
+                      <Typography variant="caption" sx={{ color: '#fff', lineHeight: 1.5, fontSize: '0.7rem' }}>
+                        Looks great! I'll review it tonight and we can discuss in our check-in.
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', color: alpha('#fff', 0.7), fontSize: '0.55rem', mt: 0.5 }}>
+                        10:31 AM
+                      </Typography>
+                    </Box>
+                    <Box sx={{
+                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                      bgcolor: alpha(TEAL, 0.15), color: TEAL,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.55rem', fontWeight: 700,
+                    }}>AC</Box>
+                  </Box>
+                  {/* Input mockup */}
+                  <Box sx={{
+                    mt: 1, display: 'flex', alignItems: 'center', gap: 1,
+                    px: 2, py: 1, borderRadius: 3, border: '1px solid', borderColor: SLATE_200, bgcolor: BG,
+                  }}>
+                    <Typography variant="caption" sx={{ color: SLATE_400, flex: 1, fontSize: '0.7rem' }}>Type a message...</Typography>
+                    <Box sx={{
+                      width: 28, height: 28, borderRadius: '50%', bgcolor: alpha(TEAL, 0.12),
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <ArrowForward sx={{ fontSize: 14, color: TEAL }} />
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Check-ins & KPIs side */}
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                  <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(SKY, 0.08), color: SKY, display: 'flex' }}>
+                    <BarChart sx={{ fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                    Weekly Check-ins & KPIs
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+                  Log progress weekly, set KPI targets, and track commitments per founder.
+                </Typography>
+                {/* Check-in card mockup */}
+                <Box sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: SLATE_200, bgcolor: BG, mb: 1.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_900, fontSize: '0.7rem' }}>Week of Feb 3</Typography>
+                    <Box sx={{
+                      px: 1, py: 0.25, borderRadius: 1,
+                      bgcolor: alpha(TEAL, 0.1), color: TEAL,
+                      fontSize: '0.6rem', fontWeight: 600,
+                    }}>On Track</Box>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.5, display: 'block', mb: 1.5, fontSize: '0.7rem' }}>
+                    Completed market research. MVP wireframes in review. Pitch deck v2 needs one more round.
+                  </Typography>
+                  {/* Progress bar */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem' }}>Progress</Typography>
+                    <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: alpha(TEAL, 0.12), overflow: 'hidden' }}>
+                      <Box sx={{ width: '72%', height: '100%', bgcolor: TEAL, borderRadius: 2 }} />
+                    </Box>
+                    <Typography variant="caption" sx={{ color: TEAL, fontWeight: 700, fontSize: '0.6rem' }}>72%</Typography>
+                  </Box>
+                </Box>
+                {/* KPI table mockup */}
+                <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: SLATE_200, overflow: 'hidden' }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', px: 1.5, py: 0.75, bgcolor: BG }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>KPI</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>Target</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>Status</Typography>
+                  </Box>
+                  {[
+                    { kpi: 'User signups', target: '100', status: 'In Progress', sColor: SKY },
+                    { kpi: 'Revenue', target: '$5k MRR', status: 'Not Started', sColor: SLATE_400 },
+                    { kpi: 'Ship MVP', target: 'Mar 15', status: 'Done', sColor: TEAL },
+                  ].map((row, i) => (
+                    <Box key={i} sx={{
+                      display: 'grid', gridTemplateColumns: '2fr 1fr 1fr',
+                      px: 1.5, py: 0.75, alignItems: 'center',
+                      borderTop: '1px solid', borderColor: SLATE_200,
+                    }}>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: SLATE_900, fontSize: '0.65rem' }}>{row.kpi}</Typography>
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>{row.target}</Typography>
+                      <Box sx={{
+                        px: 0.75, py: 0.15, borderRadius: 1, display: 'inline-block', width: 'fit-content',
+                        bgcolor: alpha(row.sColor, 0.1), color: row.sColor, fontSize: '0.55rem', fontWeight: 600,
+                      }}>
+                        {row.status}
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+        </Box>
+      </Container>
+
       {/* ─── How It Works ─── */}
       <Container maxWidth="md" sx={{ py: { xs: 8, md: 12 } }}>
         <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
