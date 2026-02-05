@@ -5,7 +5,6 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Card,
   CardContent,
   Grid,
@@ -21,7 +20,7 @@ import {
 import { API_BASE } from '../config/api';
 import OnboardingDialog from './OnboardingDialog';
 
-const UserFlowSelector = () => {
+const UserFlowSelector = ({ onFounderVerified }) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const [partnerPaid, setPartnerPaid] = useState(false);
@@ -81,7 +80,8 @@ const UserFlowSelector = () => {
         }
       }
       
-      // If onboarding is complete, navigate to discover
+      // Set founder state BEFORE navigating to prevent RouteWrapper redirect
+      if (onFounderVerified) onFounderVerified();
       navigate('/discover');
     } catch (error) {
       // On error, show onboarding dialog to be safe
@@ -98,7 +98,8 @@ const UserFlowSelector = () => {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
-    // Navigate to discover after onboarding is complete
+    // Set founder state BEFORE navigating to prevent RouteWrapper redirect
+    if (onFounderVerified) onFounderVerified();
     navigate('/discover');
   };
 
@@ -151,26 +152,11 @@ const UserFlowSelector = () => {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                 Find your perfect co-founder match. Swipe through projects, get matched, and start building together.
               </Typography>
-              <Button
-                variant="contained"
-                endIcon={checkingOnboarding ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
-                onClick={handleSelectFounder}
-                disabled={checkingOnboarding}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  bgcolor: '#0d9488',
-                  '&:hover': {
-                    bgcolor: '#14b8a6',
-                  },
-                }}
-              >
-                {checkingOnboarding ? 'Checking...' : 'Go to Discover'}
-              </Button>
+              {checkingOnboarding ? (
+                <CircularProgress size={24} sx={{ color: '#0d9488' }} />
+              ) : (
+                <ArrowForward sx={{ fontSize: 28, color: '#0d9488' }} />
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -213,27 +199,7 @@ const UserFlowSelector = () => {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                 Help founders stay accountable and succeed. Join workspaces, provide guidance, and build your advisory network.
               </Typography>
-              <Button
-                variant="outlined"
-                endIcon={<ArrowForward />}
-                onClick={handleSelectPartner}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  borderColor: '#0d9488',
-                  color: '#0d9488',
-                  '&:hover': {
-                    borderColor: '#14b8a6',
-                    bgcolor: 'rgba(13, 148, 136, 0.04)',
-                  },
-                }}
-              >
-                Become an Advisor
-              </Button>
+              <ArrowForward sx={{ fontSize: 28, color: partnerPaid ? '#0d9488' : '#64748b' }} />
             </CardContent>
           </Card>
         </Grid>

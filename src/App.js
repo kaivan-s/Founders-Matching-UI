@@ -846,7 +846,7 @@ function AppContent() {
         setLoading(false);
         setAdvisorChecked(true);
         setOnboardingChecked(true);
-        setIsFounder(false); // Reset founder status on flow selector
+        // Don't reset isFounder here - it causes a race condition when navigating to /discover
         return;
       }
       
@@ -862,6 +862,7 @@ function AppContent() {
       // If user is on advisor dashboard/marketplace routes, prioritize advisor check
       // and don't show founder onboarding even if founder profile is incomplete
       if (location.pathname.startsWith('/advisor/')) {
+        setLoading(true);
         checkUserType();
         return;
       }
@@ -869,12 +870,15 @@ function AppContent() {
       // For founder routes (like /discover), check founder status first, not partner
       // This prevents founders from being incorrectly identified as partners
       if (location.pathname === '/discover' || location.pathname.startsWith('/workspace') || location.pathname.startsWith('/projects')) {
+        // Set loading to true to prevent RouteWrapper from redirecting before check completes
+        setLoading(true);
         // Check founder status first for founder routes
         checkFounderStatus();
         return;
       }
       
       // For all other routes, check user type normally
+      setLoading(true);
       checkUserType();
     }
   }, [user, checkUserType, location.pathname]);
@@ -940,7 +944,12 @@ function AppContent() {
               <CircularProgress />
             </Box>
           ) : (
-            <UserFlowSelector />
+            <UserFlowSelector onFounderVerified={() => {
+              setIsFounder(true);
+              setOnboardingChecked(true);
+              setAdvisorChecked(true);
+              setLoading(false);
+            }} />
           )
         } />
         
