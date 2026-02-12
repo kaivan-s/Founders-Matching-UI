@@ -95,11 +95,31 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
         if (response.ok) {
           const profileData = await response.json();
-          // Check if we got actual profile data (not null or empty)
+          // Profile exists - only redirect if APPROVED; PENDING/REJECTED can edit
           if (profileData !== null && profileData !== undefined && typeof profileData === 'object' && Object.keys(profileData).length > 0) {
-            // Profile already exists - redirect to dashboard
-            navigate('/advisor/dashboard', { replace: true });
-            return;
+            const status = profileData.status || 'PENDING';
+            if (status === 'APPROVED') {
+              navigate('/advisor/dashboard', { replace: true });
+              return;
+            }
+            // PENDING or REJECTED: load existing data for editing
+            setFormData(prev => ({
+              ...prev,
+              headline: profileData.headline || prev.headline,
+              bio: profileData.bio || prev.bio,
+              timezone: profileData.timezone || prev.timezone,
+              expertise_stages: profileData.expertise_stages || prev.expertise_stages,
+              domains: profileData.domains || prev.domains,
+              languages: profileData.languages || prev.languages,
+              max_active_workspaces: profileData.max_active_workspaces ?? prev.max_active_workspaces,
+              preferred_cadence: profileData.preferred_cadence || prev.preferred_cadence,
+              contact_email: profileData.contact_email || prev.contact_email,
+              meeting_link: profileData.meeting_link || prev.meeting_link,
+              contact_note: profileData.contact_note || prev.contact_note,
+              linkedin_url: profileData.linkedin_url || prev.linkedin_url,
+              twitter_url: profileData.twitter_url || prev.twitter_url,
+              questionnaire_data: { ...prev.questionnaire_data, ...(profileData.questionnaire_data || {}) },
+            }));
           }
         }
       } catch (err) {

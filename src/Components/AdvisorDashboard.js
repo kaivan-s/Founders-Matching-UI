@@ -771,71 +771,123 @@ const AdvisorDashboard = () => {
 
   const status = profile?.status || 'PENDING';
 
+  // Theme constants (match app design)
+  const NAVY = '#1e3a8a';
+  const TEAL = '#0d9488';
+  const TEAL_LIGHT = '#14b8a6';
+  const SKY = '#0ea5e9';
+  const SLATE_900 = '#0f172a';
+  const SLATE_500 = '#64748b';
+  const SLATE_400 = '#94a3b8';
+  const SLATE_200 = '#e2e8f0';
+  const BG = '#f8fafc';
+
   // Pending status
   if (status === 'PENDING') {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: 6 }}>
+      <Box sx={{ minHeight: '100%', bgcolor: BG, py: 6, pb: 8 }}>
         <Box sx={{ maxWidth: 600, mx: 'auto', px: 3 }}>
-          <Paper elevation={0} sx={{ p: 5, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center', mb: 3 }}>
-            <Box sx={{ 
-              width: 80, 
-              height: 80, 
-              borderRadius: '50%', 
-              bgcolor: alpha('#f59e0b', 0.1), 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              mx: 'auto',
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: SLATE_200,
+              bgcolor: '#fff',
+              textAlign: 'center',
               mb: 3,
-            }}>
-              <Pending sx={{ fontSize: 40, color: '#f59e0b' }} />
+              transition: 'all 0.25s ease',
+              '&:hover': { borderColor: alpha(TEAL, 0.3), boxShadow: `0 8px 24px ${alpha(TEAL, 0.06)}` },
+            }}
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: 2,
+                bgcolor: alpha(TEAL, 0.08),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              <Pending sx={{ fontSize: 32, color: TEAL }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a', mb: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: '1.35rem' }}>
               Application Under Review
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, lineHeight: 1.6 }}>
               We'll notify you via email once your advisor application is approved.
             </Typography>
             <Button
               variant="outlined"
               startIcon={<Edit />}
               onClick={() => navigate('/advisor/onboarding')}
-              sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: SLATE_200,
+                color: SLATE_900,
+                '&:hover': { borderColor: TEAL, color: TEAL, bgcolor: alpha(TEAL, 0.04) },
+              }}
             >
               Edit Application
             </Button>
-          </Paper>
+          </Box>
 
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 2 }}>
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: 3,
+              border: '1px solid',
+              borderColor: SLATE_200,
+              bgcolor: '#fff',
+              transition: 'all 0.25s ease',
+              '&:hover': { borderColor: alpha(SKY, 0.3), boxShadow: `0 8px 24px ${alpha(SKY, 0.06)}` },
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 2.5, fontSize: '1rem' }}>
               Application Summary
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Headline</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>{profile?.headline || 'Not set'}</Typography>
+                <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 0.5 }}>
+                  Headline
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6 }}>
+                  {profile?.headline || 'Not set'}
+                </Typography>
               </Box>
               {profile?.bio && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Bio</Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>{profile?.bio}</Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 0.5 }}>
+                    Bio
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6 }}>
+                    {profile.bio}
+                  </Typography>
                 </Box>
               )}
               {(profile?.expertise_stages?.length > 0 || profile?.domains?.length > 0) && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Expertise</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                  <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 1 }}>
+                    Expertise
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                     {profile?.expertise_stages?.map((s, i) => (
-                      <Chip key={i} label={s} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha('#0ea5e9', 0.1), color: '#0ea5e9' }} />
+                      <Chip key={i} label={s} size="small" sx={{ fontSize: '0.75rem', fontWeight: 500, bgcolor: alpha(SKY, 0.1), color: SKY, border: 'none' }} />
                     ))}
                     {profile?.domains?.map((d, i) => (
-                      <Chip key={i} label={d} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha('#14b8a6', 0.1), color: '#14b8a6' }} />
+                      <Chip key={i} label={d} size="small" sx={{ fontSize: '0.75rem', fontWeight: 500, bgcolor: alpha(TEAL, 0.1), color: TEAL, border: 'none' }} />
                     ))}
                   </Box>
                 </Box>
               )}
             </Box>
-          </Paper>
+          </Box>
         </Box>
       </Box>
     );

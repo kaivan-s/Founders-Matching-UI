@@ -106,7 +106,7 @@ const WorkspaceTasks = ({ workspaceId }) => {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && workspaceId) {
       fetchFounderId();
       fetchFounders();
       fetchKpis();
@@ -380,8 +380,13 @@ const WorkspaceTasks = ({ workspaceId }) => {
             onChange={(e) => setOwnerFilter(e.target.value)}
           >
             <MenuItem value="all">All</MenuItem>
-            <MenuItem value="me">Me</MenuItem>
-            <MenuItem value="other">Other Founder</MenuItem>
+            {founders
+              .filter((f) => (f.role || '').toUpperCase() !== 'ADVISOR')
+              .map((founder) => (
+                <MenuItem key={founder.user_id} value={founder.user_id}>
+                  {founder.user_id === founderId ? `${founder.user?.name || 'Unknown'} (Me)` : (founder.user?.name || 'Unknown')}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
 

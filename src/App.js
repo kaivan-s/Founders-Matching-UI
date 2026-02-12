@@ -7,7 +7,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge, Box as MuiBox } from '@mui/material';
-import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz } from '@mui/icons-material';
+import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz, AdminPanelSettings } from '@mui/icons-material';
 import SwipeInterface from './Components/SwipeInterface';
 import InterestedPage from './Components/InterestedPage';
 import LandingPage from './Components/LandingPage';
@@ -29,8 +29,17 @@ import FeedbackDialog from './Components/FeedbackDialog';
 import PrivacyPolicy from './Components/PrivacyPolicy';
 import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
+import AdminAdvisors from './Components/AdminAdvisors';
 import { API_BASE } from './config/api';
 import './App.css';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 const theme = createTheme({
   palette: {
@@ -129,6 +138,7 @@ function Header() {
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [isAdvisorMode, setIsAdvisorMode] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Detect if we're in advisor mode based on route
   useEffect(() => {
@@ -136,6 +146,19 @@ function Header() {
   }, [location.pathname]);
 
   const isHomePage = location.pathname === '/home';
+
+  const fetchAdminCheck = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`${API_BASE}/admin/check`, { headers: { 'X-Clerk-User-Id': user.id } });
+      if (res.ok) {
+        const data = await res.json();
+        setIsAdmin(data.is_admin === true);
+      }
+    } catch {
+      setIsAdmin(false);
+    }
+  }, [user?.id]);
 
   const fetchPlan = useCallback(async () => {
     if (!user || !user.id) {
@@ -163,8 +186,9 @@ function Header() {
   useEffect(() => {
     if (user) {
       fetchPlan();
+      fetchAdminCheck();
     }
-  }, [user, fetchPlan]);
+  }, [user, fetchPlan, fetchAdminCheck]);
 
   return (
     <>
@@ -312,6 +336,31 @@ function Header() {
                       Feedback
                     </Button>
                   </>
+                )}
+
+                {isAdmin && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<AdminPanelSettings />}
+                    onClick={() => navigate('/admin')}
+                    sx={{
+                      borderColor: '#e2e8f0',
+                      color: '#1e3a8a',
+                      px: 2,
+                      py: 0.75,
+                      height: 36,
+                      fontSize: '0.8125rem',
+                      borderRadius: 3,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': {
+                        borderColor: '#0d9488',
+                        bgcolor: 'rgba(13, 148, 136, 0.04)',
+                      },
+                    }}
+                  >
+                    Admin
+                  </Button>
                 )}
 
                 <UserButton />
@@ -1223,6 +1272,7 @@ function AppContent() {
             <AdvisorLanding />
           </Box>
         } />
+        <Route path="/admin" element={<AdminAdvisors />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/faq" element={<FAQ />} />
@@ -1251,6 +1301,7 @@ function App() {
   return (
     <ClerkProvider {...clerkConfig}>
       <BrowserRouter>
+      <ScrollToTop />
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <SignedIn>
@@ -1315,7 +1366,7 @@ function AppWithHeader() {
       
       <Box sx={{ 
         flex: 1, 
-        overflow: (isAdvisorLandingRoute || isHomeRoute) ? 'auto' : 'hidden',
+        overflow: (isAdvisorLandingRoute || isHomeRoute || location.pathname.startsWith('/advisor/')) ? 'auto' : 'hidden',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative'

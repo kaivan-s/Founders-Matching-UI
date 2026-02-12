@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -45,6 +45,11 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
   });
   const [otherSkill, setOtherSkill] = useState('');
   const [compatibilityAnswers, setCompatibilityAnswers] = useState({});
+  const dialogContentRef = useRef(null);
+
+  useEffect(() => {
+    dialogContentRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
   
   const steps = [
     { label: 'Project Info', icon: <Business />, category: null },
@@ -397,7 +402,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         </Box>
       </DialogTitle>
       
-      <DialogContent sx={{ pt: 3, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <DialogContent ref={dialogContentRef} sx={{ pt: 3, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -450,63 +455,32 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               }}
             />
             
-            <Box sx={{ position: 'relative' }}>
-              <FormControl fullWidth>
-                <InputLabel id="stage-label">Project Stage</InputLabel>
-                <Select
-                  labelId="stage-label"
-                  value={formData.stage}
-                  label="Project Stage"
-                  onChange={handleChange('stage')}
-                  disabled={loading}
-                  sx={{
-                    borderRadius: '12px',
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#0d9488',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#0d9488',
-                    },
-                  }}
-                >
-                  {projectStages.map(stage => (
-                    <MenuItem key={stage.value} value={stage.value}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                        <Typography>{stage.label}</Typography>
-                        <Tooltip title={stage.tooltip} arrow placement="right" disableInteractive>
-                          <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.6, ml: 'auto', pointerEvents: 'auto' }} />
-                        </Tooltip>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formData.stage && (
-                  <FormHelperText>
-                    {projectStages.find(s => s.value === formData.stage)?.tooltip}
-                  </FormHelperText>
-                )}
-              </FormControl>
-              {formData.stage && (
-                <Tooltip 
-                  title={projectStages.find(s => s.value === formData.stage)?.tooltip || ''}
-                  arrow
-                  placement="right"
-                >
-                  <InfoOutlined 
-                    sx={{ 
-                      position: 'absolute',
-                      right: 40,
-                      top: 32,
-                      fontSize: 16, 
-                      color: 'text.secondary', 
-                      opacity: 0.7, 
-                      cursor: 'help',
-                      pointerEvents: 'auto',
-                    }} 
-                  />
-                </Tooltip>
-              )}
-            </Box>
+            <FormControl fullWidth>
+              <InputLabel id="stage-label">Project Stage</InputLabel>
+              <Select
+                labelId="stage-label"
+                value={formData.stage}
+                label="Project Stage"
+                onChange={handleChange('stage')}
+                disabled={loading}
+                renderValue={(val) => projectStages.find(s => s.value === val)?.label || val}
+                sx={{
+                  borderRadius: '12px',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#0d9488',
+                  },
+                }}
+              >
+                {projectStages.map(stage => (
+                  <MenuItem key={stage.value} value={stage.value}>
+                    {stage.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             
             <Box sx={{ position: 'relative' }}>
               <FormControl fullWidth>
@@ -518,6 +492,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   onChange={handleChange('genre')}
                   disabled={loading}
                   required
+                  renderValue={(val) => projectGenres.find(g => g.value === val)?.label || val}
                   sx={{
                     borderRadius: '12px',
                     '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -532,7 +507,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                     <MenuItem key={genre.value} value={genre.value}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                         <Typography>{genre.label}</Typography>
-                        <Tooltip title={genre.tooltip} arrow placement="right" disableInteractive>
+                        <Tooltip title={genre.tooltip} arrow placement="bottom" disableInteractive>
                           <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.6, ml: 'auto', pointerEvents: 'auto' }} />
                         </Tooltip>
                       </Box>
@@ -549,7 +524,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                 <Tooltip 
                   title={projectGenres.find(g => g.value === formData.genre)?.tooltip || ''}
                   arrow
-                  placement="right"
+                  placement="bottom"
                 >
                   <InfoOutlined 
                     sx={{ 
@@ -583,7 +558,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                         key={skill}
                         title={skillObj.tooltip}
                         arrow
-                        placement="right"
+                        placement="bottom"
                         componentsProps={{
                           tooltip: {
                             sx: {
