@@ -38,7 +38,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
 import AdvancedSearch from './AdvancedSearch';
-import OnboardingTutorial from './OnboardingTutorial';
 import DiscoveryPreferencesDialog from './DiscoveryPreferencesDialog';
 import { API_BASE } from '../config/api';
 
@@ -79,8 +78,6 @@ const SwipeInterface = () => {
   const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
-  const [showTutorial, setShowTutorial] = useState(false); // Will be set from backend
-  const [tutorialLoading, setTutorialLoading] = useState(true); // Track loading state
 
   const fetchSwipeLimit = useCallback(async () => {
     if (!user?.id) return;
@@ -93,48 +90,6 @@ const SwipeInterface = () => {
       if (response.ok) {
         const data = await response.json();
         setSwipeLimit(data);
-      }
-    } catch (err) {
-    }
-  }, [user]);
-
-  const fetchTutorialStatus = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      setTutorialLoading(true);
-      const response = await fetch(`${API_BASE}/founders/tutorial-status`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // Show tutorial if it's NOT completed
-        setShowTutorial(!data.tutorial_completed);
-      } else {
-        // On error, default to showing tutorial (safer for first-time users)
-        setShowTutorial(true);
-      }
-    } catch (err) {
-      // On error, default to showing tutorial (safer for first-time users)
-      setShowTutorial(true);
-    } finally {
-      setTutorialLoading(false);
-    }
-  }, [user]);
-
-  const completeTutorial = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const response = await fetch(`${API_BASE}/founders/complete-tutorial`, {
-        method: 'POST',
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      if (response.ok) {
-        setShowTutorial(false);
-      } else {
       }
     } catch (err) {
     }
@@ -263,7 +218,6 @@ const SwipeInterface = () => {
       }
       fetchPlan();
       fetchSwipeLimit();
-      fetchTutorialStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -1833,14 +1787,6 @@ const SwipeInterface = () => {
         onSave={handlePreferencesChange}
         initialPreferences={preferences}
       />
-
-      {/* Onboarding Tutorial */}
-      {!loading && !tutorialLoading && founders.length > 0 && (
-        <OnboardingTutorial
-          isFirstTime={showTutorial}
-          onComplete={completeTutorial}
-        />
-      )}
       </Box>
     </Box>
   );
