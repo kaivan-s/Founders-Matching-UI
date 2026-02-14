@@ -43,30 +43,36 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   const [quarterlyReviewOpen, setQuarterlyReviewOpen] = useState(false);
   const [quarterlyReview, setQuarterlyReview] = useState({ quarter: 1, value_rating: 0, continue_next_quarter: true });
   const [savingReview, setSavingReview] = useState(false);
-  const [plan, setPlan] = useState(null);
+  const [workspacePlan, setWorkspacePlan] = useState(null);
+  const [canUseMarketplace, setCanUseMarketplace] = useState(false);
 
   useEffect(() => {
     if (workspaceId) {
       fetchPartners();
       fetchScorecard();
-      fetchPlan();
+      fetchWorkspacePlan();
     }
   }, [workspaceId]);
 
-  const fetchPlan = async () => {
-    if (!user?.id) return;
+  const fetchWorkspacePlan = async () => {
+    if (!user?.id || !workspaceId) return;
     try {
-      const response = await fetch(`${API_BASE}/billing/my-plan`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
+      // Check workspace plan for marketplace access (based on highest plan among participants)
+      const response = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/check-feature?feature=accountability.canUseMarketplace`,
+        {
+          headers: {
+            'X-Clerk-User-Id': user.id,
+          },
+        }
+      );
       if (response.ok) {
-        const planData = await response.json();
-        setPlan(planData);
+        const data = await response.json();
+        setWorkspacePlan(data.workspace_plan || 'FREE');
+        setCanUseMarketplace(data.has_access || false);
       }
     } catch (err) {
-      // Error fetching plan
+      // Error fetching workspace plan
     }
   };
 
@@ -182,19 +188,19 @@ const WorkspaceAccountability = ({ workspaceId }) => {
           variant="contained"
           startIcon={<Add />}
           onClick={() => {
-            if (plan && !plan.accountability?.canUseMarketplace) {
+            if (!canUseMarketplace) {
               alert('Marketplace access requires Pro or Pro+ plan. Upgrade to access advisors.');
               return;
             }
             setMarketplaceOpen(true);
           }}
-          disabled={plan && !plan.accountability?.canUseMarketplace}
+          disabled={!canUseMarketplace}
         >
           Find Advisor in Marketplace
         </Button>
       </Box>
 
-      {plan && !plan.accountability?.canUseMarketplace && (
+      {!canUseMarketplace && workspacePlan && (
         <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
           <Typography variant="body2">
             <strong>Marketplace access requires Pro or Pro+ plan.</strong> Upgrade to browse and connect with advisors from our marketplace. 
