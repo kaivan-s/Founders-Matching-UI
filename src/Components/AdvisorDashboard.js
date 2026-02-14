@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -51,6 +51,7 @@ import {
   GroupsOutlined,
   TaskAlt,
   AccessTime,
+  LinkedIn,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
@@ -506,6 +507,7 @@ const AdvisorDashboard = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [workspaceScorecards, setWorkspaceScorecards] = useState({});
@@ -518,8 +520,49 @@ const AdvisorDashboard = () => {
   const [selectedWorkspaceForNotifications, setSelectedWorkspaceForNotifications] = useState(null);
   const [billingProfile, setBillingProfile] = useState(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  
+  // LinkedIn verification
+  const [linkedinStatus, setLinkedinStatus] = useState({
+    linkedin_verified: false,
+    linkedin_configured: false,
+    linkedin_name: null,
+  });
+  const [linkedinLoading, setLinkedinLoading] = useState(false);
 
   const currentTab = location.pathname.includes('/marketplace') ? 1 : 0;
+
+  const fetchLinkedinStatus = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/advisors/linkedin/status`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLinkedinStatus(data);
+      }
+    } catch (err) {
+      // Verification is optional
+    }
+  }, [user?.id]);
+
+  const handleLinkedInConnect = async () => {
+    if (!user?.id) return;
+    setLinkedinLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/advisors/linkedin/connect`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.auth_url;
+      }
+    } catch (err) {
+      setError('Failed to connect to LinkedIn');
+    } finally {
+      setLinkedinLoading(false);
+    }
+  };
 
   const fetchBillingProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -622,11 +665,47 @@ const AdvisorDashboard = () => {
       hasFetchedOnceRef.current = false;
       fetchDashboardData();
       fetchBillingProfile();
+      fetchLinkedinStatus();
     } else if (!user?.id) {
       hasFetchedRef.current = false;
       hasFetchedOnceRef.current = false;
     }
-  }, [user?.id, fetchDashboardData, fetchBillingProfile]);
+  }, [user?.id, fetchDashboardData, fetchBillingProfile, fetchLinkedinStatus]);
+
+  // Handle LinkedIn OAuth callback
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    if (!code || !user?.id) return;
+
+    const completeCallback = async () => {
+      setLinkedinLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/advisors/linkedin/callback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify({ code, state }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setLinkedinStatus({
+            linkedin_verified: true,
+            linkedin_configured: true,
+            linkedin_name: data.linkedin_name,
+          });
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+      } catch (err) {
+        setError('Failed to complete LinkedIn verification');
+      } finally {
+        setLinkedinLoading(false);
+      }
+    };
+    completeCallback();
+  }, [searchParams, user?.id]);
 
   // Redirect to onboarding if no profile
   useEffect(() => {
@@ -966,6 +1045,67 @@ const AdvisorDashboard = () => {
                 {profile?.headline || 'Advisor Dashboard'}
               </Typography>
             </Box>
+
+            {/* LinkedIn Verification */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 4,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: linkedinStatus.linkedin_verified ? 'success.main' : 'divider',
+                bgcolor: linkedinStatus.linkedin_verified ? alpha('#10b981', 0.04) : 'background.paper',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <LinkedIn sx={{ color: '#0A66C2', fontSize: 28 }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      LinkedIn Verification
+                      {linkedinStatus.linkedin_verified && (
+                        <Chip
+                          icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                          label="Verified"
+                          size="small"
+                          color="success"
+                          sx={{ ml: 1, height: 22, fontSize: '0.7rem' }}
+                        />
+                      )}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {linkedinStatus.linkedin_verified
+                        ? `Verified as ${linkedinStatus.linkedin_name || 'LinkedIn User'}`
+                        : 'Verify your identity with LinkedIn to build trust with founders'}
+                    </Typography>
+                  </Box>
+                </Box>
+                {!linkedinStatus.linkedin_verified && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleLinkedInConnect}
+                    disabled={linkedinLoading || !linkedinStatus.linkedin_configured}
+                    startIcon={linkedinLoading ? <CircularProgress size={16} /> : <LinkedIn />}
+                    sx={{
+                      borderColor: '#0A66C2',
+                      color: '#0A66C2',
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      '&:hover': { borderColor: '#004182', bgcolor: alpha('#0A66C2', 0.04) },
+                    }}
+                  >
+                    {linkedinLoading ? 'Connecting...' : 'Verify with LinkedIn'}
+                  </Button>
+                )}
+              </Box>
+              {!linkedinStatus.linkedin_configured && !linkedinStatus.linkedin_verified && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  LinkedIn verification coming soon
+                </Typography>
+              )}
+            </Paper>
 
             {/* Stats Grid */}
             <Grid container spacing={2} sx={{ mb: 4 }}>

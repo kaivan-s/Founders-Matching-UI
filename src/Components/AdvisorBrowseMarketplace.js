@@ -25,6 +25,7 @@ import {
   CheckCircle,
   Close,
   Work,
+  LinkedIn,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
@@ -273,19 +274,37 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onRequestAdvisor
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1 }}>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
-                              <Typography 
-                                variant="h6" 
-                                sx={{ 
-                                  fontWeight: 600, 
-                                  color: 'text.primary',
-                                  letterSpacing: '-0.01em',
-                                  mb: 0.5,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
-                              >
-                                {partnerUser.name || 'Unknown'}
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+                                <Typography 
+                                  variant="h6" 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    color: 'text.primary',
+                                    letterSpacing: '-0.01em',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                >
+                                  {partnerUser.name || 'Unknown'}
+                                </Typography>
+                                {partner.linkedin_verified && (
+                                  <Chip
+                                    icon={<LinkedIn sx={{ fontSize: 14 }} />}
+                                    label="Verified"
+                                    size="small"
+                                    sx={{
+                                      height: 22,
+                                      fontSize: '0.7rem',
+                                      fontWeight: 500,
+                                      bgcolor: alpha('#0A66C2', 0.1),
+                                      color: '#0A66C2',
+                                      '& .MuiChip-icon': {
+                                        color: '#0A66C2',
+                                      },
+                                    }}
+                                  />
+                                )}
+                              </Box>
                               {partner.headline && (
                                 <Typography 
                                   variant="body2" 
