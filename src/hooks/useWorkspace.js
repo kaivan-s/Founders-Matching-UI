@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
+import { useWorkspaceContext } from '../contexts/WorkspaceContext';
 
 export const useWorkspace = (workspaceId) => {
   const { user } = useUser();
@@ -56,11 +57,9 @@ export const useWorkspace = (workspaceId) => {
       }
       
       const data = await response.json();
-      // Update the workspace state with the full response data
       setWorkspace(data);
       return data;
     } catch (err) {
-      // Error updating workspace
       throw err;
     }
   }, [user, workspaceId]);
@@ -68,8 +67,17 @@ export const useWorkspace = (workspaceId) => {
   return { workspace, loading, error, refetch: fetchWorkspace, updateWorkspace };
 };
 
+// Helper to determine if we should use context data
+const useContextReady = () => {
+  const context = useWorkspaceContext();
+  // Use context if: context exists, is not loading, and has no error
+  const isReady = context !== null && !context.loading && !context.error;
+  return { context, isReady };
+};
+
 export const useWorkspaceDecisions = (workspaceId, tag = null) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [decisions, setDecisions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -103,8 +111,11 @@ export const useWorkspaceDecisions = (workspaceId, tag = null) => {
   }, [user, workspaceId, tag]);
 
   useEffect(() => {
-    fetchDecisions();
-  }, [fetchDecisions]);
+    // Only fetch if context is not ready (null, loading, or error)
+    if (!isReady) {
+      fetchDecisions();
+    }
+  }, [fetchDecisions, isReady]);
 
   const createDecision = useCallback(async (decisionData) => {
     if (!user || !user.id || !workspaceId) return;
@@ -124,18 +135,39 @@ export const useWorkspaceDecisions = (workspaceId, tag = null) => {
       }
       
       const data = await response.json();
-      setDecisions(prev => [data, ...prev]);
+      // Add to beginning (newest first)
+      const updater = prev => [data, ...prev];
+      
+      if (context && context.updateDecisions) {
+        context.updateDecisions(updater);
+      }
+      // Always update local state too for immediate feedback
+      setDecisions(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId]);
+  }, [user, workspaceId, context]);
 
-  return { decisions, loading, error, refetch: fetchDecisions, createDecision };
+  // Get decisions from context if ready, otherwise from local state
+  const getDecisions = () => {
+    const source = isReady ? (context.decisions || []) : decisions;
+    return tag ? source.filter(d => d.tag === tag) : source;
+  };
+
+  return {
+    decisions: getDecisions(),
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchDecisions,
+    createDecision,
+  };
 };
 
 export const useWorkspaceEquity = (workspaceId) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [equity, setEquity] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -166,8 +198,10 @@ export const useWorkspaceEquity = (workspaceId) => {
   }, [user, workspaceId]);
 
   useEffect(() => {
-    fetchEquity();
-  }, [fetchEquity]);
+    if (!isReady) {
+      fetchEquity();
+    }
+  }, [fetchEquity, isReady]);
 
   const createScenario = useCallback(async (scenarioData) => {
     if (!user || !user.id || !workspaceId) return;
@@ -187,12 +221,16 @@ export const useWorkspaceEquity = (workspaceId) => {
       }
       
       const data = await response.json();
-      await fetchEquity(); // Refetch to get updated list
+      // Refetch to get updated list with all relationships
+      if (context && context.refetch) {
+        await context.refetch();
+      }
+      await fetchEquity();
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId, fetchEquity]);
+  }, [user, workspaceId, fetchEquity, context]);
 
   const setCurrentScenario = useCallback(async (scenarioId) => {
     if (!user || !user.id || !workspaceId) return;
@@ -210,18 +248,30 @@ export const useWorkspaceEquity = (workspaceId) => {
       }
       
       const data = await response.json();
-      await fetchEquity(); // Refetch to get updated list
+      // Refetch to get updated list
+      if (context && context.refetch) {
+        await context.refetch();
+      }
+      await fetchEquity();
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId, fetchEquity]);
+  }, [user, workspaceId, fetchEquity, context]);
 
-  return { equity, loading, error, refetch: fetchEquity, createScenario, setCurrentScenario };
+  return {
+    equity: isReady ? context.equity : equity,
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchEquity,
+    createScenario,
+    setCurrentScenario,
+  };
 };
 
 export const useWorkspaceRoles = (workspaceId) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -252,8 +302,10 @@ export const useWorkspaceRoles = (workspaceId) => {
   }, [user, workspaceId]);
 
   useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+    if (!isReady) {
+      fetchRoles();
+    }
+  }, [fetchRoles, isReady]);
 
   const upsertRole = useCallback(async (userId, roleData) => {
     if (!user || !user.id || !workspaceId) return;
@@ -273,18 +325,38 @@ export const useWorkspaceRoles = (workspaceId) => {
       }
       
       const data = await response.json();
-      await fetchRoles(); // Refetch
+      // Update both context and local state
+      const updater = prev => {
+        const existing = prev.find(r => r.user_id === userId);
+        if (existing) {
+          return prev.map(r => r.user_id === userId ? { ...r, ...data } : r);
+        }
+        return [...prev, data];
+      };
+      
+      if (context && context.updateRoles) {
+        context.updateRoles(updater);
+      }
+      setRoles(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId, fetchRoles]);
+  }, [user, workspaceId, context]);
 
-  return { roles, loading, error, refetch: fetchRoles, upsertRole };
+  return {
+    roles: isReady ? context.roles : roles,
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchRoles,
+    upsertRole,
+  };
 };
 
 export const useWorkspaceKPIs = (workspaceId) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [kpis, setKpis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -315,8 +387,10 @@ export const useWorkspaceKPIs = (workspaceId) => {
   }, [user, workspaceId]);
 
   useEffect(() => {
-    fetchKPIs();
-  }, [fetchKPIs]);
+    if (!isReady) {
+      fetchKPIs();
+    }
+  }, [fetchKPIs, isReady]);
 
   const createKPI = useCallback(async (kpiData) => {
     if (!user || !user.id || !workspaceId) return;
@@ -336,12 +410,20 @@ export const useWorkspaceKPIs = (workspaceId) => {
       }
       
       const data = await response.json();
-      setKpis(prev => [...prev, data]);
+      // Add to beginning (newest first, since we order by created_at desc)
+      const updater = prev => [data, ...prev];
+      
+      if (context && context.updateKpis) {
+        context.updateKpis(updater);
+      }
+      // Always update local state too
+      setKpis(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId]);
+  }, [user, workspaceId, context]);
 
   const updateKPI = useCallback(async (kpiId, updates) => {
     if (!user || !user.id) return;
@@ -361,18 +443,33 @@ export const useWorkspaceKPIs = (workspaceId) => {
       }
       
       const data = await response.json();
-      setKpis(prev => prev.map(k => k.id === kpiId ? data : k));
+      const updater = prev => prev.map(k => k.id === kpiId ? { ...k, ...data } : k);
+      
+      if (context && context.updateKpis) {
+        context.updateKpis(updater);
+      }
+      // Always update local state too
+      setKpis(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user]);
+  }, [user, context]);
 
-  return { kpis, loading, error, refetch: fetchKPIs, createKPI, updateKPI };
+  return {
+    kpis: isReady ? context.kpis : kpis,
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchKPIs,
+    createKPI,
+    updateKPI,
+  };
 };
 
 export const useWorkspaceCheckins = (workspaceId, limit = 3) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [checkins, setCheckins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -403,8 +500,10 @@ export const useWorkspaceCheckins = (workspaceId, limit = 3) => {
   }, [user, workspaceId, limit]);
 
   useEffect(() => {
-    fetchCheckins();
-  }, [fetchCheckins]);
+    if (!isReady) {
+      fetchCheckins();
+    }
+  }, [fetchCheckins, isReady]);
 
   const createCheckin = useCallback(async (checkinData) => {
     if (!user || !user.id || !workspaceId) return;
@@ -424,18 +523,41 @@ export const useWorkspaceCheckins = (workspaceId, limit = 3) => {
       }
       
       const data = await response.json();
-      setCheckins(prev => [data, ...prev].slice(0, limit));
+      // Add to beginning (newest first) and respect limit
+      const updater = prev => [data, ...prev].slice(0, limit);
+      
+      if (context && context.updateCheckins) {
+        context.updateCheckins(updater);
+      }
+      // Always update local state too
+      setCheckins(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId, limit]);
+  }, [user, workspaceId, limit, context]);
 
-  return { checkins, loading, error, refetch: fetchCheckins, createCheckin };
+  // Apply limit to context data
+  const getCheckins = () => {
+    if (isReady) {
+      return (context.checkins || []).slice(0, limit);
+    }
+    return checkins;
+  };
+
+  return {
+    checkins: getCheckins(),
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchCheckins,
+    createCheckin,
+  };
 };
 
 export const useWorkspaceParticipants = (workspaceId) => {
   const { user } = useUser();
+  const { context, isReady } = useContextReady();
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -466,8 +588,10 @@ export const useWorkspaceParticipants = (workspaceId) => {
   }, [user, workspaceId]);
 
   useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+    if (!isReady) {
+      fetchParticipants();
+    }
+  }, [fetchParticipants, isReady]);
 
   const updateParticipant = useCallback(async (userId, updates) => {
     if (!user || !user.id || !workspaceId) return;
@@ -487,16 +611,27 @@ export const useWorkspaceParticipants = (workspaceId) => {
       }
       
       const data = await response.json();
-      // Merge the updated data with existing participant data to preserve user info
-      setParticipants(prev => prev.map(p => 
+      const updater = prev => prev.map(p => 
         p.user_id === userId ? { ...p, ...data } : p
-      ));
+      );
+      
+      if (context && context.updateParticipants) {
+        context.updateParticipants(updater);
+      }
+      // Always update local state too
+      setParticipants(updater);
+      
       return data;
     } catch (err) {
       throw err;
     }
-  }, [user, workspaceId]);
+  }, [user, workspaceId, context]);
 
-  return { participants, loading, error, refetch: fetchParticipants, updateParticipant };
+  return {
+    participants: isReady ? context.participants : participants,
+    loading: isReady ? false : loading,
+    error: isReady ? null : error,
+    refetch: isReady ? context.refetch : fetchParticipants,
+    updateParticipant,
+  };
 };
-

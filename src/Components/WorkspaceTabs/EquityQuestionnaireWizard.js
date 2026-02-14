@@ -595,9 +595,16 @@ const EquityQuestionnaireWizard = ({ workspaceId, participants, onComplete }) =>
     setLoading(true);
     setError(null);
     try {
+      // Send current advisor percent from UI state so backend uses the latest value
       const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/equity/calculate`, {
         method: 'POST',
-        headers: { 'X-Clerk-User-Id': user.id },
+        headers: { 
+          'X-Clerk-User-Id': user.id,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          advisor_percent: vestingTerms.advisor_equity_percent || 0,
+        }),
       });
       
       if (response.ok) {

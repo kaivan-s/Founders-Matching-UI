@@ -35,6 +35,7 @@ import {
   Folder
 } from '@mui/icons-material';
 import { useWorkspace } from '../hooks/useWorkspace';
+import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
 import WorkspaceDecisions from './WorkspaceTabs/WorkspaceDecisions';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
@@ -546,25 +547,28 @@ const WorkspacePage = () => {
             to: { opacity: 1, transform: 'translateY(0)' }
           }
         }}>
-          <Routes>
-            <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-              const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
-              navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
-            }} />} />
-            <Route path="chat" element={
-            <Box sx={{ height: 'calc(100vh - 300px)', minHeight: 400 }}>
-              <WorkspaceChat matchId={workspace?.match_id} currentFounderId={currentFounderId} />
-            </Box>
-            } />
-            <Route path="decisions" element={<WorkspaceDecisions workspaceId={workspaceId} />} />
-            <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
-            <Route path="commitments" element={<WorkspaceCommitments workspaceId={workspaceId} />} />
-            <Route path="tasks" element={<WorkspaceTasks workspaceId={workspaceId} />} />
-            <Route path="documents" element={<WorkspaceDocuments workspaceId={workspaceId} />} />
-            <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
-            <Route index element={<Navigate to="overview" replace />} />
-            <Route path="*" element={<Navigate to="overview" replace />} />
-          </Routes>
+          {/* WorkspaceProvider consolidates data fetching for all tabs */}
+          <WorkspaceProvider workspaceId={workspaceId}>
+            <Routes>
+              <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
+                const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
+                navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
+              }} />} />
+              <Route path="chat" element={
+              <Box sx={{ height: 'calc(100vh - 300px)', minHeight: 400 }}>
+                <WorkspaceChat matchId={workspace?.match_id} currentFounderId={currentFounderId} />
+              </Box>
+              } />
+              <Route path="decisions" element={<WorkspaceDecisions workspaceId={workspaceId} />} />
+              <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
+              <Route path="commitments" element={<WorkspaceCommitments workspaceId={workspaceId} />} />
+              <Route path="tasks" element={<WorkspaceTasks workspaceId={workspaceId} />} />
+              <Route path="documents" element={<WorkspaceDocuments workspaceId={workspaceId} />} />
+              <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="*" element={<Navigate to="overview" replace />} />
+            </Routes>
+          </WorkspaceProvider>
         </Box>
       </Box>
     </Box>

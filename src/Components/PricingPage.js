@@ -350,7 +350,7 @@ const PricingPage = () => {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={() => navigate('/partner/onboarding')}
+                onClick={() => navigate('/advisor/onboarding')}
                 sx={{
                   bgcolor: '#14b8a6',
                   '&:hover': { bgcolor: '#0d9488' },
