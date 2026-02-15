@@ -66,6 +66,7 @@ const RequestDetailsDialog = ({ open, onClose, request, onRespond }) => {
   const decisions = details.decisions || {};
   const participants = details.participants || {};
   const projects = details.projects || [];
+  const advisorEquityPercent = details?.advisor_equity_percent;
 
   return (
     <Dialog 
@@ -103,6 +104,21 @@ const RequestDetailsDialog = ({ open, onClose, request, onRespond }) => {
               <Typography variant="body2" color="text.secondary">
                 Requested by {request?.founder?.name || 'Founder'}
               </Typography>
+              {advisorEquityPercent !== undefined && advisorEquityPercent !== null && (
+                <Chip
+                  icon={<TrendingUp sx={{ fontSize: 16 }} />}
+                  label={`${advisorEquityPercent}% equity offered`}
+                  size="small"
+                  sx={{
+                    mt: 1,
+                    alignSelf: 'flex-start',
+                    bgcolor: alpha('#14b8a6', 0.12),
+                    color: '#0d9488',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                  }}
+                />
+              )}
             </Box>
           </Box>
           <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}>

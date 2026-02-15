@@ -380,13 +380,17 @@ const WorkspaceTasks = ({ workspaceId }) => {
             onChange={(e) => setOwnerFilter(e.target.value)}
           >
             <MenuItem value="all">All</MenuItem>
-            {founders
-              .filter((f) => (f.role || '').toUpperCase() !== 'ADVISOR')
-              .map((founder) => (
+            {founders.map((founder) => {
+              const isAdvisor = (founder.role || '').toUpperCase() === 'ADVISOR';
+              const isMe = founder.user_id === founderId;
+              const name = founder.user?.name || 'Unknown';
+              const label = isMe ? `${name} (Me)` : isAdvisor ? `${name} (Advisor)` : name;
+              return (
                 <MenuItem key={founder.user_id} value={founder.user_id}>
-                  {founder.user_id === founderId ? `${founder.user?.name || 'Unknown'} (Me)` : (founder.user?.name || 'Unknown')}
+                  {label}
                 </MenuItem>
-              ))}
+              );
+            })}
           </Select>
         </FormControl>
 
@@ -635,11 +639,15 @@ const WorkspaceTasks = ({ workspaceId }) => {
               onChange={(e) => setNewTask({ ...newTask, owner_id: e.target.value })}
               required
             >
-              {founders.map((founder) => (
-                <MenuItem key={founder.user_id} value={founder.user_id}>
-                  {founder.user?.name || 'Unknown'}
-                </MenuItem>
-              ))}
+              {founders.map((founder) => {
+                const isAdvisor = (founder.role || '').toUpperCase() === 'ADVISOR';
+                const name = founder.user?.name || 'Unknown';
+                return (
+                  <MenuItem key={founder.user_id} value={founder.user_id}>
+                    {isAdvisor ? `${name} (Advisor)` : name}
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
 
