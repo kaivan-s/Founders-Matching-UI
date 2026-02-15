@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import {
   Box,
@@ -16,6 +16,7 @@ import {
   Chip,
   Divider,
   Paper,
+  CircularProgress,
 } from '@mui/material';
 import {
   Check,
@@ -26,15 +27,43 @@ import {
   People,
   Analytics,
   Assignment,
+  CheckCircle,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
 const PricingPage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+  const [successPlan, setSuccessPlan] = useState(null);
+  const [countdown, setCountdown] = useState(5);
+
+  // Check for subscription success on mount
+  useEffect(() => {
+    const subscriptionStatus = searchParams.get('subscription');
+    const planFromUrl = searchParams.get('plan');
+    
+    if (subscriptionStatus === 'success' && planFromUrl) {
+      setSubscriptionSuccess(true);
+      setSuccessPlan(planFromUrl);
+    }
+  }, [searchParams]);
+
+  // Countdown and redirect for success state
+  useEffect(() => {
+    if (subscriptionSuccess && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (subscriptionSuccess && countdown === 0) {
+      navigate('/dashboard');
+    }
+  }, [subscriptionSuccess, countdown, navigate]);
 
   useEffect(() => {
     fetchPlans();
@@ -101,6 +130,86 @@ const PricingPage = () => {
   const formatPrice = (price) => {
     return `$${price}`;
   };
+
+  // Show success screen if subscription was successful
+  if (subscriptionSuccess) {
+    const planDisplayName = successPlan === 'PRO' ? 'Pro' : successPlan === 'PRO_PLUS' ? 'Pro+' : successPlan;
+    
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '80vh',
+          bgcolor: '#f8fafc'
+        }}
+      >
+        <Card 
+          sx={{ 
+            maxWidth: 500, 
+            mx: 2, 
+            p: 4, 
+            textAlign: 'center',
+            borderRadius: 4,
+            boxShadow: '0 12px 32px rgba(13, 148, 136, 0.15)',
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              borderRadius: '50%', 
+              bgcolor: '#d1fae5', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 3
+            }}
+          >
+            <CheckCircle sx={{ fontSize: 48, color: '#10b981' }} />
+          </Box>
+          
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
+            Welcome to {planDisplayName}!
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Your subscription has been activated successfully. 
+            You now have access to all {planDisplayName} features.
+          </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 3 }}>
+            <CircularProgress size={20} sx={{ color: '#0d9488' }} />
+            <Typography variant="body2" color="text.secondary">
+              Redirecting to dashboard in {countdown} seconds...
+            </Typography>
+          </Box>
+          
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => navigate('/dashboard')}
+            sx={{
+              bgcolor: '#0d9488',
+              color: 'white',
+              px: 4,
+              py: 1.5,
+              borderRadius: 3,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                bgcolor: '#14b8a6',
+              },
+            }}
+          >
+            Go to Dashboard Now
+          </Button>
+        </Card>
+      </Box>
+    );
+  }
 
   if (loading || !plans) {
     return (
