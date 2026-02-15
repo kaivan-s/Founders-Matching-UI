@@ -163,7 +163,7 @@ const LandingPage = () => {
     { icon: <BarChart />, title: 'KPIs & Accountability', desc: 'Joint KPI dashboard, weekly check-ins, and commitment tracking.' },
     { icon: <Groups />, title: 'Workspace OS', desc: 'Dedicated workspace per partnership with chat, tasks, decisions, and documents.' },
     { icon: <Shield />, title: 'Compatibility Insights', desc: 'Preference-based matching and partnership health monitoring.' },
-    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Connect with vetted advisors who earn equity in the projects they guide.' },
+    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
   ];
 
   const plans = [
@@ -172,12 +172,12 @@ const LandingPage = () => {
       features: ['1 lite workspace', '10 swipes / month', 'Basic KPIs & decisions', 'Weekly check-ins', 'Preference matching'],
     },
     {
-      name: 'Pro', price: '$29', period: '/month', popular: true,
+      name: 'Pro', price: '$15', period: '/month', popular: true,
       features: ['Up to 2 full workspaces', 'Unlimited discovery', 'Equity tools & agreements', 'Full task board', 'Compatibility insights', 'Advisor marketplace'],
     },
     {
-      name: 'Pro+', price: '$79', period: '/month', popular: false,
-      features: ['Up to 5 workspaces', 'Everything in Pro', 'Enhanced analytics', 'Priority advisor access', 'Investor-facing features'],
+      name: 'Pro+', price: '$35', period: '/month', popular: false,
+      features: ['Up to 5 workspaces', 'Everything in Pro', 'Advanced analytics', 'Priority advisor access', 'Investor-facing features'],
     },
   ];
 
@@ -1032,14 +1032,14 @@ const LandingPage = () => {
                   <People sx={{ fontSize: 24 }} />
                 </Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 1.5, fontSize: '1.05rem' }}>
-                  What You Do
+                  How It Works
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {[
-                    'Review project requests from founders seeking guidance',
-                    'Accept projects that align with your expertise',
-                    'Provide strategic advice through structured check-ins',
-                    'Track partnership health and progress metrics',
+                    'Create your advisor profile with your expertise & background',
+                    'Get discovered by founders seeking guidance',
+                    'Review project requests and choose ones that match your skills',
+                    'Pay only when you accept a project — no monthly fees',
                     'Earn equity in the projects you successfully guide',
                   ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
@@ -1062,7 +1062,7 @@ const LandingPage = () => {
                 '&:hover': { boxShadow: `0 8px 24px ${alpha(TEAL, 0.12)}` },
               }}>
                 <Chip
-                  label="Simple Pricing"
+                  label="Pay Per Project"
                   size="small"
                   sx={{
                     position: 'absolute', top: 12, right: 12,
@@ -1076,7 +1076,7 @@ const LandingPage = () => {
                   <TrendingUp sx={{ fontSize: 24 }} />
                 </Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 2.5, fontSize: '1.05rem' }}>
-                  Fee Structure
+                  Simple Fee Structure
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -1086,14 +1086,14 @@ const LandingPage = () => {
                         $69
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_400, fontSize: '0.85rem' }}>
-                        one-time
+                        per project
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.9rem' }}>
-                      Onboarding fee to join the marketplace
+                      Pay only when you accept a project
                     </Typography>
                     <Typography variant="caption" sx={{ color: SLATE_400, display: 'block', mt: 0.5 }}>
-                      Get listed, receive requests, access full dashboard
+                      No subscription fees. No monthly costs. You decide which projects to take.
                     </Typography>
                   </Box>
 
@@ -1102,17 +1102,17 @@ const LandingPage = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 800, color: SLATE_900 }}>
-                        $39
+                        $0
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_400, fontSize: '0.85rem' }}>
-                        /year
+                        to get started
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.9rem' }}>
-                      Annual renewal to keep your dashboard active
+                      Free onboarding & profile setup
                     </Typography>
                     <Typography variant="caption" sx={{ color: SLATE_400, display: 'block', mt: 0.5 }}>
-                      Maintain your profile and continue receiving requests
+                      Create your profile, get listed, and start receiving project requests — all free
                     </Typography>
                   </Box>
                 </Box>
@@ -1122,10 +1122,11 @@ const LandingPage = () => {
                   bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2),
                 }}>
                   <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600, mb: 0.5, fontSize: '0.9rem' }}>
-                    💰 Earn Equity
+                    💰 Earn Equity in Projects You Guide
                   </Typography>
                   <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.6 }}>
-                    Receive equity allocations in the projects you guide, typically 1-3% based on your contribution and the partnership's equity structure.
+                    Receive equity allocations in the startups you advise, typically 1-3% based on your contribution. 
+                    Terms are set per project with full transparency.
                   </Typography>
                 </Box>
               </Box>
@@ -1142,7 +1143,7 @@ const LandingPage = () => {
                   bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT },
                 }}
               >
-                Join as Advisor
+                Become an Advisor
               </Button>
             ) : (
               <SignInButton mode="modal" afterSignInUrl="/advisor/onboarding">
@@ -1153,7 +1154,7 @@ const LandingPage = () => {
                     bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT },
                   }}
                 >
-                  Join as Advisor
+                  Become an Advisor
                 </Button>
               </SignInButton>
             )}

@@ -17,6 +17,11 @@ import {
   Divider,
   Paper,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from '@mui/material';
 import {
   Check,
@@ -28,6 +33,8 @@ import {
   Analytics,
   Assignment,
   CheckCircle,
+  Warning,
+  CancelOutlined,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
@@ -37,10 +44,16 @@ const PricingPage = () => {
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
+  const [currentPlanDetails, setCurrentPlanDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
   const [successPlan, setSuccessPlan] = useState(null);
   const [countdown, setCountdown] = useState(5);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState(null);
+  const [workspaceSelectionRequired, setWorkspaceSelectionRequired] = useState(false);
+  const [userWorkspaces, setUserWorkspaces] = useState([]);
 
   // Check for subscription success on mount
   useEffect(() => {
@@ -81,7 +94,7 @@ const PricingPage = () => {
         setPlans(data.founder_plans);
       }
 
-      // Fetch current plan
+      // Fetch current plan with full details
       if (user?.id) {
         const planResponse = await fetch(`${API_BASE}/billing/my-plan`, {
           headers: {
@@ -91,11 +104,53 @@ const PricingPage = () => {
         if (planResponse.ok) {
           const planData = await planResponse.json();
           setCurrentPlan(planData.id);
+          setCurrentPlanDetails(planData);
         }
       }
     } catch (err) {
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async (workspaceToKeep = null) => {
+    setCancelling(true);
+    setCancelError(null);
+
+    try {
+      const body = workspaceToKeep ? { workspace_to_keep: workspaceToKeep } : {};
+      
+      const response = await fetch(`${API_BASE}/billing/founder/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user?.id,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Check if workspace selection is required
+        if (data.error === 'workspace_selection_required') {
+          setWorkspaceSelectionRequired(true);
+          setUserWorkspaces(data.workspaces || []);
+          setCancelling(false);
+          return;
+        }
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      // Success - close dialog and refresh plans
+      setCancelDialogOpen(false);
+      setWorkspaceSelectionRequired(false);
+      await fetchPlans();
+      
+    } catch (err) {
+      setCancelError(err.message);
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -398,6 +453,141 @@ const PricingPage = () => {
           );
         })}
       </Grid>
+
+      {/* Subscription Management Section - Only show for paid plans */}
+      {currentPlan && currentPlan !== 'FREE' && (
+        <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#fff8f8', border: '1px solid #fecaca', mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e3a8a', mb: 0.5 }}>
+                Manage Your Subscription
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                You're currently on the {currentPlan === 'PRO' ? 'Pro' : 'Pro+'} plan
+                {currentPlanDetails?.subscription_current_period_end && (
+                  <> • Renews on {new Date(currentPlanDetails.subscription_current_period_end).toLocaleDateString()}</>
+                )}
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<CancelOutlined />}
+              onClick={() => setCancelDialogOpen(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
+              Cancel Subscription
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog 
+        open={cancelDialogOpen} 
+        onClose={() => {
+          setCancelDialogOpen(false);
+          setWorkspaceSelectionRequired(false);
+          setCancelError(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Warning sx={{ color: '#f59e0b' }} />
+          {workspaceSelectionRequired ? 'Select Workspace to Keep' : 'Cancel Subscription'}
+        </DialogTitle>
+        <DialogContent>
+          {cancelError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {cancelError}
+            </Alert>
+          )}
+          
+          {workspaceSelectionRequired ? (
+            <Box>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                You have multiple workspaces. The Free plan only allows 1 workspace. 
+                Please select which workspace you'd like to keep:
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {userWorkspaces.map((workspace) => (
+                  <Button
+                    key={workspace.id}
+                    variant="outlined"
+                    onClick={() => handleCancelSubscription(workspace.id)}
+                    disabled={cancelling}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      py: 1.5,
+                    }}
+                  >
+                    {workspace.name || `Workspace ${workspace.id.slice(0, 8)}`}
+                  </Button>
+                ))}
+              </Box>
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Are you sure you want to cancel your subscription? You'll lose access to:
+              </Typography>
+              <List dense>
+                <ListItem>
+                  <ListItemIcon><Close sx={{ color: '#ef4444' }} /></ListItemIcon>
+                  <ListItemText primary="Unlimited discovery & matching" />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><Close sx={{ color: '#ef4444' }} /></ListItemIcon>
+                  <ListItemText primary="Full workspace features" />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><Close sx={{ color: '#ef4444' }} /></ListItemIcon>
+                  <ListItemText primary="Advisor marketplace access" />
+                </ListItem>
+                {currentPlan === 'PRO_PLUS' && (
+                  <ListItem>
+                    <ListItemIcon><Close sx={{ color: '#ef4444' }} /></ListItemIcon>
+                    <ListItemText primary="Advanced analytics & investor features" />
+                  </ListItem>
+                )}
+              </List>
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                You'll be downgraded to the Free plan immediately. If you have more than 1 workspace, 
+                you'll need to select which one to keep.
+              </Alert>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={() => {
+              setCancelDialogOpen(false);
+              setWorkspaceSelectionRequired(false);
+              setCancelError(null);
+            }}
+            disabled={cancelling}
+          >
+            Keep My Plan
+          </Button>
+          {!workspaceSelectionRequired && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => handleCancelSubscription()}
+              disabled={cancelling}
+              startIcon={cancelling ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {cancelling ? 'Cancelling...' : 'Yes, Cancel Subscription'}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       {/* Advisor Section */}
       <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#f8fafc' }}>
