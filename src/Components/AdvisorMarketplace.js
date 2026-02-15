@@ -23,14 +23,13 @@ import {
   Business,
   LocationOn,
   Close,
-  Payment,
   Search,
   FilterList,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 import { motion } from 'framer-motion';
 
-const AdvisorMarketplace = ({ onPaymentRequired }) => {
+const AdvisorMarketplace = () => {
   const { user } = useUser();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,29 +122,11 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
   }, [user, searchQuery, filters.stage, filters.location, fetchProjects]);
 
   const handleProjectClick = (project) => {
-    // Check payment before showing details
-    if (!billingProfile?.onboarding_paid) {
-      if (onPaymentRequired) {
-        onPaymentRequired();
-      } else {
-        alert('Please complete payment to view project details');
-      }
-      return;
-    }
     setSelectedProject(project);
     setDialogOpen(true);
   };
 
   const handleRequestAdvisor = async (workspaceId) => {
-    // Check payment before accepting request
-    if (!billingProfile?.onboarding_paid) {
-      if (onPaymentRequired) {
-        onPaymentRequired();
-      } else {
-        alert('Please complete payment to accept advisor requests');
-      }
-      return;
-    }
     // This would typically open a dialog or navigate to request flow
     alert('Advisor request functionality will be implemented');
   };
@@ -179,26 +160,6 @@ const AdvisorMarketplace = ({ onPaymentRequired }) => {
           Explore projects looking for advisors
         </Typography>
       </Box>
-
-      {/* Payment Alert */}
-      {!billingProfile?.onboarding_paid && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography>
-              Complete payment to view project details and accept advisor requests
-            </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Payment />}
-              onClick={() => onPaymentRequired && onPaymentRequired()}
-              sx={{ ml: 2 }}
-            >
-              Pay Now
-            </Button>
-          </Box>
-        </Alert>
-      )}
 
       {/* Search and Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>

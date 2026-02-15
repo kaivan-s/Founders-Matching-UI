@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -22,9 +22,7 @@ import {
   CircularProgress,
   Chip,
   Slider,
-  alpha,
 } from '@mui/material';
-import { CheckCircle, LinkedIn } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
 const STAGES = ['idea', 'pre-seed', 'seed', 'series-a', 'series-b-plus'];
@@ -38,19 +36,10 @@ const CADENCE_OPTIONS = ['weekly', 'bi-weekly', 'monthly'];
 const AdvisorOnboarding = ({ onComplete }) => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  
-  // LinkedIn verification state
-  const [linkedinStatus, setLinkedinStatus] = useState({
-    linkedin_verified: false,
-    linkedin_configured: false,
-    linkedin_name: null,
-  });
-  const [linkedinLoading, setLinkedinLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     // Basic Info
@@ -69,7 +58,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
     
     // Contact
     contact_email: user?.emailAddresses?.[0]?.emailAddress || '',
-    meeting_link: '',
     contact_note: '',
     linkedin_url: '',
     twitter_url: '',
@@ -79,8 +67,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
       years_experience: '',
       previous_companies: '',
       areas_of_expertise: '',
-      typical_engagement_length: '',
-      preferred_communication_style: '',
       availability_hours_per_week: '',
       success_stories: '',
       what_makes_you_unique: '',
@@ -88,87 +74,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
   });
 
   const steps = ['Basic Information', 'Expertise & Experience', 'Capacity & Preferences', 'Contact & Social', 'Questionnaire'];
-
-  // Fetch LinkedIn verification status
-  const fetchLinkedinStatus = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const response = await fetch(`${API_BASE}/advisors/linkedin/status`, {
-        headers: { 'X-Clerk-User-Id': user.id },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setLinkedinStatus(data);
-      }
-    } catch (err) {
-      // Ignore errors - verification is optional
-    }
-  }, [user?.id]);
-
-  // Initiate LinkedIn OAuth flow
-  const handleLinkedInConnect = async () => {
-    if (!user?.id) return;
-    setLinkedinLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/advisors/linkedin/connect`, {
-        headers: { 'X-Clerk-User-Id': user.id },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // Redirect to LinkedIn OAuth
-        window.location.href = data.auth_url;
-      } else {
-        const err = await response.json();
-        setError(err.error || 'Failed to initiate LinkedIn verification');
-      }
-    } catch (err) {
-      setError('Failed to connect to LinkedIn');
-    } finally {
-      setLinkedinLoading(false);
-    }
-  };
-
-  // Handle LinkedIn OAuth callback
-  useEffect(() => {
-    const handleLinkedInCallback = async () => {
-      const code = searchParams.get('code');
-      const state = searchParams.get('state');
-      
-      if (code && user?.id) {
-        setLinkedinLoading(true);
-        try {
-          const response = await fetch(`${API_BASE}/advisors/linkedin/callback`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Clerk-User-Id': user.id,
-            },
-            body: JSON.stringify({ code, state }),
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setLinkedinStatus({
-              linkedin_verified: true,
-              linkedin_configured: true,
-              linkedin_name: data.linkedin_name,
-            });
-            // Clear URL params
-            window.history.replaceState({}, '', window.location.pathname);
-          } else {
-            const err = await response.json();
-            setError(err.error || 'LinkedIn verification failed');
-          }
-        } catch (err) {
-          setError('Failed to complete LinkedIn verification');
-        } finally {
-          setLinkedinLoading(false);
-        }
-      }
-    };
-    
-    handleLinkedInCallback();
-  }, [searchParams, user?.id]);
 
   // Check if advisor profile already exists on mount
   useEffect(() => {
@@ -206,7 +111,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
               max_active_workspaces: profileData.max_active_workspaces ?? prev.max_active_workspaces,
               preferred_cadence: profileData.preferred_cadence || prev.preferred_cadence,
               contact_email: profileData.contact_email || prev.contact_email,
-              meeting_link: profileData.meeting_link || prev.meeting_link,
               contact_note: profileData.contact_note || prev.contact_note,
               linkedin_url: profileData.linkedin_url || prev.linkedin_url,
               twitter_url: profileData.twitter_url || prev.twitter_url,
@@ -222,8 +126,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
     };
 
     checkExistingProfile();
-    fetchLinkedinStatus();
-  }, [user?.id, navigate, fetchLinkedinStatus]);
+  }, [user?.id, navigate]);
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
@@ -263,6 +166,15 @@ const AdvisorOnboarding = ({ onComplete }) => {
     });
   };
 
+  const isValidLinkedInUrl = (url) => {
+    if (!url || !url.trim()) return false;
+    const trimmed = url.trim();
+    return (
+      trimmed.startsWith('https://') &&
+      (trimmed.includes('linkedin.com') || trimmed.includes('linked.in'))
+    );
+  };
+
   const validateStep = () => {
     switch (activeStep) {
       case 0:
@@ -272,9 +184,22 @@ const AdvisorOnboarding = ({ onComplete }) => {
       case 2:
         return formData.max_active_workspaces >= 1 && formData.max_active_workspaces <= 10;
       case 3:
-        return formData.contact_email && formData.contact_email.includes('@');
-      case 4:
-        return true; // Questionnaire is optional but recommended
+        return (
+          formData.contact_email &&
+          formData.contact_email.includes('@') &&
+          isValidLinkedInUrl(formData.linkedin_url)
+        );
+      case 4: {
+        const q = formData.questionnaire_data;
+        return (
+          (q.years_experience || '').trim() &&
+          (q.previous_companies || '').trim() &&
+          (q.areas_of_expertise || '').trim() &&
+          (q.availability_hours_per_week || '').trim() &&
+          (q.success_stories || '').trim() &&
+          (q.what_makes_you_unique || '').trim()
+        );
+      }
       default:
         return true;
     }
@@ -472,12 +397,13 @@ const AdvisorOnboarding = ({ onComplete }) => {
               helperText="Email where founders can reach you"
             />
             <TextField
-              label="Meeting Link (Calendly, etc.)"
-              placeholder="https://calendly.com/yourname"
-              value={formData.meeting_link}
-              onChange={(e) => handleChange('meeting_link', e.target.value)}
+              label="LinkedIn URL"
+              placeholder="https://linkedin.com/in/yourprofile"
+              value={formData.linkedin_url}
+              onChange={(e) => handleChange('linkedin_url', e.target.value)}
+              required
               fullWidth
-              helperText="Optional: Link to schedule meetings with you"
+              helperText="Your full LinkedIn profile URL (required)"
             />
             <TextField
               label="Contact Note"
@@ -487,72 +413,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
               multiline
               rows={3}
               fullWidth
-            />
-            {/* LinkedIn Verification Section */}
-            <Box sx={{ 
-              p: 2.5, 
-              borderRadius: 2, 
-              border: '1px solid',
-              borderColor: linkedinStatus.linkedin_verified ? 'success.main' : 'divider',
-              bgcolor: linkedinStatus.linkedin_verified ? alpha('#10b981', 0.04) : 'background.paper',
-            }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <LinkedIn sx={{ color: '#0A66C2', fontSize: 28 }} />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      LinkedIn Verification
-                      {linkedinStatus.linkedin_verified && (
-                        <Chip 
-                          icon={<CheckCircle sx={{ fontSize: 14 }} />}
-                          label="Verified"
-                          size="small"
-                          color="success"
-                          sx={{ ml: 1, height: 22, fontSize: '0.7rem' }}
-                        />
-                      )}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {linkedinStatus.linkedin_verified 
-                        ? `Verified as ${linkedinStatus.linkedin_name || 'LinkedIn User'}`
-                        : 'Verify your identity with LinkedIn to build trust with founders'
-                      }
-                    </Typography>
-                  </Box>
-                </Box>
-                {!linkedinStatus.linkedin_verified && (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleLinkedInConnect}
-                    disabled={linkedinLoading || !linkedinStatus.linkedin_configured}
-                    startIcon={linkedinLoading ? <CircularProgress size={16} /> : <LinkedIn />}
-                    sx={{ 
-                      borderColor: '#0A66C2', 
-                      color: '#0A66C2',
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      '&:hover': { borderColor: '#004182', bgcolor: alpha('#0A66C2', 0.04) },
-                    }}
-                  >
-                    {linkedinLoading ? 'Connecting...' : 'Verify with LinkedIn'}
-                  </Button>
-                )}
-              </Box>
-              {!linkedinStatus.linkedin_configured && !linkedinStatus.linkedin_verified && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  LinkedIn verification coming soon
-                </Typography>
-              )}
-            </Box>
-            
-            <TextField
-              label="LinkedIn URL (Optional)"
-              placeholder="https://linkedin.com/in/yourprofile"
-              value={formData.linkedin_url}
-              onChange={(e) => handleChange('linkedin_url', e.target.value)}
-              fullWidth
-              helperText="You can also add your profile URL manually"
             />
             <TextField
               label="Twitter/X URL"
@@ -572,6 +432,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="e.g., 10+ years"
               value={formData.questionnaire_data.years_experience}
               onChange={(e) => handleChange('questionnaire_data.years_experience', e.target.value)}
+              required
               fullWidth
             />
             <TextField
@@ -579,6 +440,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="List companies you've worked at or founded"
               value={formData.questionnaire_data.previous_companies}
               onChange={(e) => handleChange('questionnaire_data.previous_companies', e.target.value)}
+              required
               multiline
               rows={3}
               fullWidth
@@ -588,22 +450,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="What specific areas can you advise on?"
               value={formData.questionnaire_data.areas_of_expertise}
               onChange={(e) => handleChange('questionnaire_data.areas_of_expertise', e.target.value)}
+              required
               multiline
               rows={3}
-              fullWidth
-            />
-            <TextField
-              label="Typical Engagement Length"
-              placeholder="e.g., 3-6 months, 1 year, ongoing"
-              value={formData.questionnaire_data.typical_engagement_length}
-              onChange={(e) => handleChange('questionnaire_data.typical_engagement_length', e.target.value)}
-              fullWidth
-            />
-            <TextField
-              label="Preferred Communication Style"
-              placeholder="e.g., Direct and honest, supportive and encouraging"
-              value={formData.questionnaire_data.preferred_communication_style}
-              onChange={(e) => handleChange('questionnaire_data.preferred_communication_style', e.target.value)}
               fullWidth
             />
             <TextField
@@ -611,6 +460,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="e.g., 2-5 hours per week"
               value={formData.questionnaire_data.availability_hours_per_week}
               onChange={(e) => handleChange('questionnaire_data.availability_hours_per_week', e.target.value)}
+              required
               fullWidth
             />
             <TextField
@@ -618,6 +468,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="Share examples of startups you've helped succeed"
               value={formData.questionnaire_data.success_stories}
               onChange={(e) => handleChange('questionnaire_data.success_stories', e.target.value)}
+              required
               multiline
               rows={4}
               fullWidth
@@ -627,6 +478,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               placeholder="What sets you apart as an advisor?"
               value={formData.questionnaire_data.what_makes_you_unique}
               onChange={(e) => handleChange('questionnaire_data.what_makes_you_unique', e.target.value)}
+              required
               multiline
               rows={3}
               fullWidth

@@ -55,7 +55,6 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
-import AdvisorMarketplace from './AdvisorMarketplace';
 import { supabase } from '../config/supabase';
 
 // Clean, minimal request details dialog
@@ -520,6 +519,7 @@ const AdvisorDashboard = () => {
   const [selectedWorkspaceForNotifications, setSelectedWorkspaceForNotifications] = useState(null);
   const [billingProfile, setBillingProfile] = useState(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [pendingAcceptRequestId, setPendingAcceptRequestId] = useState(null);
   
   // LinkedIn verification
   const [linkedinStatus, setLinkedinStatus] = useState({
@@ -528,8 +528,6 @@ const AdvisorDashboard = () => {
     linkedin_name: null,
   });
   const [linkedinLoading, setLinkedinLoading] = useState(false);
-
-  const currentTab = location.pathname.includes('/marketplace') ? 1 : 0;
 
   const fetchLinkedinStatus = useCallback(async () => {
     if (!user?.id) return;
@@ -707,6 +705,34 @@ const AdvisorDashboard = () => {
     completeCallback();
   }, [searchParams, user?.id]);
 
+  // Handle payment success callback - auto-accept the project
+  useEffect(() => {
+    const paymentSuccess = searchParams.get('payment');
+    const requestId = searchParams.get('request_id');
+    if (paymentSuccess !== 'success' || !requestId || !user?.id) return;
+
+    const acceptAfterPayment = async () => {
+      try {
+        const r = await fetch(`${API_BASE}/advisors/requests/${requestId}/respond`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify({ response: 'accept', payment_verified: true }),
+        });
+        if (r.ok) {
+          fetchDashboardData();
+        }
+        // Clear URL params
+        window.history.replaceState({}, '', window.location.pathname);
+      } catch (err) {
+        console.error('Failed to accept after payment:', err);
+      }
+    };
+    acceptAfterPayment();
+  }, [searchParams, user?.id, fetchDashboardData]);
+
   // Redirect to onboarding if no profile
   useEffect(() => {
     if (hasFetchedOnceRef.current && !loading && !profile && !error && !hasRedirectedRef.current && location.pathname !== '/advisor/onboarding') {
@@ -772,12 +798,16 @@ const AdvisorDashboard = () => {
     };
   }, [founderId, user?.id]);
 
-  const handlePayOnboarding = async () => {
-    if (!user?.id) return;
+  const handlePayToAccept = async () => {
+    if (!user?.id || !pendingAcceptRequestId) return;
     try {
-      const r = await fetch(`${API_BASE}/billing/advisor/onboarding`, {
+      const r = await fetch(`${API_BASE}/billing/advisor/accept-project`, {
         method: 'POST',
-        headers: { 'X-Clerk-User-Id': user.id },
+        headers: { 
+          'X-Clerk-User-Id': user.id,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ request_id: pendingAcceptRequestId }),
       });
       if (!r.ok) throw new Error((await r.json()).error || 'Failed');
       window.location.href = (await r.json()).checkout_url;
@@ -787,7 +817,9 @@ const AdvisorDashboard = () => {
   };
 
   const handleRespondToRequest = async (requestId, response) => {
-    if (response === 'accept' && !billingProfile?.onboarding_paid) {
+    // For accepts, always require payment (per-project fee)
+    if (response === 'accept') {
+      setPendingAcceptRequestId(requestId);
       setPaymentDialogOpen(true);
       return;
     }
@@ -1018,11 +1050,7 @@ const AdvisorDashboard = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
-        {currentTab === 1 ? (
-          <AdvisorMarketplace onPaymentRequired={() => setPaymentDialogOpen(true)} />
-        ) : (
-          <>
-            {/* Header */}
+        {/* Header */}
             <Box sx={{ mb: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
@@ -1265,8 +1293,6 @@ const AdvisorDashboard = () => {
                 </Grid>
               )}
             </Box>
-          </>
-        )}
       </Box>
 
       {/* Workspace Notifications Dialog */}
@@ -1354,15 +1380,15 @@ const AdvisorDashboard = () => {
             <Payment sx={{ fontSize: 40, color: '#14b8a6' }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Complete Payment to Continue
+            Accept This Project
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            One-time onboarding payment of $69 to access project details and accept requests.
+            Pay $69 to accept this project and start advising.
           </Typography>
           <Paper elevation={0} sx={{ bgcolor: '#f8fafc', p: 2.5, borderRadius: 2, textAlign: 'left' }}>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>What you get:</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {['Access to project marketplace', 'Ability to accept advisor requests', 'Full project details and founder info'].map((item, i) => (
+              {['Full access to this project workspace', 'Direct communication with founders', 'Equity stake as agreed'].map((item, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
                   <Typography variant="body2" color="text.secondary">{item}</Typography>
@@ -1372,14 +1398,14 @@ const AdvisorDashboard = () => {
           </Paper>
         </DialogContent>
         <DialogActions sx={{ p: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={() => setPaymentDialogOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button onClick={() => { setPaymentDialogOpen(false); setPendingAcceptRequestId(null); }} sx={{ color: 'text.secondary' }}>Cancel</Button>
           <Button
             variant="contained"
-            onClick={handlePayOnboarding}
+            onClick={handlePayToAccept}
             startIcon={<Payment />}
             sx={{ bgcolor: '#14b8a6', '&:hover': { bgcolor: '#0d9488' }, borderRadius: 2 }}
           >
-            Pay $69
+            Pay $69 & Accept
           </Button>
         </DialogActions>
       </Dialog>

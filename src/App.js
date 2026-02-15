@@ -396,52 +396,6 @@ function Header() {
           </SignInButton>
         </SignedOut>
       </Box>
-      {/* Advisor Navigation Tabs - show below header when in advisor mode */}
-      {isAdvisorMode && (
-        <Box sx={{ 
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          px: { xs: 2, sm: 4 },
-          flexShrink: 0,
-        }}>
-          <Tabs 
-            value={location.pathname.includes('/marketplace') ? 1 : 0}
-            onChange={(e, newValue) => {
-              if (newValue === 0) {
-                navigate('/advisor/dashboard');
-              } else if (newValue === 1) {
-                navigate('/advisor/marketplace');
-              }
-            }}
-            sx={{
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontSize: '0.9375rem',
-                fontWeight: 500,
-                minHeight: 56,
-                px: 3,
-                color: 'text.secondary',
-                '&:hover': {
-                  color: 'text.primary',
-                },
-              },
-              '& .Mui-selected': {
-                color: '#14b8a6',
-                fontWeight: 600,
-              },
-              '& .MuiTabs-indicator': {
-                height: 2,
-                backgroundColor: '#14b8a6',
-                bottom: 0,
-              },
-            }}
-          >
-            <Tab label="Dashboard" />
-            <Tab label="Marketplace" />
-          </Tabs>
-        </Box>
-      )}
       <NewProjectDialog
         open={newProjectDialogOpen}
         onClose={() => setNewProjectDialogOpen(false)}
@@ -1004,16 +958,6 @@ function AppContent() {
         } />
         
         {/* Advisor routes */}
-        <Route path="/advisor/marketplace" element={
-          loading || !advisorChecked ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-              <CircularProgress />
-            </Box>
-          ) : (
-            // Always render AdvisorDashboard - it will handle checking for profile and redirecting if needed
-            <AdvisorDashboard />
-          )
-        } />
         <Route path="/advisor/dashboard" element={
           loading || !advisorChecked ? (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
