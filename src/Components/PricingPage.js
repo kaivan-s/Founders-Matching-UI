@@ -190,7 +190,7 @@ const PricingPage = () => {
           <Button
             variant="contained"
             size="large"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/discover')}
             sx={{
               bgcolor: '#0d9488',
               color: 'white',
