@@ -17,6 +17,11 @@ import {
   ListItemText,
   Divider,
   alpha,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from '@mui/material';
 import { 
   Edit, 
@@ -35,8 +40,10 @@ import {
   Warning,
   ArrowForward,
   CalendarToday,
+  ExitToApp,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 import { useWorkspaceParticipants } from '../../hooks/useWorkspace';
 import { useWorkspaceKPIs } from '../../hooks/useWorkspace';
 import { useWorkspaceEquity } from '../../hooks/useWorkspace';
@@ -57,6 +64,7 @@ const BG = '#f8fafc';
 
 const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const { participants: allParticipants, loading: participantsLoading, updateParticipant } = useWorkspaceParticipants(workspaceId);
   
   const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
@@ -72,6 +80,47 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   
   const [equityScenarios, setEquityScenarios] = useState([]);
   const [equityScenariosLoading, setEquityScenariosLoading] = useState(true);
+  
+  // Dissolve partnership state
+  const [dissolveDialogOpen, setDissolveDialogOpen] = useState(false);
+  const [dissolving, setDissolving] = useState(false);
+  const [dissolveError, setDissolveError] = useState(null);
+  const [confirmText, setConfirmText] = useState('');
+  
+  const handleDissolvePartnership = async () => {
+    if (!workspace?.match_id) {
+      setDissolveError('Cannot dissolve: No match associated with this workspace');
+      return;
+    }
+    
+    setDissolving(true);
+    setDissolveError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE}/matches/${workspace.match_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user?.id,
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to dissolve partnership');
+      }
+      
+      // Success - redirect to dashboard
+      setDissolveDialogOpen(false);
+      navigate('/home', { replace: true });
+      
+    } catch (err) {
+      setDissolveError(err.message);
+    } finally {
+      setDissolving(false);
+    }
+  };
   
   const fetchEquityScenarios = useCallback(async () => {
     if (!user?.id || !workspaceId) return;
@@ -933,6 +982,148 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           </Box>
         </Grid>
       </Grid>
+
+      {/* Danger Zone - Dissolve Partnership */}
+      <Box sx={{ 
+        mt: 6, 
+        p: 3, 
+        borderRadius: 3, 
+        border: '1px solid', 
+        borderColor: '#fecaca',
+        bgcolor: '#fef2f2',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Warning sx={{ color: '#dc2626', fontSize: 24 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#dc2626' }}>
+            Danger Zone
+          </Typography>
+        </Box>
+        
+        <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+          Dissolving this partnership will permanently delete the workspace, all associated data, 
+          and remove the match. This action cannot be undone. If there's an advisor attached, 
+          they will be freed up to take on other projects.
+        </Typography>
+        
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<ExitToApp />}
+          onClick={() => {
+            setDissolveDialogOpen(true);
+            setConfirmText('');
+            setDissolveError(null);
+          }}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderColor: '#dc2626',
+            color: '#dc2626',
+            '&:hover': {
+              bgcolor: '#fee2e2',
+              borderColor: '#b91c1c',
+            },
+          }}
+        >
+          Dissolve Partnership
+        </Button>
+      </Box>
+
+      {/* Dissolve Partnership Confirmation Dialog */}
+      <Dialog 
+        open={dissolveDialogOpen} 
+        onClose={() => !dissolving && setDissolveDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1.5,
+          color: '#dc2626',
+          fontWeight: 600,
+        }}>
+          <Warning sx={{ color: '#dc2626' }} />
+          Dissolve Partnership
+        </DialogTitle>
+        <DialogContent>
+          {dissolveError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {dissolveError}
+            </Alert>
+          )}
+          
+          <Typography variant="body1" sx={{ mb: 2, color: SLATE_900 }}>
+            Are you sure you want to dissolve this partnership? This will:
+          </Typography>
+          
+          <Box sx={{ mb: 3, pl: 2 }}>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
+              • Delete this workspace and all its data (chat, tasks, documents, decisions, KPIs)
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
+              • Remove the match between co-founders
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
+              • Free up any attached advisors
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
+              • Restore the project to "seeking co-founder" status (if applicable)
+            </Typography>
+          </Box>
+          
+          <Typography variant="body2" sx={{ color: '#dc2626', fontWeight: 500, mb: 2 }}>
+            This action cannot be undone. Type <strong>DISSOLVE</strong> to confirm.
+          </Typography>
+          
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Type DISSOLVE to confirm"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            disabled={dissolving}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#dc2626',
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 1 }}>
+          <Button 
+            onClick={() => setDissolveDialogOpen(false)}
+            disabled={dissolving}
+            sx={{ textTransform: 'none', color: SLATE_500 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDissolvePartnership}
+            disabled={dissolving || confirmText !== 'DISSOLVE'}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              bgcolor: '#dc2626',
+              '&:hover': { bgcolor: '#b91c1c' },
+              '&:disabled': { bgcolor: '#fca5a5' },
+            }}
+          >
+            {dissolving ? (
+              <>
+                <CircularProgress size={16} sx={{ color: '#fff', mr: 1 }} />
+                Dissolving...
+              </>
+            ) : (
+              'Dissolve Partnership'
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Compatibility Drawer */}
       <Drawer

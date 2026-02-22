@@ -31,7 +31,27 @@ const DOMAINS = [
   'Marketplace', 'Consumer', 'B2B', 'Hardware', 'Other'
 ];
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Hindi', 'Portuguese', 'Other'];
-const CADENCE_OPTIONS = ['weekly', 'bi-weekly', 'monthly'];
+const CADENCE_OPTIONS = [
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Bi-weekly' },
+  { value: 'monthly', label: 'Monthly' },
+];
+
+const ADVISORY_TYPES = [
+  { value: 'strategic', label: 'Strategic/Business Advice', description: 'High-level strategy, business model, market positioning' },
+  { value: 'technical', label: 'Technical Mentorship', description: 'Engineering, architecture, technology decisions' },
+  { value: 'fundraising', label: 'Fundraising & Investor Intros', description: 'Pitch preparation, investor connections, deal terms' },
+  { value: 'gtm', label: 'Go-to-Market & Sales', description: 'Sales strategy, customer acquisition, partnerships' },
+  { value: 'operations', label: 'Operations & Scaling', description: 'Hiring, processes, team building, scaling challenges' },
+  { value: 'product', label: 'Product & Design', description: 'Product strategy, UX/UI, roadmap prioritization' },
+];
+
+const HOURS_PER_WEEK_OPTIONS = [
+  { value: '1-2', label: '1-2 hours/week', description: 'Light touch - quick calls and async support' },
+  { value: '2-5', label: '2-5 hours/week', description: 'Regular engagement - weekly calls plus support' },
+  { value: '5-10', label: '5-10 hours/week', description: 'Deep involvement - multiple sessions per week' },
+  { value: '10+', label: '10+ hours/week', description: 'Intensive - nearly part-time commitment' },
+];
 
 const AdvisorOnboarding = ({ onComplete }) => {
   const { user } = useUser();
@@ -49,12 +69,15 @@ const AdvisorOnboarding = ({ onComplete }) => {
     
     // Expertise
     expertise_stages: [],
+    preferred_stages: [], // Stages they PREFER to advise (may differ from experience)
+    advisory_types: [], // Types of advisory they provide
     domains: [],
     languages: ['English'],
     
     // Capacity
     max_active_workspaces: 3,
     preferred_cadence: 'weekly',
+    availability_hours_per_week: '', // Structured hours selection
     
     // Contact
     contact_email: user?.emailAddresses?.[0]?.emailAddress || '',
@@ -67,7 +90,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
       years_experience: '',
       previous_companies: '',
       areas_of_expertise: '',
-      availability_hours_per_week: '',
       success_stories: '',
       what_makes_you_unique: '',
     }
@@ -106,10 +128,13 @@ const AdvisorOnboarding = ({ onComplete }) => {
               bio: profileData.bio || prev.bio,
               timezone: profileData.timezone || prev.timezone,
               expertise_stages: profileData.expertise_stages || prev.expertise_stages,
+              preferred_stages: profileData.preferred_stages || prev.preferred_stages,
+              advisory_types: profileData.advisory_types || prev.advisory_types,
               domains: profileData.domains || prev.domains,
               languages: profileData.languages || prev.languages,
               max_active_workspaces: profileData.max_active_workspaces ?? prev.max_active_workspaces,
               preferred_cadence: profileData.preferred_cadence || prev.preferred_cadence,
+              availability_hours_per_week: profileData.availability_hours_per_week || prev.availability_hours_per_week,
               contact_email: profileData.contact_email || prev.contact_email,
               contact_note: profileData.contact_note || prev.contact_note,
               linkedin_url: profileData.linkedin_url || prev.linkedin_url,
@@ -180,9 +205,20 @@ const AdvisorOnboarding = ({ onComplete }) => {
       case 0:
         return formData.headline.length >= 10 && formData.bio.length >= 50;
       case 1:
-        return formData.expertise_stages.length > 0 && formData.domains.length > 0;
+        // Require experience stages, preferred stages, advisory types, and domains
+        return (
+          formData.expertise_stages.length > 0 && 
+          formData.preferred_stages.length > 0 &&
+          formData.advisory_types.length > 0 &&
+          formData.domains.length > 0
+        );
       case 2:
-        return formData.max_active_workspaces >= 1 && formData.max_active_workspaces <= 10;
+        // Require max workspaces and hours per week selection
+        return (
+          formData.max_active_workspaces >= 1 && 
+          formData.max_active_workspaces <= 10 &&
+          formData.availability_hours_per_week
+        );
       case 3:
         return (
           formData.contact_email &&
@@ -195,7 +231,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
           (q.years_experience || '').trim() &&
           (q.previous_companies || '').trim() &&
           (q.areas_of_expertise || '').trim() &&
-          (q.availability_hours_per_week || '').trim() &&
           (q.success_stories || '').trim() &&
           (q.what_makes_you_unique || '').trim()
         );
@@ -289,26 +324,113 @@ const AdvisorOnboarding = ({ onComplete }) => {
       case 1:
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Type of Advisory */}
             <FormControl component="fieldset">
-              <FormLabel component="legend">Startup Stages You Advise</FormLabel>
+              <FormLabel component="legend" sx={{ mb: 1 }}>
+                What type of advisory do you provide? *
+              </FormLabel>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
+                Select all that apply - this helps founders understand how you can help
+              </Typography>
               <FormGroup>
-                {STAGES.map((stage) => (
-                  <FormControlLabel
-                    key={stage}
-                    control={
-                      <Checkbox
-                        checked={formData.expertise_stages.includes(stage)}
-                        onChange={(e) => handleArrayChange('expertise_stages', stage, e.target.checked)}
-                      />
-                    }
-                    label={stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
-                  />
-                ))}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {ADVISORY_TYPES.map((type) => (
+                    <Paper
+                      key={type.value}
+                      elevation={0}
+                      sx={{
+                        p: 1.5,
+                        border: '1px solid',
+                        borderColor: formData.advisory_types.includes(type.value) ? 'primary.main' : 'divider',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        bgcolor: formData.advisory_types.includes(type.value) ? 'primary.50' : 'transparent',
+                        '&:hover': { borderColor: 'primary.light' },
+                      }}
+                      onClick={() => {
+                        const checked = formData.advisory_types.includes(type.value);
+                        handleArrayChange('advisory_types', type.value, !checked);
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Checkbox
+                          checked={formData.advisory_types.includes(type.value)}
+                          onChange={(e) => handleArrayChange('advisory_types', type.value, e.target.checked)}
+                          size="small"
+                        />
+                        <Box>
+                          <Typography variant="body2" fontWeight={600}>{type.label}</Typography>
+                          <Typography variant="caption" color="text.secondary">{type.description}</Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
               </FormGroup>
             </FormControl>
 
+            {/* Startup Stages - Experience */}
             <FormControl component="fieldset">
-              <FormLabel component="legend">Domains/Industries</FormLabel>
+              <FormLabel component="legend" sx={{ mb: 1 }}>
+                Startup stages you have experience advising *
+              </FormLabel>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
+                Which stages have you worked with in the past?
+              </Typography>
+              <FormGroup>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {STAGES.map((stage) => (
+                    <Chip
+                      key={stage}
+                      label={stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
+                      onClick={() => {
+                        const checked = formData.expertise_stages.includes(stage);
+                        handleArrayChange('expertise_stages', stage, !checked);
+                      }}
+                      color={formData.expertise_stages.includes(stage) ? 'primary' : 'default'}
+                      variant={formData.expertise_stages.includes(stage) ? 'filled' : 'outlined'}
+                    />
+                  ))}
+                </Box>
+              </FormGroup>
+            </FormControl>
+
+            {/* Preferred Stages */}
+            <FormControl component="fieldset">
+              <FormLabel component="legend" sx={{ mb: 1 }}>
+                Stages you prefer to work with now *
+              </FormLabel>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
+                You may have Series A experience but prefer advising early-stage founders - that's fine!
+              </Typography>
+              <FormGroup>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {STAGES.map((stage) => (
+                    <Chip
+                      key={stage}
+                      label={stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
+                      onClick={() => {
+                        const checked = formData.preferred_stages.includes(stage);
+                        handleArrayChange('preferred_stages', stage, !checked);
+                      }}
+                      color={formData.preferred_stages.includes(stage) ? 'secondary' : 'default'}
+                      variant={formData.preferred_stages.includes(stage) ? 'filled' : 'outlined'}
+                      sx={{
+                        '&.MuiChip-filled': {
+                          bgcolor: '#0d9488',
+                          color: 'white',
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </FormGroup>
+            </FormControl>
+
+            {/* Domains */}
+            <FormControl component="fieldset">
+              <FormLabel component="legend" sx={{ mb: 1 }}>Domains/Industries *</FormLabel>
               <FormGroup>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {DOMAINS.map((domain) => (
@@ -327,21 +449,25 @@ const AdvisorOnboarding = ({ onComplete }) => {
               </FormGroup>
             </FormControl>
 
+            {/* Languages */}
             <FormControl component="fieldset">
-              <FormLabel component="legend">Languages</FormLabel>
+              <FormLabel component="legend" sx={{ mb: 1 }}>Languages</FormLabel>
               <FormGroup>
-                {LANGUAGES.map((lang) => (
-                  <FormControlLabel
-                    key={lang}
-                    control={
-                      <Checkbox
-                        checked={formData.languages.includes(lang)}
-                        onChange={(e) => handleArrayChange('languages', lang, e.target.checked)}
-                      />
-                    }
-                    label={lang}
-                  />
-                ))}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {LANGUAGES.map((lang) => (
+                    <Chip
+                      key={lang}
+                      label={lang}
+                      onClick={() => {
+                        const checked = formData.languages.includes(lang);
+                        handleArrayChange('languages', lang, !checked);
+                      }}
+                      color={formData.languages.includes(lang) ? 'primary' : 'default'}
+                      variant={formData.languages.includes(lang) ? 'filled' : 'outlined'}
+                      size="small"
+                    />
+                  ))}
+                </Box>
               </FormGroup>
             </FormControl>
           </Box>
@@ -350,9 +476,63 @@ const AdvisorOnboarding = ({ onComplete }) => {
       case 2:
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Hours Per Week - Structured Selection */}
+            <FormControl component="fieldset">
+              <FormLabel component="legend" sx={{ mb: 1 }}>
+                How many hours per week can you dedicate? *
+              </FormLabel>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
+                This is per startup you advise, not total across all startups
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {HOURS_PER_WEEK_OPTIONS.map((option) => (
+                  <Paper
+                    key={option.value}
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      border: '2px solid',
+                      borderColor: formData.availability_hours_per_week === option.value ? 'primary.main' : 'divider',
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      bgcolor: formData.availability_hours_per_week === option.value ? 'primary.50' : 'transparent',
+                      '&:hover': { borderColor: 'primary.light', bgcolor: 'action.hover' },
+                    }}
+                    onClick={() => handleChange('availability_hours_per_week', option.value)}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          border: '2px solid',
+                          borderColor: formData.availability_hours_per_week === option.value ? 'primary.main' : 'divider',
+                          bgcolor: formData.availability_hours_per_week === option.value ? 'primary.main' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {formData.availability_hours_per_week === option.value && (
+                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'white' }} />
+                        )}
+                      </Box>
+                      <Box>
+                        <Typography variant="body1" fontWeight={600}>{option.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">{option.description}</Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+            </FormControl>
+
+            {/* Max Active Workspaces */}
             <Box>
-              <Typography gutterBottom>
-                Maximum Active Workspaces: {formData.max_active_workspaces}
+              <Typography gutterBottom fontWeight={500}>
+                Maximum Active Startups: {formData.max_active_workspaces}
               </Typography>
               <Slider
                 value={formData.max_active_workspaces}
@@ -361,12 +541,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 max={10}
                 marks
                 step={1}
+                sx={{
+                  '& .MuiSlider-thumb': { bgcolor: '#0d9488' },
+                  '& .MuiSlider-track': { bgcolor: '#0d9488' },
+                }}
               />
               <Typography variant="caption" color="text.secondary">
-                How many startups can you actively advise at once?
+                How many startups can you actively advise at the same time?
               </Typography>
             </Box>
 
+            {/* Meeting Cadence */}
             <FormControl fullWidth>
               <InputLabel>Preferred Meeting Cadence</InputLabel>
               <Select
@@ -374,12 +559,15 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 onChange={(e) => handleChange('preferred_cadence', e.target.value)}
                 label="Preferred Meeting Cadence"
               >
-                {CADENCE_OPTIONS.map((cadence) => (
-                  <MenuItem key={cadence} value={cadence}>
-                    {cadence.charAt(0).toUpperCase() + cadence.slice(1).replace('-', ' ')}
+                {CADENCE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
                   </MenuItem>
                 ))}
               </Select>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                How often would you like to meet with founders?
+              </Typography>
             </FormControl>
           </Box>
         );
@@ -453,14 +641,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
               required
               multiline
               rows={3}
-              fullWidth
-            />
-            <TextField
-              label="Hours Per Week Available"
-              placeholder="e.g., 2-5 hours per week"
-              value={formData.questionnaire_data.availability_hours_per_week}
-              onChange={(e) => handleChange('questionnaire_data.availability_hours_per_week', e.target.value)}
-              required
               fullWidth
             />
             <TextField
