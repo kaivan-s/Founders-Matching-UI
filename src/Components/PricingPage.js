@@ -74,7 +74,7 @@ const PricingPage = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (subscriptionSuccess && countdown === 0) {
-      navigate('/dashboard');
+      navigate('/discover');
     }
   }, [subscriptionSuccess, countdown, navigate]);
 
