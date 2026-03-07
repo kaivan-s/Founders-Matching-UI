@@ -16,6 +16,7 @@ import PurchaseSuccess from './Components/PurchaseSuccess';
 import WorkspacePage from './Components/WorkspacePage';
 import WorkspacesList from './Components/WorkspacesList';
 import MyProjects from './Components/MyProjects';
+import AccessRequests from './Components/AccessRequests';
 import OnboardingDialog from './Components/OnboardingDialog';
 import AdvisorOnboarding from './Components/AdvisorOnboarding';
 import AdvisorDashboard from './Components/AdvisorDashboard';
@@ -419,6 +420,7 @@ function NavigationTabs() {
   const [notificationCounts, setNotificationCounts] = useState({
     interests: 0,
     workspaces: 0,
+    accessRequests: 0,
   });
   const [loadingCounts, setLoadingCounts] = useState(true);
 
@@ -430,18 +432,29 @@ function NavigationTabs() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/notifications/counts`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNotificationCounts({
-          interests: data.interests || 0,
-          workspaces: data.workspaces || 0,
-        });
+      const [notifResponse, accessResponse] = await Promise.all([
+        fetch(`${API_BASE}/notifications/counts`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        }),
+        fetch(`${API_BASE}/access-requests/count`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        }).catch(() => null),
+      ]);
+      
+      let interests = 0, workspaces = 0, accessRequests = 0;
+      
+      if (notifResponse.ok) {
+        const data = await notifResponse.json();
+        interests = data.interests || 0;
+        workspaces = data.workspaces || 0;
       }
+      
+      if (accessResponse && accessResponse.ok) {
+        const data = await accessResponse.json();
+        accessRequests = data.count || 0;
+      }
+      
+      setNotificationCounts({ interests, workspaces, accessRequests });
     } catch (err) {
       // Error fetching notification counts
     } finally {
@@ -454,10 +467,10 @@ function NavigationTabs() {
     fetchNotificationCounts();
   }, [fetchNotificationCounts]);
 
-  // Refresh counts when navigating to interested or workspaces tabs (mark as viewed)
+  // Refresh counts when navigating to interested, workspaces, or access-requests tabs (mark as viewed)
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/interested') || path.startsWith('/workspaces')) {
+    if (path.startsWith('/interested') || path.startsWith('/workspaces') || path.startsWith('/access-requests')) {
       // Refresh counts after a short delay to allow page to load
       const timer = setTimeout(() => {
         fetchNotificationCounts();
@@ -477,15 +490,20 @@ function NavigationTabs() {
     const handleInterestsViewed = () => {
       setTimeout(() => fetchNotificationCounts(), 500);
     };
+    const handleAccessRequestResponded = () => {
+      setTimeout(() => fetchNotificationCounts(), 500);
+    };
 
     window.addEventListener('interestAccepted', handleInterestAccepted);
     window.addEventListener('projectCreated', handleProjectCreated);
     window.addEventListener('interestsViewed', handleInterestsViewed);
+    window.addEventListener('accessRequestResponded', handleAccessRequestResponded);
 
     return () => {
       window.removeEventListener('interestAccepted', handleInterestAccepted);
       window.removeEventListener('projectCreated', handleProjectCreated);
       window.removeEventListener('interestsViewed', handleInterestsViewed);
+      window.removeEventListener('accessRequestResponded', handleAccessRequestResponded);
     };
   }, [fetchNotificationCounts]);
 
@@ -494,17 +512,18 @@ function NavigationTabs() {
     const path = location.pathname;
     if (path.startsWith('/discover')) return 0;
     if (path.startsWith('/interested')) return 1;
-    if (path.startsWith('/projects')) return 2;
-    if (path.startsWith('/workspaces')) return 3;
-    if (path.startsWith('/payments')) return 4;
-    if (path.startsWith('/feedback') || path.startsWith('/my-feedback')) return 5;
+    if (path.startsWith('/access-requests')) return 2;
+    if (path.startsWith('/projects')) return 3;
+    if (path.startsWith('/workspaces')) return 4;
+    if (path.startsWith('/payments')) return 5;
+    if (path.startsWith('/feedback') || path.startsWith('/my-feedback')) return 6;
     return 0;
   };
 
   const navigate = useNavigate();
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['/discover', '/interested', '/projects', '/workspaces', '/payments', '/my-feedback'];
+    const routes = ['/discover', '/interested', '/access-requests', '/projects', '/workspaces', '/payments', '/my-feedback'];
     navigate(routes[newValue]);
   };
 
@@ -562,6 +581,39 @@ function NavigationTabs() {
                   }}
                 >
                   {notificationCounts.interests}
+                </Box>
+              )}
+            </Box>
+          }
+        />
+        <Tab 
+          label={
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.75,
+              whiteSpace: 'nowrap',
+            }}>
+              <span>Access Requests</span>
+              {notificationCounts.accessRequests > 0 && (
+                <Box
+                  sx={{
+                    backgroundColor: '#f59e0b',
+                    color: '#ffffff',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    minWidth: '18px',
+                    height: '18px',
+                    lineHeight: '18px',
+                    padding: '0 5px',
+                    borderRadius: '9px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {notificationCounts.accessRequests}
                 </Box>
               )}
             </Box>
@@ -1033,6 +1085,32 @@ function AppContent() {
               <NavigationTabs />
               <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
                 <InterestedPage />
+              </Box>
+            </Box>
+          </RouteWrapper>
+        } />
+        <Route path="/access-requests" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              <NavigationTabs />
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+                <AccessRequests />
               </Box>
             </Box>
           </RouteWrapper>

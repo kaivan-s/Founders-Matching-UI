@@ -25,7 +25,7 @@ import {
   Tooltip,
   FormHelperText,
 } from '@mui/material';
-import { InfoOutlined } from '@mui/icons-material';
+import { InfoOutlined, Lock, LockOpen } from '@mui/icons-material';
 import { Business, Rocket, Psychology, ArrowBack, ArrowForward, TrendingUp, AttachMoney, Groups, Schedule } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import ProjectCompatibilityQuiz from './ProjectCompatibilityQuiz';
@@ -42,6 +42,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     stage: 'idea',
     genre: '',
     needed_skills: [],
+    visibility: 'open',
   });
   const [otherSkill, setOtherSkill] = useState('');
   const [compatibilityAnswers, setCompatibilityAnswers] = useState({});
@@ -113,6 +114,23 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     { value: 'media', label: 'Media & Content', tooltip: 'Content creation platforms, media apps, streaming, publishing tools.' },
     { value: 'logistics', label: 'Logistics & Supply Chain', tooltip: 'Shipping, delivery, supply chain management, logistics software.' },
     { value: 'other', label: 'Other', tooltip: 'Your project doesn\'t fit into the categories above.' },
+  ];
+
+  const visibilityOptions = [
+    { 
+      value: 'open', 
+      label: 'Open to All', 
+      icon: <LockOpen sx={{ fontSize: 20 }} />,
+      description: 'Anyone can see your full project details',
+      color: '#22c55e'
+    },
+    { 
+      value: 'request_access', 
+      label: 'Request Access', 
+      icon: <Lock sx={{ fontSize: 20 }} />,
+      description: 'Users must request access, you approve or decline',
+      color: '#f59e0b'
+    },
   ];
 
   const neededSkillsOptions = [
@@ -251,7 +269,12 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           'X-Clerk-User-Id': user.id,
         },
         body: JSON.stringify({
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          stage: formData.stage,
+          genre: formData.genre,
+          needed_skills: formData.needed_skills,
+          visibility: formData.visibility,
           compatibility_answers: compatibilityAnswers,
         }),
       });
@@ -276,6 +299,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         stage: 'idea',
         genre: '',
         needed_skills: [],
+        visibility: 'open',
       });
       setOtherSkill('');
       setCompatibilityAnswers({});
@@ -296,6 +320,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         stage: 'idea',
         genre: '',
         needed_skills: [],
+        visibility: 'open',
       });
       setOtherSkill('');
       setCompatibilityAnswers({});
@@ -678,6 +703,54 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               )}
             </Box>
             
+            {/* Visibility Settings */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Lock sx={{ fontSize: 18, color: '#64748b' }} />
+                Project Visibility
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                Control who can see your project details
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 1.5 }}>
+                {visibilityOptions.map(option => (
+                  <Box
+                    key={option.value}
+                    onClick={() => setFormData(prev => ({ ...prev, visibility: option.value }))}
+                    sx={{
+                      p: 2,
+                      borderRadius: '12px',
+                      border: '2px solid',
+                      borderColor: formData.visibility === option.value ? option.color : '#e2e8f0',
+                      bgcolor: formData.visibility === option.value ? `${option.color}08` : 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: option.color,
+                        bgcolor: `${option.color}05`,
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Box sx={{ color: formData.visibility === option.value ? option.color : '#64748b' }}>
+                        {option.icon}
+                      </Box>
+                      <Typography variant="subtitle2" sx={{ 
+                        fontWeight: 600, 
+                        color: formData.visibility === option.value ? option.color : '#0f172a' 
+                      }}>
+                        {option.label}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', lineHeight: 1.4 }}>
+                      {option.description}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              </Box>
+
             <Alert severity="info" sx={{ borderRadius: '12px', bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
               <Typography variant="body2">
                 <strong>Note:</strong> Each new project will appear separately in the discovery feed. 

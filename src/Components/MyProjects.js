@@ -30,6 +30,7 @@ import {
   Check,
   Close,
   Psychology,
+  Lock,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';

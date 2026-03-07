@@ -32,7 +32,11 @@ import {
   ArrowBack,
   ArrowForward,
   Search,
-  Tune
+  Tune,
+  Lock,
+  LockOpen,
+  HourglassEmpty,
+  Send
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
@@ -78,6 +82,12 @@ const SwipeInterface = () => {
   const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
+  
+  // Request Access state
+  const [requestAccessDialogOpen, setRequestAccessDialogOpen] = useState(false);
+  const [requestAccessProject, setRequestAccessProject] = useState(null);
+  const [requestAccessMessage, setRequestAccessMessage] = useState('');
+  const [requestAccessLoading, setRequestAccessLoading] = useState(false);
 
   const fetchSwipeLimit = useCallback(async () => {
     if (!user?.id) return;
@@ -322,6 +332,62 @@ const SwipeInterface = () => {
     setOffset(0);
     setHasMore(true);
     // useEffect will handle fetching
+  };
+
+  // Request Access handlers
+  const handleOpenRequestAccess = (project, founder) => {
+    setRequestAccessProject({ ...project, founderName: founder?.name });
+    setRequestAccessMessage('');
+    setRequestAccessDialogOpen(true);
+  };
+
+  const handleSubmitAccessRequest = async () => {
+    if (!requestAccessProject || !user?.id) return;
+    
+    setRequestAccessLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/projects/${requestAccessProject.id}/access/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({ message: requestAccessMessage }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send request');
+      }
+      
+      // Update the local state to show pending status
+      setFounders(prev => prev.map(f => {
+        if (f.projects?.[0]?.id === requestAccessProject.id) {
+          return {
+            ...f,
+            projects: [{
+              ...f.projects[0],
+              access_status: data.status === 'approved' ? 'granted' : 'pending',
+              has_access: data.status === 'approved'
+            }]
+          };
+        }
+        return f;
+      }));
+      
+      setRequestAccessDialogOpen(false);
+      setError(data.status === 'approved' 
+        ? '🎉 Access granted! You can now view the full project details.'
+        : '📩 Access request sent! The founder will review your request.');
+      setTimeout(() => setError(null), 4000);
+      
+    } catch (err) {
+      setError(err.message || 'Failed to send access request');
+      setTimeout(() => setError(null), 4000);
+    } finally {
+      setRequestAccessLoading(false);
+    }
   };
 
   const handleSwipe = async (founderId, direction, projectId = null) => {
@@ -992,117 +1058,185 @@ const SwipeInterface = () => {
                         {/* Looking For / Project */}
                         {firstProject ? (
                           <Box sx={{ mb: 2, flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, textAlign: 'left', fontSize: { xs: '0.9375rem', sm: '1rem' }, color: '#0f172a', lineHeight: 1.4 }}>
-                              {firstProject.title}
-                            </Typography>
-                            <Box
-                              sx={{
-                                mb: 1.25,
-                                flex: '1 1 auto',
-                                minHeight: 0,
-                                maxHeight: { xs: '120px', sm: '140px' },
-                                overflowY: 'auto',
-                                overflowX: 'hidden',
-                                textAlign: 'left',
-                                '&::-webkit-scrollbar': {
-                                  width: '6px',
-                                },
-                                '&::-webkit-scrollbar-track': {
-                                  background: 'transparent',
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                  background: 'rgba(148, 163, 184, 0.4)',
-                                  borderRadius: '3px',
-                                  '&:hover': {
-                                    background: 'rgba(148, 163, 184, 0.6)',
-                                  },
-                                },
-                              }}
-                            >
-                              <Typography 
-                                variant="body2" 
-                                sx={{ 
-                                  lineHeight: 1.6,
-                                  textAlign: 'left',
-                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                                  color: '#374151',
-                                  fontWeight: 400,
-                                }}
-                              >
-                                {firstProject.description}
+                            {/* Project Title - Always visible */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, textAlign: 'left', fontSize: { xs: '0.9375rem', sm: '1rem' }, color: '#0f172a', lineHeight: 1.4, flex: 1 }}>
+                                {firstProject.title}
                               </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
-                              {firstProject.stage && (
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                  <Typography variant="caption" sx={{ 
-                                    color: '#6b7280',
-                                    fontWeight: 500,
-                                    fontSize: '0.6875rem',
-                                    letterSpacing: '0.01em',
-                                  }}>
-                                    Stage:
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    <Chip 
-                                      label={firstProject.stage} 
-                                      size="small"
-                                      sx={{ 
-                                        textTransform: 'capitalize',
-                                        fontSize: '0.625rem',
-                                        height: 20,
-                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
-                                        color: '#1e3a8a',
-                                        fontWeight: 500,
-                                        border: '1px solid rgba(30, 58, 138, 0.2)',
-                                      }}
-                                    />
-                                  </Box>
-                                </Box>
-                              )}
-                              {firstProject.needed_skills && firstProject.needed_skills.length > 0 && (
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                  <Typography variant="caption" sx={{ 
-                                    color: '#6b7280',
-                                    fontWeight: 500,
-                                    fontSize: '0.6875rem',
-                                    letterSpacing: '0.01em',
-                                  }}>
-                                    Skills Needed:
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    {firstProject.needed_skills.slice(0, 3).map((skill, idx) => (
-                                      <Chip 
-                                        key={idx}
-                                        label={skill} 
-                                        size="small"
-                                        sx={{
-                                          fontSize: '0.625rem',
-                                          height: 20,
-                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
-                                        color: '#1e3a8a',
-                                        fontWeight: 500,
-                                        border: '1px solid rgba(30, 58, 138, 0.2)',
-                                        }}
-                                      />
-                                    ))}
-                                    {firstProject.needed_skills.length > 3 && (
-                                      <Chip 
-                                        label={`+${firstProject.needed_skills.length - 3}`}
-                                        size="small"
-                                        sx={{
-                                          fontSize: '0.625rem',
-                                          height: 20,
-                                          bgcolor: 'rgba(30, 58, 138, 0.08)',
-                                          color: '#1e3a8a',
-                                          fontWeight: 500,
-                                        }}
-                                      />
-                                    )}
-                                  </Box>
-                                </Box>
+                              {/* Visibility indicator */}
+                              {firstProject.visibility && firstProject.visibility !== 'open' && (
+                                <Chip
+                                  icon={<Lock sx={{ fontSize: 12 }} />}
+                                  label={firstProject.access_status === 'pending' ? 'Pending' : 'Private'}
+                                  size="small"
+                                  sx={{
+                                    height: 20,
+                                    fontSize: '0.6rem',
+                                    bgcolor: firstProject.access_status === 'pending' ? '#fef3c7' : firstProject.has_access ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                    color: firstProject.access_status === 'pending' ? '#d97706' : firstProject.has_access ? '#16a34a' : '#d97706',
+                                    border: '1px solid',
+                                    borderColor: firstProject.access_status === 'pending' ? '#fcd34d' : firstProject.has_access ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                                    '& .MuiChip-icon': { color: 'inherit', fontSize: 12 }
+                                  }}
+                                />
                               )}
                             </Box>
+                            
+                            {/* Content - Conditional based on access */}
+                            {firstProject.has_access !== false ? (
+                              <>
+                                {/* Full project details */}
+                                <Box
+                                  sx={{
+                                    mb: 1.25,
+                                    flex: '1 1 auto',
+                                    minHeight: 0,
+                                    maxHeight: { xs: '120px', sm: '140px' },
+                                    overflowY: 'auto',
+                                    overflowX: 'hidden',
+                                    textAlign: 'left',
+                                    '&::-webkit-scrollbar': { width: '6px' },
+                                    '&::-webkit-scrollbar-track': { background: 'transparent' },
+                                    '&::-webkit-scrollbar-thumb': {
+                                      background: 'rgba(148, 163, 184, 0.4)',
+                                      borderRadius: '3px',
+                                      '&:hover': { background: 'rgba(148, 163, 184, 0.6)' },
+                                    },
+                                  }}
+                                >
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{ 
+                                      lineHeight: 1.6,
+                                      textAlign: 'left',
+                                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                      color: '#374151',
+                                      fontWeight: 400,
+                                    }}
+                                  >
+                                    {firstProject.description}
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                                  {firstProject.stage && (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                      <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
+                                        Stage:
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                        <Chip 
+                                          label={firstProject.stage} 
+                                          size="small"
+                                          sx={{ 
+                                            textTransform: 'capitalize',
+                                            fontSize: '0.625rem',
+                                            height: 20,
+                                            bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                            color: '#1e3a8a',
+                                            fontWeight: 500,
+                                            border: '1px solid rgba(30, 58, 138, 0.2)',
+                                          }}
+                                        />
+                                      </Box>
+                                    </Box>
+                                  )}
+                                  {firstProject.needed_skills && firstProject.needed_skills.length > 0 && (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                      <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
+                                        Skills Needed:
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                        {firstProject.needed_skills.slice(0, 3).map((skill, idx) => (
+                                          <Chip 
+                                            key={idx}
+                                            label={skill} 
+                                            size="small"
+                                            sx={{
+                                              fontSize: '0.625rem',
+                                              height: 20,
+                                              bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                              color: '#1e3a8a',
+                                              fontWeight: 500,
+                                              border: '1px solid rgba(30, 58, 138, 0.2)',
+                                            }}
+                                          />
+                                        ))}
+                                        {firstProject.needed_skills.length > 3 && (
+                                          <Chip 
+                                            label={`+${firstProject.needed_skills.length - 3}`}
+                                            size="small"
+                                            sx={{
+                                              fontSize: '0.625rem',
+                                              height: 20,
+                                              bgcolor: 'rgba(30, 58, 138, 0.08)',
+                                              color: '#1e3a8a',
+                                              fontWeight: 500,
+                                            }}
+                                          />
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  )}
+                                </Box>
+                              </>
+                            ) : (
+                              /* Locked project - Request Access UI */
+                              <Box sx={{ 
+                                flex: '1 1 auto', 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                p: 2,
+                                bgcolor: 'rgba(245, 158, 11, 0.05)',
+                                borderRadius: '12px',
+                                border: '1px dashed rgba(245, 158, 11, 0.3)',
+                              }}>
+                                <Lock sx={{ fontSize: 32, color: '#d97706', mb: 1 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#92400e', mb: 0.5, textAlign: 'center' }}>
+                                  {firstProject.access_status === 'pending' ? 'Access Request Pending' : 'Project Details Locked'}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#a16207', mb: 1.5, textAlign: 'center', lineHeight: 1.4 }}>
+                                  {firstProject.access_status === 'pending' ? 'Waiting for the founder to approve your request' : 'Request access to view the full project details'}
+                                </Typography>
+                                {firstProject.access_status === 'pending' ? (
+                                  <Chip
+                                    icon={<HourglassEmpty sx={{ fontSize: 14 }} />}
+                                    label="Request Sent"
+                                    size="small"
+                                    sx={{
+                                      bgcolor: '#fef3c7',
+                                      color: '#92400e',
+                                      fontWeight: 600,
+                                      '& .MuiChip-icon': { color: '#d97706' }
+                                    }}
+                                  />
+                                ) : firstProject.access_status === 'no_access' ? (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    startIcon={<Send sx={{ fontSize: 14 }} />}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenRequestAccess(firstProject, founder);
+                                    }}
+                                    sx={{
+                                      bgcolor: '#f59e0b',
+                                      color: 'white',
+                                      textTransform: 'none',
+                                      fontWeight: 600,
+                                      fontSize: '0.75rem',
+                                      px: 2,
+                                      py: 0.75,
+                                      borderRadius: '8px',
+                                      '&:hover': { bgcolor: '#d97706' },
+                                    }}
+                                  >
+                                    Request Access
+                                  </Button>
+                                ) : null}
+                              </Box>
+                            )}
                           </Box>
                         ) : founder?.looking_for ? (
                           <Box sx={{ mb: 2, flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -1787,6 +1921,112 @@ const SwipeInterface = () => {
         onSave={handlePreferencesChange}
         initialPreferences={preferences}
       />
+
+      {/* Request Access Dialog */}
+      <Dialog
+        open={requestAccessDialogOpen}
+        onClose={() => !requestAccessLoading && setRequestAccessDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{
+              p: 1.25,
+              borderRadius: '12px',
+              bgcolor: 'rgba(245, 158, 11, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Lock sx={{ color: '#d97706', fontSize: 22 }} />
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                Request Access
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b' }}>
+                to view "{requestAccessProject?.title}"
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: '#64748b', mb: 2, lineHeight: 1.6 }}>
+            The founder has set this project as private. Send a request explaining your interest,
+            and they'll review your profile to decide if they want to share the details with you.
+          </Typography>
+          
+          <Box sx={{ mb: 2, p: 2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, mb: 0.5, display: 'block' }}>
+              Requesting access from
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a' }}>
+              {requestAccessProject?.founderName || 'The founder'}
+            </Typography>
+          </Box>
+
+          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, mb: 1, display: 'block' }}>
+            Your message (optional)
+          </Typography>
+          <textarea
+            value={requestAccessMessage}
+            onChange={(e) => setRequestAccessMessage(e.target.value)}
+            placeholder="Tell them why you're interested in this project and what you can bring to the table..."
+            style={{
+              width: '100%',
+              minHeight: '100px',
+              padding: '12px',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              fontFamily: 'inherit',
+              fontSize: '0.875rem',
+              resize: 'vertical',
+              outline: 'none',
+            }}
+            disabled={requestAccessLoading}
+          />
+          <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5, display: 'block' }}>
+            A good intro increases your chances of approval
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2.5, pt: 1.5, gap: 1 }}>
+          <Button
+            onClick={() => setRequestAccessDialogOpen(false)}
+            disabled={requestAccessLoading}
+            sx={{ 
+              textTransform: 'none', 
+              color: '#64748b',
+              fontWeight: 600,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmitAccessRequest}
+            variant="contained"
+            disabled={requestAccessLoading}
+            startIcon={requestAccessLoading ? <CircularProgress size={16} color="inherit" /> : <Send />}
+            sx={{
+              bgcolor: '#f59e0b',
+              color: 'white',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              borderRadius: '10px',
+              '&:hover': { bgcolor: '#d97706' },
+            }}
+          >
+            {requestAccessLoading ? 'Sending...' : 'Send Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       </Box>
     </Box>
   );
