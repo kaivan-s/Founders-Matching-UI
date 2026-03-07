@@ -35,6 +35,7 @@ import {
   CheckCircle,
   Warning,
   CancelOutlined,
+  Rocket,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
@@ -277,6 +278,7 @@ const PricingPage = () => {
   const planFeatures = {
     FREE: [
       { icon: <Business />, text: '1 lite workspace' },
+      { icon: <Rocket />, text: '1 project' },
       { icon: <People />, text: '3 swipes/month' },
       { icon: <People />, text: '3 access requests/month' },
       { icon: <Check />, text: 'Basic compatibility score' },
@@ -286,6 +288,7 @@ const PricingPage = () => {
     ],
     PRO: [
       { icon: <Business />, text: 'Up to 2 full workspaces' },
+      { icon: <Rocket />, text: 'Up to 3 projects' },
       { icon: <TrendingUp />, text: 'Unlimited swipes & requests' },
       { icon: <Analytics />, text: 'Full compatibility report' },
       { icon: <Check />, text: 'Full workspace OS' },
@@ -295,6 +298,7 @@ const PricingPage = () => {
     ],
     PRO_PLUS: [
       { icon: <Business />, text: 'Up to 5 workspaces' },
+      { icon: <Rocket />, text: 'Unlimited projects' },
       { icon: <TrendingUp />, text: 'Everything in Pro' },
       { icon: <Analytics />, text: 'Advanced compatibility analytics' },
       { icon: <Star />, text: 'Investor-facing features' },
@@ -598,28 +602,34 @@ const PricingPage = () => {
         
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                One-time Onboarding Fee
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#14b8a6', mb: 1 }}>
-                $69
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pay once when you join the marketplace to get listed and access partner tools
-              </Typography>
-            </Box>
-
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Annual Renewal
+                Project Acceptance Fee
               </Typography>
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#14b8a6', mb: 1 }}>
-                $39/year
+                $69 <Typography component="span" variant="body1" color="text.secondary">one-time</Typography>
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Renew annually to stay listed and keep your dashboard active
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Pay once when you accept a project to advise. No subscriptions, no renewals.
               </Typography>
+              
+              <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                  What's included:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Full access to the project workspace
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Direct communication with founders
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Advisor dashboard & tools
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Lifetime access to that project
+                </Typography>
+              </Box>
             </Box>
           </Grid>
 
@@ -629,7 +639,7 @@ const PricingPage = () => {
                 Compensation Model
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Advisors receive equity in the projects they handle, not monetary payment
+                Advisors receive equity in the projects they advise, not monetary payment
               </Typography>
               
               <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2, mb: 2 }}>
@@ -640,10 +650,10 @@ const PricingPage = () => {
                   • You'll receive equity in the project you're advising
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  • Equity terms are determined per project
+                  • Equity terms are discussed when you accept a project
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  • Details will be discussed when you accept an advisor request
+                  • Each project acceptance = one-time $69 fee
                 </Typography>
               </Box>
 

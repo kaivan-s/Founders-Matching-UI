@@ -169,15 +169,15 @@ const LandingPage = () => {
   const plans = [
     {
       name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['1 lite workspace', '3 swipes / month', '3 access requests / month', 'Basic KPIs & decisions', 'Weekly check-ins'],
+      features: ['1 lite workspace', '1 project', '3 swipes / month', '3 access requests / month', 'Basic KPIs & decisions'],
     },
     {
       name: 'Pro', price: '$15', period: '/month', popular: true,
-      features: ['Up to 2 full workspaces', 'Unlimited swipes & requests', 'Equity tools & agreements', 'Full task board', 'Compatibility insights', 'Advisor marketplace'],
+      features: ['Up to 2 full workspaces', 'Up to 3 projects', 'Unlimited swipes & requests', 'Equity tools & agreements', 'Compatibility insights', 'Advisor marketplace'],
     },
     {
       name: 'Pro+', price: '$35', period: '/month', popular: false,
-      features: ['Up to 5 workspaces', 'Everything in Pro', 'Advanced analytics', 'Priority advisor access', 'Investor-facing features'],
+      features: ['Up to 5 workspaces', 'Unlimited projects', 'Everything in Pro', 'Advanced analytics', 'Priority advisor access'],
     },
   ];
 

@@ -47,10 +47,31 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
   const [otherSkill, setOtherSkill] = useState('');
   const [compatibilityAnswers, setCompatibilityAnswers] = useState({});
   const dialogContentRef = useRef(null);
+  const [projectLimit, setProjectLimit] = useState(null);
 
   useEffect(() => {
     dialogContentRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
+
+  useEffect(() => {
+    if (open && user?.id) {
+      fetchProjectLimit();
+    }
+  }, [open, user]);
+
+  const fetchProjectLimit = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/billing/project-limit`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setProjectLimit(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch project limit:', err);
+    }
+  };
   
   const steps = [
     { label: 'Project Info', icon: <Business />, category: null },
@@ -434,6 +455,42 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           </Alert>
         )}
         
+        {/* Project limit reached message */}
+        {projectLimit && !projectLimit.can_create && (
+          <Alert 
+            severity="warning" 
+            sx={{ 
+              mb: 2, 
+              borderRadius: '12px',
+              '& .MuiAlert-message': { width: '100%' }
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography variant="body2" fontWeight={600}>
+                Project limit reached ({projectLimit.current_count}/{projectLimit.max_allowed})
+              </Typography>
+              <Typography variant="body2">
+                Upgrade to Pro for up to 3 projects, or Pro+ for unlimited projects.
+              </Typography>
+              <Button 
+                variant="contained" 
+                size="small"
+                href="/pricing"
+                sx={{ 
+                  mt: 1, 
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  bgcolor: '#0d9488',
+                  '&:hover': { bgcolor: '#14b8a6' }
+                }}
+              >
+                View Plans
+              </Button>
+            </Box>
+          </Alert>
+        )}
+        
         {currentStep === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt:2 }}>
             <TextField
@@ -807,7 +864,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           <Button
             onClick={handleNext}
             variant="contained"
-            disabled={loading || !validateStep(currentStep)}
+            disabled={loading || !validateStep(currentStep) || (projectLimit && !projectLimit.can_create)}
             endIcon={<ArrowForward />}
             sx={{
               bgcolor: '#0d9488',
@@ -832,7 +889,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={loading || !validateStep(currentStep)}
+            disabled={loading || !validateStep(currentStep) || (projectLimit && !projectLimit.can_create)}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Business />}
             sx={{
               bgcolor: '#0d9488',
