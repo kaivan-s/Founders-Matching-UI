@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useTheme, useMediaQuery } from '@mui/material';
+import { useTheme, useMediaQuery, alpha } from '@mui/material';
 import { 
   Card, 
   CardContent, 
@@ -18,7 +18,8 @@ import {
   DialogActions,
   Divider,
   Tabs,
-  Tab
+  Tab,
+  Paper
 } from '@mui/material';
 import { 
   Handshake, 
@@ -36,13 +37,17 @@ import {
   Lock,
   LockOpen,
   HourglassEmpty,
-  Send
+  Send,
+  Rocket,
+  Add,
+  CheckCircle
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
 import AdvancedSearch from './AdvancedSearch';
 import DiscoveryPreferencesDialog from './DiscoveryPreferencesDialog';
+import NewProjectDialog from './NewProjectDialog';
 import { API_BASE } from '../config/api';
 
 const SwipeInterface = () => {
@@ -89,6 +94,34 @@ const SwipeInterface = () => {
   const [requestAccessMessage, setRequestAccessMessage] = useState('');
   const [requestAccessLoading, setRequestAccessLoading] = useState(false);
   const [accessRequestLimit, setAccessRequestLimit] = useState(null); // {can_request, current_count, max_allowed, remaining}
+  
+  // First-time user project creation prompt
+  const [userProjects, setUserProjects] = useState(null); // null = loading, [] = no projects
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [skippedProjectPrompt, setSkippedProjectPrompt] = useState(() => {
+    try {
+      return localStorage.getItem('skippedProjectPrompt') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const fetchUserProjects = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/projects`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserProjects(data || []);
+      } else {
+        setUserProjects([]);
+      }
+    } catch (err) {
+      setUserProjects([]);
+    }
+  }, [user]);
 
   const fetchSwipeLimit = useCallback(async () => {
     if (!user?.id) return;
@@ -246,6 +279,7 @@ const SwipeInterface = () => {
       fetchPlan();
       fetchSwipeLimit();
       fetchAccessRequestLimit();
+      fetchUserProjects();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -547,6 +581,181 @@ const SwipeInterface = () => {
         </Alert>
       </Box>
     );
+  }
+
+  // First-time user prompt - show when user has no projects
+  const renderFirstTimeUserPrompt = () => (
+    <Box 
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        px: 2,
+        py: 4,
+        minHeight: '70vh',
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            textAlign: 'center',
+            borderRadius: '24px',
+            p: { xs: 4, sm: 6 },
+            maxWidth: '520px',
+            border: '1px solid',
+            borderColor: '#e2e8f0',
+            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          }}
+        >
+          <Box sx={{ 
+            display: 'inline-flex', 
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 80,
+            height: 80,
+            borderRadius: '20px',
+            bgcolor: alpha('#0d9488', 0.1),
+            mb: 3,
+          }}>
+            <Rocket sx={{ fontSize: 40, color: '#0d9488' }} />
+          </Box>
+          
+          <Typography 
+            variant="h4" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 700, 
+              color: '#0f172a',
+              fontSize: { xs: '1.5rem', sm: '1.75rem' },
+              mb: 2,
+            }}
+          >
+            Welcome to Guild Space!
+          </Typography>
+          
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: '#64748b', 
+              mb: 4,
+              fontSize: '1rem',
+              lineHeight: 1.7,
+              maxWidth: '400px',
+              mx: 'auto',
+            }}
+          >
+            Create your first project to start discovering co-founders who match your vision and work style.
+          </Typography>
+
+          <Box sx={{ 
+            bgcolor: alpha('#0d9488', 0.05), 
+            borderRadius: '16px', 
+            p: 3, 
+            mb: 4,
+            textAlign: 'left',
+          }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', mb: 2 }}>
+              What happens next?
+            </Typography>
+            {[
+              { icon: <Add sx={{ fontSize: 18 }} />, text: 'Describe your project idea (takes ~2 min)' },
+              { icon: <Psychology sx={{ fontSize: 18 }} />, text: 'Answer compatibility questions' },
+              { icon: <Handshake sx={{ fontSize: 18 }} />, text: 'Get matched with aligned co-founders' },
+            ].map((item, i) => (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: i < 2 ? 1.5 : 0 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: 28,
+                  height: 28,
+                  borderRadius: '8px',
+                  bgcolor: '#0d9488',
+                  color: 'white',
+                }}>
+                  {item.icon}
+                </Box>
+                <Typography variant="body2" sx={{ color: '#475569' }}>
+                  {item.text}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<Rocket />}
+            onClick={() => setShowNewProjectDialog(true)}
+            sx={{
+              bgcolor: '#0d9488',
+              color: 'white',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '1rem',
+              px: 5,
+              py: 1.5,
+              borderRadius: '14px',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
+              '&:hover': {
+                bgcolor: '#14b8a6',
+                boxShadow: '0 6px 20px rgba(13, 148, 136, 0.4)',
+              },
+            }}
+          >
+            Create Your First Project
+          </Button>
+
+          <Box sx={{ width: '100%', mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              Free to create • No credit card required
+            </Typography>
+            <Typography
+              component="button"
+              variant="caption"
+              onClick={() => {
+                setSkippedProjectPrompt(true);
+                try {
+                  localStorage.setItem('skippedProjectPrompt', 'true');
+                } catch {}
+              }}
+              sx={{
+                mt: 1,
+                color: '#94a3b8',
+                bgcolor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                '&:hover': { color: '#0d9488', textDecoration: 'underline' },
+              }}
+            >
+              Skip for now
+            </Typography>
+          </Box>
+        </Paper>
+      </motion.div>
+
+      <NewProjectDialog
+        open={showNewProjectDialog}
+        onClose={() => setShowNewProjectDialog(false)}
+        onProjectCreated={() => {
+          setShowNewProjectDialog(false);
+          fetchUserProjects();
+        }}
+      />
+    </Box>
+  );
+
+  // Show first-time user prompt if user has no projects and hasn't skipped
+  if (userProjects !== null && userProjects.length === 0 && !skippedProjectPrompt) {
+    return renderFirstTimeUserPrompt();
   }
 
   const renderEmptyState = () => (
