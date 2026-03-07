@@ -277,7 +277,8 @@ const PricingPage = () => {
   const planFeatures = {
     FREE: [
       { icon: <Business />, text: '1 lite workspace' },
-      { icon: <People />, text: '10 swipes/month' },
+      { icon: <People />, text: '3 swipes/month' },
+      { icon: <People />, text: '3 access requests/month' },
       { icon: <Check />, text: 'Basic compatibility score' },
       { icon: <Check />, text: 'Basic KPIs & decisions' },
       { icon: <Check />, text: 'Weekly check-ins' },
@@ -285,7 +286,7 @@ const PricingPage = () => {
     ],
     PRO: [
       { icon: <Business />, text: 'Up to 2 full workspaces' },
-      { icon: <TrendingUp />, text: 'Unlimited discovery & matching' },
+      { icon: <TrendingUp />, text: 'Unlimited swipes & requests' },
       { icon: <Analytics />, text: 'Full compatibility report' },
       { icon: <Check />, text: 'Full workspace OS' },
       { icon: <Check />, text: 'Equity & roles' },

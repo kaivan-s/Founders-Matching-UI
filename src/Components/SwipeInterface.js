@@ -88,6 +88,7 @@ const SwipeInterface = () => {
   const [requestAccessProject, setRequestAccessProject] = useState(null);
   const [requestAccessMessage, setRequestAccessMessage] = useState('');
   const [requestAccessLoading, setRequestAccessLoading] = useState(false);
+  const [accessRequestLimit, setAccessRequestLimit] = useState(null); // {can_request, current_count, max_allowed, remaining}
 
   const fetchSwipeLimit = useCallback(async () => {
     if (!user?.id) return;
@@ -100,6 +101,22 @@ const SwipeInterface = () => {
       if (response.ok) {
         const data = await response.json();
         setSwipeLimit(data);
+      }
+    } catch (err) {
+    }
+  }, [user]);
+
+  const fetchAccessRequestLimit = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/billing/access-request-limit`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAccessRequestLimit(data);
       }
     } catch (err) {
     }
@@ -228,6 +245,7 @@ const SwipeInterface = () => {
       }
       fetchPlan();
       fetchSwipeLimit();
+      fetchAccessRequestLimit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -377,14 +395,22 @@ const SwipeInterface = () => {
       }));
       
       setRequestAccessDialogOpen(false);
+      setRequestAccessMessage('');
+      fetchAccessRequestLimit(); // Refresh limit after successful request
       setError(data.status === 'approved' 
         ? '🎉 Access granted! You can now view the full project details.'
         : '📩 Access request sent! The founder will review your request.');
       setTimeout(() => setError(null), 4000);
       
     } catch (err) {
-      setError(err.message || 'Failed to send access request');
-      setTimeout(() => setError(null), 4000);
+      const errorMsg = err.message || 'Failed to send access request';
+      // Check if this is a limit reached error
+      if (errorMsg.includes('limit reached')) {
+        setError('⚡ ' + errorMsg);
+      } else {
+        setError(errorMsg);
+      }
+      setTimeout(() => setError(null), 5000);
     } finally {
       setRequestAccessLoading(false);
     }
@@ -1995,6 +2021,26 @@ const SwipeInterface = () => {
           <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5, display: 'block' }}>
             A good intro increases your chances of approval
           </Typography>
+          
+          {/* Show remaining requests for free users */}
+          {accessRequestLimit && accessRequestLimit.max_allowed !== -1 && (
+            <Box sx={{ 
+              mt: 2, 
+              p: 1.5, 
+              borderRadius: '8px', 
+              bgcolor: accessRequestLimit.can_request ? '#fef3c7' : '#fee2e2',
+              border: `1px solid ${accessRequestLimit.can_request ? '#fcd34d' : '#fecaca'}`,
+            }}>
+              <Typography variant="caption" sx={{ 
+                color: accessRequestLimit.can_request ? '#92400e' : '#dc2626', 
+                fontWeight: 600 
+              }}>
+                {accessRequestLimit.can_request 
+                  ? `${accessRequestLimit.remaining} request${accessRequestLimit.remaining !== 1 ? 's' : ''} remaining this month`
+                  : 'Request limit reached. Upgrade to Pro for unlimited requests.'}
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 2.5, pt: 1.5, gap: 1 }}>
           <Button
@@ -2011,16 +2057,16 @@ const SwipeInterface = () => {
           <Button
             onClick={handleSubmitAccessRequest}
             variant="contained"
-            disabled={requestAccessLoading}
+            disabled={requestAccessLoading || (accessRequestLimit && !accessRequestLimit.can_request)}
             startIcon={requestAccessLoading ? <CircularProgress size={16} color="inherit" /> : <Send />}
             sx={{
-              bgcolor: '#f59e0b',
+              bgcolor: accessRequestLimit && !accessRequestLimit.can_request ? '#9ca3af' : '#f59e0b',
               color: 'white',
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
               borderRadius: '10px',
-              '&:hover': { bgcolor: '#d97706' },
+              '&:hover': { bgcolor: accessRequestLimit && !accessRequestLimit.can_request ? '#9ca3af' : '#d97706' },
             }}
           >
             {requestAccessLoading ? 'Sending...' : 'Send Request'}
