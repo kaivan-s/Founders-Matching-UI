@@ -159,25 +159,25 @@ const LandingPage = () => {
 
   const features = [
     { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and preferences.' },
-    { icon: <Handshake />, title: 'Equity & Agreements', desc: 'Guided equity questionnaire, scenario builder, and auto-generated co-founder agreements.' },
-    { icon: <BarChart />, title: 'KPIs & Accountability', desc: 'Joint KPI dashboard, weekly check-ins, and commitment tracking.' },
-    { icon: <Groups />, title: 'Workspace OS', desc: 'Dedicated workspace per partnership with chat, tasks, decisions, and documents.' },
-    { icon: <Shield />, title: 'Compatibility Insights', desc: 'Preference-based matching and partnership health monitoring.' },
+    { icon: <Handshake />, title: 'Equity & Agreements', desc: 'Choose from equity templates or use our detailed questionnaire. Generate co-founder agreements automatically.' },
+    { icon: <TrendingUp />, title: 'Weekly Check-ins', desc: 'Stay aligned with structured weekly updates and partnership health monitoring.' },
+    { icon: <Groups />, title: 'Partnership Workspace', desc: 'Dedicated workspace with equity tools, role definitions, and ready-to-use Slack & Notion templates.' },
+    { icon: <Shield />, title: 'Compatibility Scores', desc: 'See how well you match with projects based on work style and preferences. Pro feature.' },
     { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
   ];
 
   const plans = [
     {
       name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['1 lite workspace', '1 project', '3 swipes / month', '3 access requests / month', 'Basic KPIs & decisions'],
+      features: ['1 lite workspace', '1 project', '3 swipes / month', '3 access requests / month', 'Weekly check-ins'],
     },
     {
       name: 'Pro', price: '$15', period: '/month', popular: true,
-      features: ['Up to 2 full workspaces', 'Up to 3 projects', 'Unlimited swipes & requests', 'Equity tools & agreements', 'Compatibility insights', 'Advisor marketplace'],
+      features: ['Up to 2 full workspaces', 'Up to 3 projects', 'Unlimited swipes & requests', 'Equity tools & agreements', 'Compatibility scores', 'Advisor marketplace'],
     },
     {
       name: 'Pro+', price: '$35', period: '/month', popular: false,
-      features: ['Up to 5 workspaces', 'Unlimited projects', 'Everything in Pro', 'Advanced analytics', 'Priority advisor access'],
+      features: ['Up to 5 workspaces', 'Unlimited projects', 'Everything in Pro', 'Advanced equity scenarios', 'Priority advisor access'],
     },
   ];
 
@@ -510,19 +510,18 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              7-step guided questionnaire, AI-calculated splits, and auto-generated legal docs.
+              Choose from equity templates or use our detailed questionnaire. Auto-generate legal docs.
             </Typography>
 
             {/* Questionnaire steps mockup */}
             <Box sx={{ mb: 2 }}>
               <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, mb: 1, display: 'block', letterSpacing: '0.06em' }}>
-                QUESTIONNAIRE
+                SIMPLE 3-STEP FLOW
               </Typography>
               {[
-                { label: 'Startup Context', done: true },
-                { label: 'My Details', done: true },
-                { label: 'Vesting Terms', done: true },
-                { label: 'Calculate Split', done: false },
+                { label: 'Quick Context', done: true },
+                { label: 'Choose Split Template', done: true },
+                { label: 'Approve & Sign', done: false },
               ].map((step, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.75 }}>
                   <Box sx={{
@@ -598,7 +597,7 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {/* ─ Card 3: Kanban Task Board (5 cols) ─ */}
+          {/* ─ Card 3: Advisor Marketplace (5 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 5' },
             p: 3, borderRadius: 3, bgcolor: '#fff',
@@ -609,76 +608,60 @@ const LandingPage = () => {
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
               <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(NAVY, 0.08), color: NAVY, display: 'flex' }}>
-                <Groups sx={{ fontSize: 20 }} />
+                <AutoAwesome sx={{ fontSize: 20 }} />
               </Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                Workspace Kanban
+                Advisor Marketplace
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Drag-and-drop task board. Assign owners, set due dates, link to KPIs.
+              Connect with experienced advisors who earn equity in your success.
             </Typography>
-            {/* 3-column kanban mockup */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5 }}>
+            {/* Advisor cards mockup */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {[
-                { col: 'To-do', colColor: SLATE_400, tasks: [
-                  { title: 'Market research', owner: 'SK', due: 'Feb 10', overdue: false },
-                ] },
-                { col: 'In Progress', colColor: SKY, tasks: [
-                  { title: 'MVP wireframes', owner: 'AC', due: 'Feb 8', overdue: false },
-                  { title: 'Pitch deck v2', owner: 'SK', due: 'Feb 5', overdue: true },
-                ] },
-                { col: 'Done', colColor: TEAL, tasks: [
-                  { title: 'Domain setup', owner: 'AC', due: 'Jan 28', overdue: false },
-                ] },
-              ].map((column, ci) => (
-                <Box key={ci}>
-                  {/* Column header */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: column.colColor }} />
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_900, fontSize: '0.7rem' }}>
-                      {column.col}
-                    </Typography>
-                    <Box sx={{
-                      ml: 'auto', width: 18, height: 18, borderRadius: '50%',
-                      bgcolor: alpha(column.colColor, 0.12), color: column.colColor,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.6rem', fontWeight: 700,
-                    }}>
-                      {column.tasks.length}
-                    </Box>
+                { name: 'Michael Chen', role: 'Ex-Stripe PM', expertise: ['Product', 'Fundraising'], rating: '4.9' },
+                { name: 'Sarah Johnson', role: 'Serial Entrepreneur', expertise: ['Growth', 'Sales'], rating: '5.0' },
+                { name: 'David Park', role: 'Tech Lead @ Google', expertise: ['Engineering', 'Architecture'], rating: '4.8' },
+              ].map((advisor, i) => (
+                <Box key={i} sx={{
+                  p: 1.5, borderRadius: 2, bgcolor: BG,
+                  border: '1px solid', borderColor: SLATE_200,
+                  display: 'flex', alignItems: 'center', gap: 1.5,
+                }}>
+                  <Box sx={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    bgcolor: alpha(i === 0 ? TEAL : i === 1 ? SKY : NAVY, 0.15),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: i === 0 ? TEAL : i === 1 ? SKY : NAVY, fontWeight: 700, fontSize: '0.7rem',
+                  }}>
+                    {advisor.name.split(' ').map(n => n[0]).join('')}
                   </Box>
-                  {/* Tasks */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {column.tasks.map((t, ti) => (
-                      <Box key={ti} sx={{
-                        p: 1.25, borderRadius: 1.5, bgcolor: BG,
-                        border: '1px solid', borderColor: t.overdue ? alpha('#ef4444', 0.3) : SLATE_200,
-                      }}>
-                        <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', mb: 0.75, fontSize: '0.7rem', lineHeight: 1.3 }}>
-                          {t.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Box sx={{
-                            width: 18, height: 18, borderRadius: '50%',
-                            bgcolor: alpha(SKY, 0.15), color: SKY,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.5rem', fontWeight: 700,
-                          }}>
-                            {t.owner}
-                          </Box>
-                          <Typography variant="caption" sx={{
-                            fontSize: '0.55rem', fontWeight: 500,
-                            color: t.overdue ? '#ef4444' : SLATE_400,
-                          }}>
-                            {t.due}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ))}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
+                      {advisor.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.65rem' }}>
+                      {advisor.role}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 700, fontSize: '0.7rem' }}>★</Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 600, fontSize: '0.65rem' }}>{advisor.rating}</Typography>
                   </Box>
                 </Box>
               ))}
+            </Box>
+            {/* CTA */}
+            <Box sx={{
+              mt: 2, p: 1.25, borderRadius: 2, bgcolor: alpha(TEAL, 0.06),
+              border: '1px solid', borderColor: alpha(TEAL, 0.15),
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
+            }}>
+              <Typography variant="caption" sx={{ color: TEAL, fontWeight: 600, fontSize: '0.7rem' }}>
+                Browse 50+ advisors
+              </Typography>
+              <ArrowForward sx={{ fontSize: 12, color: TEAL }} />
             </Box>
           </Box>
 
@@ -718,7 +701,7 @@ const LandingPage = () => {
               {[
                 { label: 'Equity agreed', done: true },
                 { label: 'Roles defined', done: true },
-                { label: 'First 3 KPIs set', done: false },
+                { label: 'First check-in logged', done: false },
               ].map((m, i) => (
                 <Box key={i} sx={{
                   display: 'flex', alignItems: 'center', gap: 1,
@@ -743,7 +726,7 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {/* ─ Card 5: Chat & Check-ins (full width) ─ */}
+          {/* ─ Card 5: Check-ins & Roles (full width) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 12' },
             p: 3, borderRadius: 3, bgcolor: '#fff',
@@ -753,141 +736,102 @@ const LandingPage = () => {
             '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 12px 32px ${alpha(TEAL, 0.1)}` },
           }}>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-              {/* Chat side */}
+              {/* Weekly Check-ins side */}
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
                   <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.08), color: TEAL, display: 'flex' }}>
-                    <People sx={{ fontSize: 20 }} />
+                    <TrendingUp sx={{ fontSize: 20 }} />
                   </Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                    Workspace Chat
+                    Weekly Check-ins
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
-                  Real-time messaging within your workspace. Keep all discussions in one place.
+                  Stay aligned with structured weekly updates. Track progress and partnership health.
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {/* Date separator */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, my: 0.5 }}>
-                    <Box sx={{ flex: 1, height: '1px', bgcolor: SLATE_200 }} />
-                    <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem', fontWeight: 500 }}>Today</Typography>
-                    <Box sx={{ flex: 1, height: '1px', bgcolor: SLATE_200 }} />
-                  </Box>
-                  {/* Other message */}
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
-                    <Box sx={{
-                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                      bgcolor: alpha(SKY, 0.15), color: SKY,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.55rem', fontWeight: 700,
-                    }}>SK</Box>
-                    <Box sx={{
-                      maxWidth: '75%', px: 1.5, py: 1, borderRadius: '12px 12px 12px 4px',
-                      bgcolor: BG, border: '1px solid', borderColor: SLATE_200,
+                {/* Check-in cards mockup */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {[
+                    { week: 'Week of Feb 10', status: 'On Track', statusColor: TEAL, note: 'Completed user research. Starting MVP development next week.' },
+                    { week: 'Week of Feb 3', status: 'On Track', statusColor: TEAL, note: 'Finished pitch deck v2. Scheduled 3 investor calls.' },
+                    { week: 'Week of Jan 27', status: 'Needs Attention', statusColor: '#f59e0b', note: 'Had alignment discussion on product direction. Resolved priorities.' },
+                  ].map((checkin, i) => (
+                    <Box key={i} sx={{
+                      p: 1.5, borderRadius: 2, bgcolor: BG,
+                      border: '1px solid', borderColor: SLATE_200,
                     }}>
-                      <Typography variant="caption" sx={{ color: SLATE_900, lineHeight: 1.5, fontSize: '0.7rem' }}>
-                        I've updated the pitch deck with the new market data. Can you review?
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, fontSize: '0.55rem', mt: 0.5 }}>
-                        10:24 AM
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_900, fontSize: '0.7rem' }}>{checkin.week}</Typography>
+                        <Box sx={{
+                          px: 1, py: 0.25, borderRadius: 1,
+                          bgcolor: alpha(checkin.statusColor, 0.1), color: checkin.statusColor,
+                          fontSize: '0.6rem', fontWeight: 600,
+                        }}>{checkin.status}</Box>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.5, fontSize: '0.7rem' }}>
+                        {checkin.note}
                       </Typography>
                     </Box>
-                  </Box>
-                  {/* Own message */}
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                    <Box sx={{
-                      maxWidth: '75%', px: 1.5, py: 1, borderRadius: '12px 12px 4px 12px',
-                      bgcolor: TEAL, boxShadow: `0 2px 8px ${alpha(TEAL, 0.25)}`,
-                    }}>
-                      <Typography variant="caption" sx={{ color: '#fff', lineHeight: 1.5, fontSize: '0.7rem' }}>
-                        Looks great! I'll review it tonight and we can discuss in our check-in.
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', color: alpha('#fff', 0.7), fontSize: '0.55rem', mt: 0.5 }}>
-                        10:31 AM
-                      </Typography>
-                    </Box>
-                    <Box sx={{
-                      width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                      bgcolor: alpha(TEAL, 0.15), color: TEAL,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.55rem', fontWeight: 700,
-                    }}>AC</Box>
-                  </Box>
-                  {/* Input mockup */}
-                  <Box sx={{
-                    mt: 1, display: 'flex', alignItems: 'center', gap: 1,
-                    px: 2, py: 1, borderRadius: 3, border: '1px solid', borderColor: SLATE_200, bgcolor: BG,
-                  }}>
-                    <Typography variant="caption" sx={{ color: SLATE_400, flex: 1, fontSize: '0.7rem' }}>Type a message...</Typography>
-                    <Box sx={{
-                      width: 28, height: 28, borderRadius: '50%', bgcolor: alpha(TEAL, 0.12),
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <ArrowForward sx={{ fontSize: 14, color: TEAL }} />
-                    </Box>
-                  </Box>
+                  ))}
                 </Box>
               </Box>
 
-              {/* Check-ins & KPIs side */}
+              {/* Roles & Responsibilities side */}
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
                   <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(SKY, 0.08), color: SKY, display: 'flex' }}>
-                    <BarChart sx={{ fontSize: 20 }} />
+                    <People sx={{ fontSize: 20 }} />
                   </Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                    Weekly Check-ins & KPIs
+                    Roles & Responsibilities
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
-                  Log progress weekly, set KPI targets, and track commitments per founder.
+                  Define clear ownership areas. Know who handles what from day one.
                 </Typography>
-                {/* Check-in card mockup */}
-                <Box sx={{ p: 2, borderRadius: 2, border: '1px solid', borderColor: SLATE_200, bgcolor: BG, mb: 1.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_900, fontSize: '0.7rem' }}>Week of Feb 3</Typography>
-                    <Box sx={{
-                      px: 1, py: 0.25, borderRadius: 1,
-                      bgcolor: alpha(TEAL, 0.1), color: TEAL,
-                      fontSize: '0.6rem', fontWeight: 600,
-                    }}>On Track</Box>
-                  </Box>
-                  <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.5, display: 'block', mb: 1.5, fontSize: '0.7rem' }}>
-                    Completed market research. MVP wireframes in review. Pitch deck v2 needs one more round.
-                  </Typography>
-                  {/* Progress bar */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem' }}>Progress</Typography>
-                    <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: alpha(TEAL, 0.12), overflow: 'hidden' }}>
-                      <Box sx={{ width: '72%', height: '100%', bgcolor: TEAL, borderRadius: 2 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ color: TEAL, fontWeight: 700, fontSize: '0.6rem' }}>72%</Typography>
-                  </Box>
-                </Box>
-                {/* KPI table mockup */}
-                <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: SLATE_200, overflow: 'hidden' }}>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', px: 1.5, py: 0.75, bgcolor: BG }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>KPI</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>Target</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_400, fontSize: '0.6rem' }}>Status</Typography>
-                  </Box>
+                {/* Roles mockup */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {[
-                    { kpi: 'User signups', target: '100', status: 'In Progress', sColor: SKY },
-                    { kpi: 'Revenue', target: '$5k MRR', status: 'Not Started', sColor: SLATE_400 },
-                    { kpi: 'Ship MVP', target: 'Mar 15', status: 'Done', sColor: TEAL },
-                  ].map((row, i) => (
+                    { name: 'Alex Chen', role: 'CEO / Product', areas: ['Product Strategy', 'Fundraising', 'Hiring'], equity: '52%' },
+                    { name: 'Sarah Kim', role: 'CTO', areas: ['Engineering', 'Architecture', 'DevOps'], equity: '45%' },
+                  ].map((founder, i) => (
                     <Box key={i} sx={{
-                      display: 'grid', gridTemplateColumns: '2fr 1fr 1fr',
-                      px: 1.5, py: 0.75, alignItems: 'center',
-                      borderTop: '1px solid', borderColor: SLATE_200,
+                      p: 2, borderRadius: 2, bgcolor: BG,
+                      border: '1px solid', borderColor: SLATE_200,
                     }}>
-                      <Typography variant="caption" sx={{ fontWeight: 500, color: SLATE_900, fontSize: '0.65rem' }}>{row.kpi}</Typography>
-                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>{row.target}</Typography>
-                      <Box sx={{
-                        px: 0.75, py: 0.15, borderRadius: 1, display: 'inline-block', width: 'fit-content',
-                        bgcolor: alpha(row.sColor, 0.1), color: row.sColor, fontSize: '0.55rem', fontWeight: 600,
-                      }}>
-                        {row.status}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          bgcolor: alpha(i === 0 ? TEAL : SKY, 0.15),
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: i === 0 ? TEAL : SKY, fontWeight: 700, fontSize: '0.7rem',
+                        }}>
+                          {founder.name.split(' ').map(n => n[0]).join('')}
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
+                            {founder.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.65rem' }}>
+                            {founder.role}
+                          </Typography>
+                        </Box>
+                        <Box sx={{
+                          px: 1, py: 0.25, borderRadius: 1,
+                          bgcolor: alpha(TEAL, 0.08), color: TEAL,
+                          fontSize: '0.65rem', fontWeight: 700,
+                        }}>{founder.equity}</Box>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                        {founder.areas.map((area, j) => (
+                          <Box key={j} sx={{
+                            px: 1, py: 0.35, borderRadius: 1,
+                            bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200,
+                            fontSize: '0.6rem', fontWeight: 500, color: SLATE_500,
+                          }}>
+                            {area}
+                          </Box>
+                        ))}
                       </Box>
                     </Box>
                   ))}
@@ -916,8 +860,8 @@ const LandingPage = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
             { step: '1', title: 'Discover & Match', desc: 'Swipe through project profiles. Match based on skills, stage, location, and working style.' },
-            { step: '2', title: 'Set the Foundation', desc: 'Use the equity questionnaire, scenario builder, and agreement generator to align on terms.' },
-            { step: '3', title: 'Build Together', desc: 'Track KPIs, assign tasks, log decisions, and check in weekly from your shared workspace.' },
+            { step: '2', title: 'Set the Foundation', desc: 'Use equity templates or our detailed questionnaire, then generate co-founder agreements automatically.' },
+            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and connect with advisors—all from your partnership workspace.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
@@ -939,6 +883,61 @@ const LandingPage = () => {
           ))}
         </Box>
       </Container>
+
+      {/* ─── Works With Your Tools ─── */}
+      <Box sx={{ bgcolor: '#fff', borderTop: '1px solid', borderBottom: '1px solid', borderColor: SLATE_200 }}>
+        <Container maxWidth="md" sx={{ py: { xs: 5, md: 6 } }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="overline" sx={{ color: TEAL, fontWeight: 700, letterSpacing: '0.12em', fontSize: '0.75rem' }}>
+              Integrations
+            </Typography>
+            <Typography variant="h5" sx={{
+              fontWeight: 700, mt: 1, mb: 3, color: SLATE_900,
+              fontSize: { xs: '1.25rem', md: '1.5rem' }, letterSpacing: '-0.01em',
+            }}>
+              Works with your favorite tools
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 4, maxWidth: 500, mx: 'auto' }}>
+              Use Guild Space for equity, agreements, and check-ins. Connect your usual tools for day-to-day collaboration.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 3, md: 5 }, flexWrap: 'wrap' }}>
+              {/* Slack */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 40, height: 40, borderRadius: 2, bgcolor: '#4A154B', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>#</Typography>
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Slack</Typography>
+              </Box>
+              
+              {/* Notion */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 40, height: 40, borderRadius: 2, bgcolor: '#000', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>N</Typography>
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Notion</Typography>
+              </Box>
+              
+              {/* Google Calendar */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ 
+                  width: 40, height: 40, borderRadius: 2, bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>📅</Typography>
+                </Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Google Calendar</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* ─── Pricing ─── */}
       <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
