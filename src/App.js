@@ -12,7 +12,6 @@ import SwipeInterface from './Components/SwipeInterface';
 import InterestedPage from './Components/InterestedPage';
 import LandingPage from './Components/LandingPage';
 import PaymentHistory from './Components/PaymentHistory';
-import PurchaseSuccess from './Components/PurchaseSuccess';
 import WorkspacePage from './Components/WorkspacePage';
 import WorkspacesList from './Components/WorkspacesList';
 import MyProjects from './Components/MyProjects';
@@ -723,7 +722,6 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAdvisorOnboarding, setShowAdvisorOnboarding] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
@@ -1300,10 +1298,6 @@ function AppContent() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
-      
-      {showPurchaseSuccess && (
-        <PurchaseSuccess onContinue={() => setShowPurchaseSuccess(false)} />
-      )}
     </>
   );
 }

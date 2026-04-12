@@ -19,7 +19,8 @@ import {
   Divider,
   Tabs,
   Tab,
-  Paper
+  Paper,
+  Tooltip
 } from '@mui/material';
 import { 
   Handshake, 
@@ -85,6 +86,8 @@ const SwipeInterface = () => {
   });
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
+  const [compatibilityPromptOpen, setCompatibilityPromptOpen] = useState(false); // Prompt for paid users without preferences
+  const [hasCompatibilityPrefs, setHasCompatibilityPrefs] = useState(null); // null = loading, true/false
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
   
@@ -258,8 +261,43 @@ const SwipeInterface = () => {
       if (response.ok) {
         const data = await response.json();
         setPlan(data);
+        return data;
       }
     } catch (err) {
+    }
+    return null;
+  }, [user]);
+
+  const checkCompatibilityPreferences = useCallback(async (userPlan) => {
+    if (!user?.id) return;
+    
+    // Only check for paid users
+    const isPaid = userPlan?.id === 'PRO' || userPlan?.id === 'PRO_PLUS';
+    if (!isPaid) {
+      setHasCompatibilityPrefs(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE}/founders/discovery-preferences`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const hasPrefs = data.has_preferences || false;
+        setHasCompatibilityPrefs(hasPrefs);
+        
+        // Show prompt if paid user doesn't have preferences and hasn't dismissed it
+        if (!hasPrefs) {
+          const dismissed = localStorage.getItem('compatibilityPromptDismissed');
+          if (!dismissed) {
+            setCompatibilityPromptOpen(true);
+          }
+        }
+      }
+    } catch (err) {
+      setHasCompatibilityPrefs(false);
     }
   }, [user]);
 
@@ -276,7 +314,12 @@ const SwipeInterface = () => {
       } catch (e) {
         fetchFounders(filters, {}, 0, false);
       }
-      fetchPlan();
+      // Fetch plan and then check compatibility preferences
+      fetchPlan().then((userPlan) => {
+        if (userPlan) {
+          checkCompatibilityPreferences(userPlan);
+        }
+      });
       fetchSwipeLimit();
       fetchAccessRequestLimit();
       fetchUserProjects();
@@ -1194,8 +1237,8 @@ const SwipeInterface = () => {
                         } : {},
                       }}
                     >
-                    {/* Preference Match Score Badge - Show on ALL cards when score exists */}
-                    {founder?.preference_score !== undefined && founder?.preference_score !== null && (
+                    {/* Compatibility Score Badge for Paid Users */}
+                    {founder?.compatibility_score !== undefined && founder?.compatibility_score !== null ? (
                       <Box sx={{
                         position: 'absolute',
                         top: 12,
@@ -1203,22 +1246,29 @@ const SwipeInterface = () => {
                         zIndex: 10,
                       }}>
                         <Chip
-                          label={`${founder.preference_score}% Match`}
+                          icon={<Psychology sx={{ fontSize: 14, color: 'white' }} />}
+                          label={`${founder.compatibility_score}%`}
                           size="small"
                           sx={{
-                            background: founder.preference_score >= 80 ? 
-                              '#1e3a8a' :
-                              founder.preference_score >= 60 ?
-                              '#1e3a8a' :
+                            background: founder.compatibility_score >= 80 ? 
+                              '#0d9488' :
+                              founder.compatibility_score >= 60 ?
+                              '#0d9488' :
+                              founder.compatibility_score >= 40 ?
+                              '#f59e0b' :
                               '#64748b',
                             color: 'white',
                             fontWeight: 600,
                             fontSize: isCurrentCard ? '0.6875rem' : '0.625rem',
-                            px: 1.25,
+                            px: 1,
                             py: 0.25,
-                            height: 24,
-                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+                            height: 26,
+                            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)',
                             opacity: isCurrentCard ? 1 : 0.9,
+                            '& .MuiChip-icon': {
+                              marginLeft: '4px',
+                              marginRight: '-2px',
+                            },
                             '& .MuiChip-label': {
                               px: 0.5,
                               letterSpacing: '0.01em',
@@ -1226,6 +1276,70 @@ const SwipeInterface = () => {
                           }}
                         />
                       </Box>
+                    ) : plan?.id === 'FREE' && isCurrentCard ? (
+                      /* Hint for Free users to upgrade for compatibility scores */
+                      <Tooltip title="Upgrade to Pro to see compatibility scores" arrow placement="left">
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          zIndex: 10,
+                          cursor: 'pointer',
+                        }}>
+                          <Chip
+                            icon={<Lock sx={{ fontSize: 12, color: 'white' }} />}
+                            label="Pro"
+                            size="small"
+                            sx={{
+                              background: 'rgba(100, 116, 139, 0.7)',
+                              color: 'white',
+                              fontWeight: 500,
+                              fontSize: '0.625rem',
+                              px: 0.5,
+                              height: 22,
+                              opacity: 0.8,
+                              '& .MuiChip-icon': {
+                                marginLeft: '4px',
+                                marginRight: '-4px',
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Tooltip>
+                    ) : (
+                      /* Preference Match Score Badge (when no compatibility score and not free) */
+                      founder?.preference_score !== undefined && founder?.preference_score !== null && (
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          zIndex: 10,
+                        }}>
+                          <Chip
+                            label={`${founder.preference_score}% Match`}
+                            size="small"
+                            sx={{
+                              background: founder.preference_score >= 80 ? 
+                                '#1e3a8a' :
+                                founder.preference_score >= 60 ?
+                                '#1e3a8a' :
+                                '#64748b',
+                              color: 'white',
+                              fontWeight: 600,
+                              fontSize: isCurrentCard ? '0.6875rem' : '0.625rem',
+                              px: 1.25,
+                              py: 0.25,
+                              height: 24,
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+                              opacity: isCurrentCard ? 1 : 0.9,
+                              '& .MuiChip-label': {
+                                px: 0.5,
+                                letterSpacing: '0.01em',
+                              }
+                            }}
+                          />
+                        </Box>
+                      )
                     )}
                     
                     <CardContent sx={{ 
@@ -2153,8 +2267,31 @@ const SwipeInterface = () => {
       <DiscoveryPreferencesDialog
         open={preferencesDialogOpen}
         onClose={() => setPreferencesDialogOpen(false)}
-        onSave={handlePreferencesChange}
+        onSave={(prefs) => {
+          handlePreferencesChange(prefs);
+          setHasCompatibilityPrefs(Object.keys(prefs).length > 0);
+        }}
         initialPreferences={preferences}
+        isPaidUser={plan?.id === 'PRO' || plan?.id === 'PRO_PLUS'}
+      />
+
+      {/* Compatibility Preferences Prompt (for paid users without preferences) */}
+      <DiscoveryPreferencesDialog
+        open={compatibilityPromptOpen}
+        onClose={() => {
+          setCompatibilityPromptOpen(false);
+          localStorage.setItem('compatibilityPromptDismissed', 'true');
+        }}
+        onSave={(prefs) => {
+          handlePreferencesChange(prefs);
+          setHasCompatibilityPrefs(Object.keys(prefs).length > 0);
+          setCompatibilityPromptOpen(false);
+          // Refresh founders to get compatibility scores
+          fetchFounders(filters, prefs, 0, false);
+        }}
+        initialPreferences={{}}
+        isPaidUser={true}
+        showCompatibilityPrompt={true}
       />
 
       {/* Request Access Dialog */}

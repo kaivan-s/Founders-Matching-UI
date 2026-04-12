@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import {
   Dialog,
   DialogTitle,
@@ -15,8 +16,11 @@ import {
   Paper,
   IconButton,
   Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
-import { Close, Psychology, TrendingUp, BusinessCenter, Schedule } from '@mui/icons-material';
+import { Close, Psychology, TrendingUp, BusinessCenter, Schedule, Lock } from '@mui/icons-material';
+import { API_BASE } from '../config/api';
 
 // Only the 4 main questions used for scoring (from backend PREFERENCE_WEIGHTS)
 const PREFERENCE_QUESTIONS = [
@@ -70,21 +74,48 @@ const PREFERENCE_QUESTIONS = [
   },
 ];
 
-const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences = {} }) => {
+const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences = {}, isPaidUser = false, showCompatibilityPrompt = false }) => {
+  const { user } = useUser();
   const [preferences, setPreferences] = useState(initialPreferences);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Initialize preferences from localStorage or initialPreferences
+  // Initialize preferences from localStorage or backend
   useEffect(() => {
     if (open) {
-      try {
-        const saved = localStorage.getItem('discoveryPreferences');
-        const savedPrefs = saved ? JSON.parse(saved) : {};
-        setPreferences(savedPrefs);
-      } catch (e) {
-        setPreferences(initialPreferences);
-      }
+      const loadPreferences = async () => {
+        try {
+          // First check localStorage
+          const saved = localStorage.getItem('discoveryPreferences');
+          const localPrefs = saved ? JSON.parse(saved) : {};
+          
+          // For paid users, also check backend
+          if (isPaidUser && user?.id) {
+            try {
+              const response = await fetch(`${API_BASE}/founders/discovery-preferences`, {
+                headers: { 'X-Clerk-User-Id': user.id },
+              });
+              if (response.ok) {
+                const data = await response.json();
+                if (data.preferences && Object.keys(data.preferences).length > 0) {
+                  // Backend preferences take priority
+                  setPreferences(data.preferences);
+                  return;
+                }
+              }
+            } catch (err) {
+              // Fallback to localStorage
+            }
+          }
+          
+          setPreferences(localPrefs);
+        } catch (e) {
+          setPreferences(initialPreferences);
+        }
+      };
+      loadPreferences();
     }
-  }, [open, initialPreferences]);
+  }, [open, initialPreferences, isPaidUser, user?.id]);
 
   const handleAnswerChange = (questionId, value) => {
     setPreferences(prev => ({
@@ -93,20 +124,66 @@ const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences 
     }));
   };
 
-  const handleSave = () => {
-    // Save preferences
-    if (onSave) {
-      onSave(preferences);
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    
+    try {
+      // Save to localStorage (always)
+      localStorage.setItem('discoveryPreferences', JSON.stringify(preferences));
+      
+      // For paid users, also save to backend for compatibility scoring
+      if (isPaidUser && user?.id) {
+        const response = await fetch(`${API_BASE}/founders/discovery-preferences`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify({ preferences }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save preferences');
+        }
+      }
+      
+      // Callback
+      if (onSave) {
+        onSave(preferences);
+      }
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
-  const handleClear = () => {
-    setPreferences({});
-    if (onSave) {
-      onSave({});
+  const handleClear = async () => {
+    setSaving(true);
+    try {
+      setPreferences({});
+      localStorage.removeItem('discoveryPreferences');
+      
+      if (isPaidUser && user?.id) {
+        await fetch(`${API_BASE}/founders/discovery-preferences`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify({ preferences: {} }),
+        });
+      }
+      
+      if (onSave) {
+        onSave({});
+      }
+      onClose();
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   const answeredCount = PREFERENCE_QUESTIONS.filter(q => preferences[q.id]).length;
@@ -127,23 +204,41 @@ const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences 
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Psychology sx={{ color: 'primary.main' }} />
+            <Psychology sx={{ color: isPaidUser ? '#0d9488' : 'primary.main' }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Discovery Preferences
+              {showCompatibilityPrompt ? 'Set Your Work Preferences' : 'Discovery Preferences'}
             </Typography>
           </Box>
-          <IconButton onClick={onClose} size="small">
-            <Close />
-          </IconButton>
+          {!showCompatibilityPrompt && (
+            <IconButton onClick={onClose} size="small">
+              <Close />
+            </IconButton>
+          )}
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Set your preferences to see compatibility scores on projects. Projects matching your preferences will appear first.
+          {showCompatibilityPrompt 
+            ? 'Answer these quick questions to see compatibility scores with projects. This helps you find co-founders who match your work style.'
+            : 'Set your preferences to see compatibility scores on projects. Projects matching your preferences will appear first.'
+          }
         </Typography>
+        {isPaidUser && (
+          <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, p: 1.5, bgcolor: 'rgba(13, 148, 136, 0.08)', borderRadius: 2 }}>
+            <Psychology sx={{ color: '#0d9488', fontSize: 18 }} />
+            <Typography variant="caption" sx={{ color: '#0d9488', fontWeight: 500 }}>
+              Pro feature: Your answers will be used to calculate compatibility scores with projects
+            </Typography>
+          </Box>
+        )}
       </DialogTitle>
       <DialogContent dividers sx={{ maxHeight: '70vh', overflow: 'auto' }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Answer these 4 key questions to see compatibility scores. Projects matching your preferences will appear first.
+            Answer these 4 key questions to unlock compatibility insights.
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <Typography variant="caption" color="text.secondary">
@@ -237,21 +332,26 @@ const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences 
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClear} sx={{ color: '#64748b' }}>
-          Clear All
-        </Button>
+        {!showCompatibilityPrompt && (
+          <Button onClick={handleClear} disabled={saving} sx={{ color: '#64748b' }}>
+            Clear All
+          </Button>
+        )}
         <Box sx={{ flex: 1 }} />
-        <Button onClick={onClose} sx={{ color: '#64748b' }}>
-          Cancel
-        </Button>
+        {!showCompatibilityPrompt && (
+          <Button onClick={onClose} disabled={saving} sx={{ color: '#64748b' }}>
+            Cancel
+          </Button>
+        )}
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={answeredCount === 0}
+          disabled={answeredCount === 0 || saving}
           sx={{
-            bgcolor: '#1e3a8a',
+            bgcolor: isPaidUser ? '#0d9488' : '#1e3a8a',
+            minWidth: 140,
             '&:hover': {
-              bgcolor: '#3b82f6',
+              bgcolor: isPaidUser ? '#0f766e' : '#3b82f6',
             },
             '&:disabled': {
               bgcolor: '#cbd5e1',
@@ -259,7 +359,13 @@ const DiscoveryPreferencesDialog = ({ open, onClose, onSave, initialPreferences 
             },
           }}
         >
-          Save Preferences
+          {saving ? (
+            <CircularProgress size={20} sx={{ color: 'white' }} />
+          ) : showCompatibilityPrompt ? (
+            'See Compatibility Scores'
+          ) : (
+            'Save Preferences'
+          )}
         </Button>
       </DialogActions>
     </Dialog>

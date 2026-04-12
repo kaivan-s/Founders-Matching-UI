@@ -36,6 +36,7 @@ import { CheckCircle, Description, ContentCopy, HourglassEmpty, Cancel, Check, C
 import { useWorkspaceEquity, useWorkspaceRoles, useWorkspaceParticipants } from '../../hooks/useWorkspace';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../../config/api';
+import SimpleEquityWizard from './SimpleEquityWizard';
 import EquityQuestionnaireWizard from './EquityQuestionnaireWizard';
 
 const VESTING_PRESETS = [
@@ -57,6 +58,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   
   // New wizard mode state - show wizard by default if no current equity scenario exists
   const [showWizard, setShowWizard] = useState(false);
+  const [useAdvancedWizard, setUseAdvancedWizard] = useState(false); // Toggle between simple and advanced
   const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
   
   // Check if equity setup has been completed (has an approved current scenario)
@@ -516,15 +518,30 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
           </Box>
         )}
         
-        <EquityQuestionnaireWizard
-          workspaceId={workspaceId}
-          participants={participants}
-          onComplete={() => {
-            setShowWizard(false);
-            setHasCompletedSetup(true);
-            refetchEquity();
-          }}
-        />
+        {/* Use Simple Wizard by default, Advanced as opt-in */}
+        {useAdvancedWizard ? (
+          <EquityQuestionnaireWizard
+            workspaceId={workspaceId}
+            participants={participants}
+            onComplete={() => {
+              setShowWizard(false);
+              setHasCompletedSetup(true);
+              setUseAdvancedWizard(false);
+              refetchEquity();
+            }}
+          />
+        ) : (
+          <SimpleEquityWizard
+            workspaceId={workspaceId}
+            participants={participants}
+            onComplete={() => {
+              setShowWizard(false);
+              setHasCompletedSetup(true);
+              refetchEquity();
+            }}
+            onSwitchToAdvanced={() => setUseAdvancedWizard(true)}
+          />
+        )}
       </Box>
     );
   }

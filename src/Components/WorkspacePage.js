@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useParams, useNavigate, useLocation, Routes, Route, Navigate, useMatch } from 'react-router-dom';
+import { useParams, useNavigate, Routes, Route, Navigate, useMatch } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,82 +26,40 @@ import { API_BASE } from '../config/api';
 import { 
   Edit, 
   ArrowBack, 
-  Schedule,
   TrendingUp,
   Groups,
+  Handshake,
   CheckCircleOutline,
-  ChatBubbleOutline,
-  Assignment,
-  Folder
 } from '@mui/icons-material';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
-import WorkspaceDecisions from './WorkspaceTabs/WorkspaceDecisions';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
-import WorkspaceCommitments from './WorkspaceTabs/WorkspaceCommitments';
-import WorkspaceTasks from './WorkspaceTabs/WorkspaceTasks';
-import WorkspaceChat from './WorkspaceChat';
 import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
-import WorkspaceDocuments from './WorkspaceTabs/WorkspaceDocuments';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
 
 const WorkspacePage = () => {
   const { workspaceId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useUser();
   const { workspace, loading, error, updateWorkspace } = useWorkspace(workspaceId);
-  const [currentFounderId, setCurrentFounderId] = useState(null);
   const [workspacePlan, setWorkspacePlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
-  const decisionsMatch = useMatch(`/workspaces/${workspaceId}/decisions`);
   const equityRolesMatch = useMatch(`/workspaces/${workspaceId}/equity-roles`);
-  const commitmentsMatch = useMatch(`/workspaces/${workspaceId}/commitments`);
-  const tasksMatch = useMatch(`/workspaces/${workspaceId}/tasks`);
-  const chatMatch = useMatch(`/workspaces/${workspaceId}/chat`);
   const accountabilityMatch = useMatch(`/workspaces/${workspaceId}/accountability`);
-  const documentsMatch = useMatch(`/workspaces/${workspaceId}/documents`);
   
   // Determine active tab based on route matches
+  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors
   const activeTab = useMemo(() => {
     if (overviewMatch) return 0;
-    if (chatMatch) return 1;
-    if (decisionsMatch) return 2;
-    if (equityRolesMatch) return 3;
-    if (commitmentsMatch) return 4;
-    if (tasksMatch) return 5;
-    if (documentsMatch) return 6;
-    if (accountabilityMatch) return 7;
+    if (equityRolesMatch) return 1;
+    if (accountabilityMatch) return 2;
     return 0; // Default to overview
-  }, [overviewMatch, chatMatch, decisionsMatch, equityRolesMatch, commitmentsMatch, tasksMatch, documentsMatch, accountabilityMatch]);
-
-  useEffect(() => {
-    // Fetch current founder ID
-    const fetchFounderId = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/profile/check`, {
-          headers: {
-            'X-Clerk-User-Id': user.id,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.profile && data.profile.id) {
-            setCurrentFounderId(data.profile.id);
-          }
-        }
-      } catch (err) {
-      }
-    };
-    if (user) {
-      fetchFounderId();
-    }
-  }, [user]);
+  }, [overviewMatch, equityRolesMatch, accountabilityMatch]);
 
   // Fetch workspace plan tier
   useEffect(() => {
@@ -136,7 +94,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
+    const routes = ['overview', 'equity-roles', 'accountability'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -201,13 +159,8 @@ const WorkspacePage = () => {
 
   const tabIcons = [
     <TrendingUp fontSize="small" />,
-    <ChatBubbleOutline fontSize="small" />,
-    <CheckCircleOutline fontSize="small" />,
     <Groups fontSize="small" />,
-    <Schedule fontSize="small" />,
-    <Assignment fontSize="small" />,
-    <Folder fontSize="small" />,
-    <Groups fontSize="small" />
+    <Handshake fontSize="small" />,
   ];
 
   if (loading) {
@@ -477,22 +430,6 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[1]}
-                <span>Chat</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[2]}
-                <span>Decisions</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[3]}
                 <span>Equity & Roles</span>
               </Box>
             }
@@ -500,31 +437,7 @@ const WorkspacePage = () => {
           <Tab 
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[4]}
-                <span>Commitments & KPIs</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[5]}
-                <span>Tasks</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[6]}
-                <span>Documents</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[7]}
+                {tabIcons[2]}
                 <span>Advisors</span>
               </Box>
             }
@@ -551,19 +464,10 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'chat', 'decisions', 'equity-roles', 'commitments', 'tasks', 'documents', 'accountability'];
+                const routes = ['overview', 'equity-roles', 'accountability'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
-              <Route path="chat" element={
-              <Box sx={{ height: 'calc(100vh - 300px)', minHeight: 400 }}>
-                <WorkspaceChat matchId={workspace?.match_id} currentFounderId={currentFounderId} />
-              </Box>
-              } />
-              <Route path="decisions" element={<WorkspaceDecisions workspaceId={workspaceId} />} />
               <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
-              <Route path="commitments" element={<WorkspaceCommitments workspaceId={workspaceId} />} />
-              <Route path="tasks" element={<WorkspaceTasks workspaceId={workspaceId} />} />
-              <Route path="documents" element={<WorkspaceDocuments workspaceId={workspaceId} />} />
               <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="*" element={<Navigate to="overview" replace />} />

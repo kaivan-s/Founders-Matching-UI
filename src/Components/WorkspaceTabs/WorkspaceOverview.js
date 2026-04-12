@@ -41,15 +41,19 @@ import {
   ArrowForward,
   CalendarToday,
   ExitToApp,
+  SentimentVeryDissatisfied,
+  SentimentDissatisfied,
+  SentimentNeutral,
+  SentimentSatisfied,
+  SentimentVerySatisfied,
+  Create,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkspaceParticipants } from '../../hooks/useWorkspace';
-import { useWorkspaceKPIs } from '../../hooks/useWorkspace';
 import { useWorkspaceEquity } from '../../hooks/useWorkspace';
 import { useWorkspaceRoles } from '../../hooks/useWorkspace';
 import { useWorkspaceCheckins } from '../../hooks/useWorkspace';
-import { useWorkspaceDecisions } from '../../hooks/useWorkspace';
 import { API_BASE } from '../../config/api';
 
 const NAVY = '#1e3a8a';
@@ -68,11 +72,9 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   const { participants: allParticipants, loading: participantsLoading, updateParticipant } = useWorkspaceParticipants(workspaceId);
   
   const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
-  const { kpis, loading: kpisLoading } = useWorkspaceKPIs(workspaceId);
   const { equity, loading: equityLoading } = useWorkspaceEquity(workspaceId);
   const { roles, loading: rolesLoading } = useWorkspaceRoles(workspaceId);
   const { checkins, loading: checkinsLoading } = useWorkspaceCheckins(workspaceId, 10);
-  const { decisions, loading: decisionsLoading } = useWorkspaceDecisions(workspaceId);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editForm, setEditForm] = useState({ weekly_commitment_hours: '', timezone: '' });
   const [compatibilityDrawerOpen, setCompatibilityDrawerOpen] = useState(false);
@@ -86,6 +88,22 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   const [dissolving, setDissolving] = useState(false);
   const [dissolveError, setDissolveError] = useState(null);
   const [confirmText, setConfirmText] = useState('');
+  
+  // Weekly partner check-in state
+  const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [checkinStatus, setCheckinStatus] = useState(null);
+  const [checkinStatusLoading, setCheckinStatusLoading] = useState(true);
+  const [currentWeekCheckins, setCurrentWeekCheckins] = useState(null);
+  const [healthTrend, setHealthTrend] = useState([]);
+  const [recentCheckins, setRecentCheckins] = useState([]);
+  const [checkinSubmitting, setCheckinSubmitting] = useState(false);
+  const [checkinForm, setCheckinForm] = useState({
+    accomplishments: '',
+    blockers: '',
+    next_week_focus: '',
+    partnership_health: 4,
+    cofounder_shoutout: '',
+  });
   
   const handleDissolvePartnership = async () => {
     if (!workspace?.match_id) {
@@ -143,6 +161,143 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   useEffect(() => {
     fetchEquityScenarios();
   }, [fetchEquityScenarios]);
+  
+  // Weekly check-in functions
+  const fetchCheckinStatus = useCallback(async () => {
+    if (!user?.id || !workspaceId) return;
+    try {
+      setCheckinStatusLoading(true);
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/partner-checkins/status`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCheckinStatus(data);
+      }
+    } catch (err) {
+      console.error('Error fetching check-in status:', err);
+    } finally {
+      setCheckinStatusLoading(false);
+    }
+  }, [user?.id, workspaceId]);
+  
+  const fetchCurrentWeekCheckins = useCallback(async () => {
+    if (!user?.id || !workspaceId) return;
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/partner-checkins/current-week`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentWeekCheckins(data);
+      }
+    } catch (err) {
+      console.error('Error fetching current week check-ins:', err);
+    }
+  }, [user?.id, workspaceId]);
+  
+  const fetchHealthTrend = useCallback(async () => {
+    if (!user?.id || !workspaceId) return;
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/partner-checkins/health-trend?weeks=8`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setHealthTrend(data);
+      }
+    } catch (err) {
+      console.error('Error fetching health trend:', err);
+    }
+  }, [user?.id, workspaceId]);
+  
+  const fetchRecentCheckins = useCallback(async () => {
+    if (!user?.id || !workspaceId) return;
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/partner-checkins?limit=6`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRecentCheckins(data);
+      }
+    } catch (err) {
+      console.error('Error fetching recent check-ins:', err);
+    }
+  }, [user?.id, workspaceId]);
+  
+  useEffect(() => {
+    fetchCheckinStatus();
+    fetchCurrentWeekCheckins();
+    fetchHealthTrend();
+    fetchRecentCheckins();
+  }, [fetchCheckinStatus, fetchCurrentWeekCheckins, fetchHealthTrend, fetchRecentCheckins]);
+  
+  const handleSubmitCheckin = async () => {
+    if (!checkinForm.accomplishments.trim() || !checkinForm.next_week_focus.trim()) {
+      return;
+    }
+    
+    setCheckinSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/partner-checkins`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify(checkinForm),
+      });
+      
+      if (response.ok) {
+        setCheckinDialogOpen(false);
+        setCheckinForm({
+          accomplishments: '',
+          blockers: '',
+          next_week_focus: '',
+          partnership_health: 4,
+          cofounder_shoutout: '',
+        });
+        // Refresh data
+        fetchCheckinStatus();
+        fetchCurrentWeekCheckins();
+        fetchHealthTrend();
+        fetchRecentCheckins();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to submit check-in');
+      }
+    } catch (err) {
+      console.error('Error submitting check-in:', err);
+      alert('Failed to submit check-in');
+    } finally {
+      setCheckinSubmitting(false);
+    }
+  };
+  
+  const getHealthEmoji = (health) => {
+    const emojis = ['', '😟', '😐', '🙂', '😊', '🤩'];
+    return emojis[health] || '🙂';
+  };
+  
+  const getHealthLabel = (health) => {
+    const labels = ['', 'Struggling', 'Needs Work', 'Okay', 'Good', 'Great'];
+    return labels[health] || 'Okay';
+  };
+  
+  const getHealthColor = (health) => {
+    const colors = ['', '#ef4444', '#f59e0b', '#94a3b8', '#22c55e', '#0d9488'];
+    return colors[health] || SLATE_400;
+  };
+  
+  const getDaysSinceLastCheckin = () => {
+    if (!checkinStatus?.last_checkin_date) return null;
+    const lastDate = new Date(checkinStatus.last_checkin_date);
+    const now = new Date();
+    const diffTime = Math.abs(now - lastDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   const handleEditParticipant = (participant) => {
     setEditForm({
@@ -167,56 +322,39 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
     const equityAgreed = hasApprovedScenario || hasOldEquityCurrent;
     
     const rolesDefined = roles && roles.length >= 2 && roles.every(r => r.role_title);
-    const first3KPIsSet = kpis && kpis.length >= 3;
     
-    const completed = [equityAgreed, rolesDefined, first3KPIsSet].filter(Boolean).length;
-    const progress = (completed / 3) * 100;
+    const completed = [equityAgreed, rolesDefined].filter(Boolean).length;
+    const progress = (completed / 2) * 100;
     
     return {
       equityAgreed,
       rolesDefined,
-      first3KPIsSet,
       completed,
       progress,
     };
-  }, [equity, roles, kpis, equityScenarios]);
+  }, [equity, roles, equityScenarios]);
 
   const currentFocus = useMemo(() => {
-    if (!milestones.first3KPIsSet) {
-      return {
-        text: "Set your first 3 KPIs for the next 30 days.",
-        action: "Go to Commitments & KPIs →",
-        tabIndex: 3,
-      };
-    }
     if (!milestones.equityAgreed) {
       return {
         text: "Finalize your equity split and vesting.",
         action: "Go to Equity & Roles →",
-        tabIndex: 2,
+        tabIndex: 1,
       };
     }
     if (!milestones.rolesDefined) {
       return {
         text: "Define roles and responsibilities for each founder.",
         action: "Go to Equity & Roles →",
-        tabIndex: 2,
-      };
-    }
-    const activeKPI = kpis?.find(k => k.status === 'in_progress');
-    if (activeKPI) {
-      return {
-        text: activeKPI.title,
-        action: null,
-        tabIndex: null,
+        tabIndex: 1,
       };
     }
     return {
-      text: "All milestones complete! Set new KPIs to keep momentum.",
-      action: "Go to Commitments & KPIs →",
-      tabIndex: 3,
+      text: "Your equity is set. Focus on building together!",
+      action: null,
+      tabIndex: null,
     };
-  }, [milestones, kpis]);
+  }, [milestones]);
 
   const healthStatus = useMemo(() => {
     const now = Date.now();
@@ -224,29 +362,18 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
     const fourteenDaysAgo = now - (14 * 24 * 60 * 60 * 1000);
     
     const recentCheckin = checkins?.some(c => new Date(c.created_at).getTime() >= sevenDaysAgo);
-    const recentDecision = decisions?.some(d => new Date(d.created_at).getTime() >= sevenDaysAgo);
-    const recentKPIUpdate = kpis?.some(k => {
-      const updatedAt = k.updated_at ? new Date(k.updated_at).getTime() : null;
-      return updatedAt && updatedAt >= sevenDaysAgo;
-    });
-    
     const checkinIn14Days = checkins?.some(c => new Date(c.created_at).getTime() >= fourteenDaysAgo);
-    const decisionIn14Days = decisions?.some(d => new Date(d.created_at).getTime() >= fourteenDaysAgo);
-    const kpiUpdateIn14Days = kpis?.some(k => {
-      const updatedAt = k.updated_at ? new Date(k.updated_at).getTime() : null;
-      return updatedAt && updatedAt >= fourteenDaysAgo;
-    });
     
-    if (recentCheckin || recentDecision || recentKPIUpdate) {
+    if (recentCheckin) {
       return { status: 'healthy', label: 'Healthy', color: TEAL };
     }
     
-    if (checkinIn14Days || decisionIn14Days || kpiUpdateIn14Days) {
+    if (checkinIn14Days) {
       return { status: 'quiet', label: 'Quiet', color: '#f59e0b' };
     }
     
     return { status: 'at_risk', label: 'At risk', color: '#ef4444' };
-  }, [checkins, decisions, kpis]);
+  }, [checkins]);
 
   const thisWeekSummary = useMemo(() => {
     const now = new Date();
@@ -259,49 +386,12 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
       return checkinDate >= weekStart;
     }).length || 0;
     
-    const weekDecisions = decisions?.filter(d => {
-      const decisionDate = new Date(d.created_at);
-      return decisionDate >= weekStart;
-    }).length || 0;
-    
-    if (weekCheckins === 0 && weekDecisions === 0) {
+    if (weekCheckins === 0) {
       return "This week: no check-ins yet.";
     }
     
-    const parts = [];
-    if (weekCheckins > 0) parts.push(`${weekCheckins} check-in${weekCheckins > 1 ? 's' : ''}`);
-    if (weekDecisions > 0) parts.push(`${weekDecisions} decision${weekDecisions > 1 ? 's' : ''} logged`);
-    
-    return `This week: ${parts.join(' · ')}`;
-  }, [checkins, decisions]);
-
-  const kpiSummary = useMemo(() => {
-    if (!kpis) return { done: 0, in_progress: 0, not_started: 0 };
-    
-    return {
-      done: kpis.filter(k => k.status === 'done').length,
-      in_progress: kpis.filter(k => k.status === 'in_progress').length,
-      not_started: kpis.filter(k => k.status === 'not_started' || !k.status).length,
-    };
-  }, [kpis]);
-
-  const nextRituals = useMemo(() => {
-    if (!kpis) return [];
-    
-    const upcoming = kpis
-      .filter(kpi => kpi.status !== 'done' && kpi.target_date)
-      .map(kpi => ({
-        title: kpi.label || kpi.title || 'Untitled KPI',
-        date: new Date(kpi.target_date),
-        type: 'kpi',
-        targetValue: kpi.target_value,
-        status: kpi.status,
-      }))
-      .sort((a, b) => a.date - b.date)
-      .slice(0, 3);
-    
-    return upcoming;
-  }, [kpis]);
+    return `This week: ${weekCheckins} check-in${weekCheckins > 1 ? 's' : ''}`;
+  }, [checkins]);
 
   const handleOpenCompatibility = (participant) => {
     setSelectedParticipant(participant);
@@ -323,7 +413,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
   return (
     <Box sx={{ maxWidth: '1400px', mx: 'auto', p: 3 }}>
-      {/* KPI Status Cards */}
+      {/* Quick Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={3}>
           <Box sx={{ 
@@ -383,14 +473,56 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <CheckCircle sx={{ fontSize: 20, color: TEAL }} />
+                <Groups sx={{ fontSize: 20, color: TEAL }} />
               </Box>
               <Box>
                 <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
-                  Completed
+                  Co-founders
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                  {kpiSummary.done} KPIs
+                  {participants?.length || 0} members
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Grid>
+
+        <Grid item xs={6} sm={3}>
+          <Box sx={{ 
+            p: 2,
+            bgcolor: '#fff',
+            border: '1px solid',
+            borderColor: healthStatus.color,
+            borderRadius: 2,
+            height: '100%',
+            minHeight: 80,
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+              <Box sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                bgcolor: alpha(healthStatus.color, 0.1),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                {healthStatus.status === 'healthy' ? (
+                  <SentimentSatisfied sx={{ fontSize: 20, color: healthStatus.color }} />
+                ) : healthStatus.status === 'quiet' ? (
+                  <SentimentNeutral sx={{ fontSize: 20, color: healthStatus.color }} />
+                ) : (
+                  <SentimentDissatisfied sx={{ fontSize: 20, color: healthStatus.color }} />
+                )}
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
+                  Health
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: healthStatus.color }}>
+                  {healthStatus.label}
                 </Typography>
               </Box>
             </Box>
@@ -414,55 +546,23 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                 width: 40,
                 height: 40,
                 borderRadius: 2,
-                bgcolor: alpha('#f59e0b', 0.1),
+                bgcolor: alpha(milestones.progress === 100 ? TEAL : '#f59e0b', 0.1),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Schedule sx={{ fontSize: 20, color: '#f59e0b' }} />
+                {milestones.progress === 100 ? (
+                  <CheckCircle sx={{ fontSize: 20, color: TEAL }} />
+                ) : (
+                  <Flag sx={{ fontSize: 20, color: '#f59e0b' }} />
+                )}
               </Box>
               <Box>
                 <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
-                  In Progress
+                  Setup
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                  {kpiSummary.in_progress} KPIs
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Grid>
-
-        <Grid item xs={6} sm={3}>
-          <Box sx={{ 
-            p: 2,
-            bgcolor: '#fff',
-            border: '1px solid',
-            borderColor: SLATE_200,
-            borderRadius: 2,
-            height: '100%',
-            minHeight: 80,
-            display: 'flex',
-            alignItems: 'center',
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-              <Box sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                bgcolor: alpha(SLATE_400, 0.1),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <RadioButtonUnchecked sx={{ fontSize: 20, color: SLATE_400 }} />
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
-                  Not Started
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                  {kpiSummary.not_started} KPIs
+                  {Math.round(milestones.progress)}% complete
                 </Typography>
               </Box>
             </Box>
@@ -541,19 +641,6 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                   fontWeight: 500,
                   '& .MuiChip-icon': {
                     color: milestones.rolesDefined ? TEAL : SLATE_400,
-                  }
-                }}
-              />
-              <Chip
-                icon={milestones.first3KPIsSet ? <CheckCircle sx={{ fontSize: 16 }} /> : <RadioButtonUnchecked sx={{ fontSize: 16 }} />}
-                label="First 3 KPIs set"
-                sx={{
-                  bgcolor: milestones.first3KPIsSet ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.1),
-                  color: milestones.first3KPIsSet ? TEAL : SLATE_500,
-                  border: `1px solid ${milestones.first3KPIsSet ? alpha(TEAL, 0.3) : alpha(SLATE_400, 0.3)}`,
-                  fontWeight: 500,
-                  '& .MuiChip-icon': {
-                    color: milestones.first3KPIsSet ? TEAL : SLATE_400,
                   }
                 }}
               />
@@ -895,7 +982,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           </Box>
         </Grid>
 
-        {/* Upcoming KPIs */}
+        {/* Weekly Check-ins */}
         <Grid item xs={12} lg={4}>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Box sx={{ height: 40, mb: 2.5 }} />
@@ -909,79 +996,385 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               display: 'flex',
               flexDirection: 'column',
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <CalendarToday sx={{ color: TEAL, fontSize: 24 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                  Upcoming KPIs
+                  Weekly Check-ins
                 </Typography>
               </Box>
               
-              <Divider sx={{ mb: 2.5 }} />
-              
-              <Box sx={{ 
-                flex: 1, 
-                overflowY: 'auto',
-                maxHeight: '200px',
-                minHeight: '100px',
-              }}>
-                {nextRituals.length > 0 ? (
-                  <List sx={{ p: 0 }}>
-                    {nextRituals.map((ritual, index) => (
-                      <React.Fragment key={index}>
-                        <ListItem sx={{ px: 0, py: 1.5 }}>
-                          <ListItemText
-                            primary={
-                              <Typography variant="body2" sx={{ fontWeight: 500, color: SLATE_900, mb: 0.5 }}>
-                                {ritual.title}
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography variant="body2" sx={{ color: SLATE_500, fontSize: '0.875rem' }}>
-                                {ritual.date.toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </Typography>
-                            }
-                          />
-                        </ListItem>
-                        {index < nextRituals.length - 1 && <Divider />}
-                      </React.Fragment>
-                    ))}
-                  </List>
-                ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100px' }}>
-                    <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                      No upcoming KPIs yet.
+              {/* Check-in Status Card */}
+              {checkinStatusLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  <CircularProgress size={24} sx={{ color: TEAL }} />
+                </Box>
+              ) : !checkinStatus?.has_submitted_this_week ? (
+                <Box sx={{ 
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: alpha(TEAL, 0.05),
+                  border: '1px solid',
+                  borderColor: alpha(TEAL, 0.2),
+                  mb: 2,
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Create sx={{ color: TEAL, fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: TEAL }}>
+                      Check-in due!
                     </Typography>
                   </Box>
-                )}
-              </Box>
+                  <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, fontSize: '0.85rem' }}>
+                    {getDaysSinceLastCheckin() ? `Last check-in: ${getDaysSinceLastCheckin()} days ago` : 'Start your first weekly check-in'}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => setCheckinDialogOpen(true)}
+                    sx={{
+                      bgcolor: TEAL,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': { bgcolor: TEAL_LIGHT },
+                    }}
+                  >
+                    Complete Check-in
+                  </Button>
+                </Box>
+              ) : (
+                <Box sx={{ 
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: alpha('#22c55e', 0.05),
+                  border: '1px solid',
+                  borderColor: alpha('#22c55e', 0.2),
+                  mb: 2,
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CheckCircle sx={{ color: '#22c55e', fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#22c55e' }}>
+                      Check-in complete for this week!
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
               
-              <Box sx={{ mt: 'auto', pt: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
-                <Button
-                  size="small"
-                  endIcon={<ArrowForward sx={{ fontSize: 16 }} />}
-                  onClick={() => onNavigateTab && onNavigateTab(3)}
-                  sx={{
-                    color: TEAL,
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    fontSize: '0.875rem',
-                    '&:hover': {
-                      bgcolor: alpha(TEAL, 0.1),
-                    }
-                  }}
-                >
-                  Add a weekly check-in →
-                </Button>
-              </Box>
+              {/* Health Trend */}
+              {healthTrend.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block', mb: 1 }}>
+                    Partnership Health Trend
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                    {healthTrend.slice(-6).map((week, idx) => (
+                      <Tooltip key={idx} title={`Week of ${week.week_of}: ${getHealthLabel(Math.round(week.average_health))}`}>
+                        <Box sx={{ 
+                          fontSize: '1.2rem', 
+                          cursor: 'pointer',
+                          opacity: idx === healthTrend.slice(-6).length - 1 ? 1 : 0.6,
+                        }}>
+                          {getHealthEmoji(Math.round(week.average_health))}
+                        </Box>
+                      </Tooltip>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              
+              <Divider sx={{ my: 1.5 }} />
+              
+              {/* This Week's Check-ins */}
+              <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block', mb: 1.5 }}>
+                This Week
+              </Typography>
+              
+              {currentWeekCheckins?.partner_checkins?.length > 0 || currentWeekCheckins?.user_checkin ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {currentWeekCheckins?.user_checkin && (
+                    <Box sx={{ 
+                      p: 1.5, 
+                      borderRadius: 1.5, 
+                      bgcolor: alpha(TEAL, 0.03),
+                      border: '1px solid',
+                      borderColor: alpha(TEAL, 0.1),
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Avatar 
+                          src={currentWeekCheckins.user_checkin.user?.profile_photo_url} 
+                          sx={{ width: 20, height: 20 }}
+                        >
+                          {currentWeekCheckins.user_checkin.user?.name?.[0]}
+                        </Avatar>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: '0.8rem' }}>
+                          You
+                        </Typography>
+                        <Typography sx={{ ml: 'auto', fontSize: '1rem' }}>
+                          {getHealthEmoji(currentWeekCheckins.user_checkin.partnership_health)}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: SLATE_500, fontSize: '0.75rem', lineHeight: 1.4 }}>
+                        {currentWeekCheckins.user_checkin.accomplishments?.substring(0, 80)}
+                        {currentWeekCheckins.user_checkin.accomplishments?.length > 80 && '...'}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {currentWeekCheckins?.partner_checkins?.map((checkin) => (
+                    <Box key={checkin.id} sx={{ 
+                      p: 1.5, 
+                      borderRadius: 1.5, 
+                      bgcolor: alpha(SKY, 0.03),
+                      border: '1px solid',
+                      borderColor: alpha(SKY, 0.1),
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Avatar 
+                          src={checkin.user?.profile_photo_url} 
+                          sx={{ width: 20, height: 20 }}
+                        >
+                          {checkin.user?.name?.[0]}
+                        </Avatar>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: '0.8rem' }}>
+                          {checkin.user?.name || 'Co-founder'}
+                        </Typography>
+                        <Typography sx={{ ml: 'auto', fontSize: '1rem' }}>
+                          {getHealthEmoji(checkin.partnership_health)}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: SLATE_500, fontSize: '0.75rem', lineHeight: 1.4 }}>
+                        {checkin.accomplishments?.substring(0, 80)}
+                        {checkin.accomplishments?.length > 80 && '...'}
+                      </Typography>
+                      {checkin.cofounder_shoutout && (
+                        <Typography variant="body2" sx={{ 
+                          color: TEAL, 
+                          fontSize: '0.75rem', 
+                          mt: 0.5,
+                          fontStyle: 'italic',
+                        }}>
+                          ✨ "{checkin.cofounder_shoutout}"
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body2" sx={{ color: SLATE_400, fontStyle: 'italic', fontSize: '0.85rem' }}>
+                  No check-ins yet this week
+                </Typography>
+              )}
             </Box>
           </Box>
         </Grid>
       </Grid>
+
+      {/* Collaboration Tools Section */}
+      <Box sx={{ 
+        mt: 4, 
+        p: 3, 
+        borderRadius: 2, 
+        border: '1px solid', 
+        borderColor: SLATE_200,
+        bgcolor: '#fff',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+          <Groups sx={{ color: TEAL, fontSize: 24 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+            Collaboration Tools
+          </Typography>
+        </Box>
+        
+        <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
+          Use these tools alongside Guild Space to collaborate effectively with your co-founder. 
+          We recommend using familiar tools for day-to-day work while using Guild Space for equity, agreements, and weekly check-ins.
+        </Typography>
+        
+        <Grid container spacing={3}>
+          {/* Notion Template */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              p: 2.5, 
+              borderRadius: 2, 
+              border: '1px solid', 
+              borderColor: SLATE_200,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: TEAL,
+                boxShadow: `0 4px 12px ${alpha(TEAL, 0.15)}`,
+              }
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 1.5, 
+                  bgcolor: '#000', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>N</Typography>
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  Notion
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, flex: 1 }}>
+                Duplicate our co-founder workspace template to organize tasks, docs, meeting notes, and decisions in one place.
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                href="https://www.notion.so/templates/category/startup"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  color: SLATE_900,
+                  borderColor: SLATE_200,
+                  '&:hover': {
+                    borderColor: SLATE_400,
+                    bgcolor: alpha(SLATE_200, 0.3),
+                  }
+                }}
+              >
+                Get Notion Template →
+              </Button>
+            </Box>
+          </Grid>
+          
+          {/* Slack Channel */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              p: 2.5, 
+              borderRadius: 2, 
+              border: '1px solid', 
+              borderColor: SLATE_200,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: '#4A154B',
+                boxShadow: `0 4px 12px ${alpha('#4A154B', 0.15)}`,
+              }
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 1.5, 
+                  bgcolor: '#4A154B', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>#</Typography>
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  Slack
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, flex: 1 }}>
+                Create a shared Slack channel or workspace for quick communication, standup updates, and async discussions.
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                href="https://slack.com/get-started#/createnew"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  color: SLATE_900,
+                  borderColor: SLATE_200,
+                  '&:hover': {
+                    borderColor: SLATE_400,
+                    bgcolor: alpha(SLATE_200, 0.3),
+                  }
+                }}
+              >
+                Create Slack Workspace →
+              </Button>
+            </Box>
+          </Grid>
+          
+          {/* Google Calendar */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ 
+              p: 2.5, 
+              borderRadius: 2, 
+              border: '1px solid', 
+              borderColor: SLATE_200,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: '#1a73e8',
+                boxShadow: `0 4px 12px ${alpha('#1a73e8', 0.15)}`,
+              }
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 1.5, 
+                  bgcolor: '#1a73e8', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                }}>
+                  <CalendarToday sx={{ color: '#fff', fontSize: 20 }} />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  Calendar
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, flex: 1 }}>
+                Share a Google Calendar to schedule weekly syncs, standups, and important milestones together.
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                href="https://calendar.google.com/calendar/r"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  color: SLATE_900,
+                  borderColor: SLATE_200,
+                  '&:hover': {
+                    borderColor: SLATE_400,
+                    bgcolor: alpha(SLATE_200, 0.3),
+                  }
+                }}
+              >
+                Open Google Calendar →
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+        
+        <Box sx={{ 
+          mt: 3, 
+          p: 2, 
+          borderRadius: 1.5, 
+          bgcolor: alpha(TEAL, 0.05), 
+          border: '1px solid',
+          borderColor: alpha(TEAL, 0.2),
+        }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, fontStyle: 'italic' }}>
+            <strong style={{ color: TEAL }}>Tip:</strong> Set up your collaboration tools together with your co-founder during your first week. 
+            Return here for weekly check-ins and to manage equity agreements.
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Danger Zone - Dissolve Partnership */}
       <Box sx={{ 
@@ -1207,6 +1600,175 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           )}
         </Box>
       </Drawer>
+      
+      {/* Weekly Check-in Dialog */}
+      <Dialog 
+        open={checkinDialogOpen} 
+        onClose={() => !checkinSubmitting && setCheckinDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1.5,
+          pb: 1,
+        }}>
+          <CalendarToday sx={{ color: TEAL }} />
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+              Weekly Check-in
+            </Typography>
+            <Typography variant="caption" sx={{ color: SLATE_500 }}>
+              Week of {checkinStatus?.current_week || 'this week'}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            {/* Accomplishments */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                What did you accomplish this week? *
+              </Typography>
+              <TextField
+                multiline
+                rows={3}
+                fullWidth
+                placeholder="e.g., Shipped the new landing page, had 3 customer calls..."
+                value={checkinForm.accomplishments}
+                onChange={(e) => setCheckinForm({ ...checkinForm, accomplishments: e.target.value })}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 2,
+                    fontSize: '0.9rem',
+                  } 
+                }}
+              />
+            </Box>
+            
+            {/* Blockers */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                Any blockers or concerns?
+              </Typography>
+              <TextField
+                multiline
+                rows={2}
+                fullWidth
+                placeholder="Optional - anything slowing you down?"
+                value={checkinForm.blockers}
+                onChange={(e) => setCheckinForm({ ...checkinForm, blockers: e.target.value })}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 2,
+                    fontSize: '0.9rem',
+                  } 
+                }}
+              />
+            </Box>
+            
+            {/* Next Week Focus */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                What are you focusing on next week? *
+              </Typography>
+              <TextField
+                multiline
+                rows={2}
+                fullWidth
+                placeholder="e.g., Finish payment integration, user testing..."
+                value={checkinForm.next_week_focus}
+                onChange={(e) => setCheckinForm({ ...checkinForm, next_week_focus: e.target.value })}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 2,
+                    fontSize: '0.9rem',
+                  } 
+                }}
+              />
+            </Box>
+            
+            {/* Partnership Health */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1.5 }}>
+                How's the partnership going? *
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                {[1, 2, 3, 4, 5].map((health) => (
+                  <Tooltip key={health} title={getHealthLabel(health)}>
+                    <IconButton
+                      onClick={() => setCheckinForm({ ...checkinForm, partnership_health: health })}
+                      sx={{
+                        fontSize: '2rem',
+                        bgcolor: checkinForm.partnership_health === health ? alpha(getHealthColor(health), 0.15) : 'transparent',
+                        border: checkinForm.partnership_health === health ? `2px solid ${getHealthColor(health)}` : '2px solid transparent',
+                        borderRadius: 2,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          bgcolor: alpha(getHealthColor(health), 0.1),
+                        }
+                      }}
+                    >
+                      {getHealthEmoji(health)}
+                    </IconButton>
+                  </Tooltip>
+                ))}
+              </Box>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: getHealthColor(checkinForm.partnership_health), mt: 1, fontWeight: 600 }}>
+                {getHealthLabel(checkinForm.partnership_health)}
+              </Typography>
+            </Box>
+            
+            {/* Shoutout (optional) */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                ✨ Shoutout to your co-founder
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="Optional - something positive about working together this week"
+                value={checkinForm.cofounder_shoutout}
+                onChange={(e) => setCheckinForm({ ...checkinForm, cofounder_shoutout: e.target.value })}
+                sx={{ 
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 2,
+                    fontSize: '0.9rem',
+                  } 
+                }}
+              />
+            </Box>
+          </Box>
+        </DialogContent>
+        
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+          <Button 
+            onClick={() => setCheckinDialogOpen(false)}
+            disabled={checkinSubmitting}
+            sx={{ textTransform: 'none', color: SLATE_500 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmitCheckin}
+            disabled={checkinSubmitting || !checkinForm.accomplishments.trim() || !checkinForm.next_week_focus.trim()}
+            sx={{
+              bgcolor: TEAL,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              '&:hover': { bgcolor: TEAL_LIGHT },
+            }}
+          >
+            {checkinSubmitting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Submit Check-in'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
