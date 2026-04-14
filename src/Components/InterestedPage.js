@@ -235,7 +235,7 @@ const InterestedPage = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {likes.map((like, index) => {
             const founder = like.founder;
-            const timeSince = like.created_at ? getTimeSince(like.created_at) : 'Recently';
+            const timeSince = like.liked_at ? getTimeSince(like.liked_at) : 'Recently';
             
             return (
               <motion.div
