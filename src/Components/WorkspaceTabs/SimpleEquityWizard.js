@@ -227,6 +227,14 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
         
         const vestingConfig = VESTING_OPTIONS.find(v => v.value === vestingOption);
         
+        // Map template to scenario_type expected by backend
+        const scenarioTypeMap = {
+          'equal': 'equal',
+          'tech_heavy': 'custom',
+          'business_heavy': 'custom',
+          'custom': 'custom',
+        };
+        
         const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/equity/scenarios`, {
           method: 'POST',
           headers: {
@@ -234,12 +242,20 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            scenario_label: `${EQUITY_TEMPLATES.find(t => t.id === selectedTemplate)?.label || 'Custom'} Split`,
+            scenario_type: scenarioTypeMap[selectedTemplate] || 'custom',
             founder_a_percent: split.a,
             founder_b_percent: split.b,
-            vesting_years: vestingConfig.years,
-            cliff_months: vestingConfig.cliff,
-            template_used: selectedTemplate,
+            vesting_terms: {
+              has_vesting: vestingConfig.years > 0,
+              years: vestingConfig.years,
+              cliff_months: vestingConfig.cliff,
+              acceleration: 'none',
+              jurisdiction: 'other',
+            },
+            calculation_breakdown: {
+              template_used: selectedTemplate,
+              template_label: EQUITY_TEMPLATES.find(t => t.id === selectedTemplate)?.label || 'Custom',
+            },
           }),
         });
         
@@ -248,7 +264,8 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
           throw new Error(errorData.error || 'Failed to create scenario');
         }
         
-        const scenario = await response.json();
+        const data = await response.json();
+        const scenario = data.scenario || data;
         setCreatedScenario(scenario);
         setStep(3);
       } catch (err) {
@@ -269,7 +286,7 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
       const response = await fetch(
         `${API_BASE}/workspaces/${workspaceId}/equity/scenarios/${createdScenario.id}/approve`,
         {
-          method: 'POST',
+          method: 'PATCH',
           headers: { 'X-Clerk-User-Id': user.id },
         }
       );
@@ -279,7 +296,8 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
         throw new Error(errorData.error || 'Failed to approve');
       }
       
-      const updated = await response.json();
+      const data = await response.json();
+      const updated = data.scenario || data;
       setCreatedScenario(updated);
       setApprovalStatus({
         a: !!updated.approved_by_founder_a_at,
@@ -304,10 +322,14 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
     
     try {
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/equity/scenarios/${createdScenario.id}/generate-agreement`,
+        `${API_BASE}/workspaces/${workspaceId}/equity/generate-document`,
         {
           method: 'POST',
-          headers: { 'X-Clerk-User-Id': user.id },
+          headers: { 
+            'X-Clerk-User-Id': user.id,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ scenario_id: createdScenario.id }),
         }
       );
       
