@@ -4,7 +4,8 @@ import {
   Box,
   Typography,
   Button,
-  Paper,
+  Card,
+  CardContent,
   Alert,
   CircularProgress,
   Switch,
@@ -12,41 +13,180 @@ import {
   Divider,
   Chip,
   alpha,
-  IconButton,
+  Grid,
   Snackbar,
+  Collapse,
 } from '@mui/material';
 import {
   CheckCircle,
   LinkOff,
   Send,
-  Settings,
   Notifications,
-  Refresh,
+  ExpandMore,
+  ExpandLess,
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 
 const TEAL = '#0d9488';
-const NAVY = '#1e3a8a';
 const SLATE_500 = '#64748b';
 const SLATE_200 = '#e2e8f0';
+const SLATE_100 = '#f1f5f9';
 
 const SlackIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
     <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.124 2.521a2.528 2.528 0 0 1 2.52-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.52V8.834zm-1.271 0a2.528 2.528 0 0 1-2.521 2.521 2.528 2.528 0 0 1-2.521-2.521V2.522A2.528 2.528 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.312zm-2.521 10.124a2.528 2.528 0 0 1 2.521 2.52A2.528 2.528 0 0 1 15.166 24a2.528 2.528 0 0 1-2.521-2.522v-2.52h2.521zm0-1.271a2.528 2.528 0 0 1-2.521-2.521 2.528 2.528 0 0 1 2.521-2.521h6.312A2.528 2.528 0 0 1 24 15.166a2.528 2.528 0 0 1-2.522 2.521h-6.312z" fill="#E01E5A"/>
   </svg>
 );
 
 const NotionIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
     <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.98-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466l1.823 1.447zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.354c0-.606-.233-.933-.746-.886l-15.177.887c-.56.046-.747.326-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.886.747-.933l3.222-.186zM2.168 1.108L16.06.054c1.682-.14 2.102.093 2.802.606l3.876 2.754c.56.42.747.793.747 1.353v15.778c0 .98-.373 1.587-1.68 1.68l-15.458.933c-.98.047-1.448-.093-1.962-.7l-3.083-4.012c-.56-.746-.793-1.306-.793-1.959V2.948c0-.793.373-1.493 1.168-1.587l.49-.253z" fill="#000"/>
   </svg>
 );
 
 const CalendarIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
     <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z" fill="#4285F4"/>
   </svg>
 );
+
+const IntegrationCard = ({ 
+  icon, 
+  name, 
+  description, 
+  connected, 
+  comingSoon,
+  brandColor,
+  children,
+  onConnect,
+  connectLoading,
+}) => {
+  const [expanded, setExpanded] = useState(connected);
+
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        height: '100%',
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: connected ? alpha(TEAL, 0.3) : SLATE_200,
+        bgcolor: connected ? alpha(TEAL, 0.02) : '#fff',
+        transition: 'all 0.2s ease',
+        opacity: comingSoon ? 0.7 : 1,
+        '&:hover': {
+          borderColor: comingSoon ? SLATE_200 : (connected ? TEAL : brandColor),
+          boxShadow: comingSoon ? 'none' : `0 4px 20px ${alpha(brandColor, 0.15)}`,
+          transform: comingSoon ? 'none' : 'translateY(-2px)',
+        },
+      }}
+    >
+      <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+          <Box
+            sx={{
+              width: 52,
+              height: 52,
+              borderRadius: 2.5,
+              bgcolor: brandColor,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {icon}
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                {name}
+              </Typography>
+              {connected && (
+                <Chip
+                  icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                  label="Connected"
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(TEAL, 0.1),
+                    color: TEAL,
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    height: 24,
+                    '& .MuiChip-icon': { color: TEAL },
+                  }}
+                />
+              )}
+              {comingSoon && (
+                <Chip
+                  label="Coming Soon"
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(SLATE_500, 0.1),
+                    color: SLATE_500,
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    height: 24,
+                  }}
+                />
+              )}
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {description}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Connected content or Connect button */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          {connected ? (
+            <>
+              <Button
+                size="small"
+                onClick={() => setExpanded(!expanded)}
+                endIcon={expanded ? <ExpandLess /> : <ExpandMore />}
+                sx={{ 
+                  alignSelf: 'flex-start', 
+                  textTransform: 'none', 
+                  color: SLATE_500,
+                  mb: expanded ? 2 : 0,
+                }}
+              >
+                {expanded ? 'Hide settings' : 'Show settings'}
+              </Button>
+              <Collapse in={expanded}>
+                {children}
+              </Collapse>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={onConnect}
+              disabled={comingSoon || connectLoading}
+              sx={{
+                mt: 2,
+                bgcolor: brandColor,
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { bgcolor: alpha(brandColor, 0.85) },
+                '&:disabled': { bgcolor: SLATE_200 },
+              }}
+            >
+              {connectLoading ? (
+                <CircularProgress size={20} sx={{ color: 'white' }} />
+              ) : comingSoon ? (
+                'Coming Soon'
+              ) : (
+                `Connect ${name}`
+              )}
+            </Button>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
 
 const WorkspaceIntegrations = ({ workspaceId }) => {
   const { user } = useUser();
@@ -78,7 +218,6 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
   useEffect(() => {
     fetchIntegrations();
     
-    // Check URL params for connection status
     const params = new URLSearchParams(window.location.search);
     if (params.get('slack') === 'connected') {
       setSnackbar({ open: true, message: 'Slack connected successfully!', severity: 'success' });
@@ -212,7 +351,8 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
   const slackNotifications = slack.settings?.notifications || {};
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+      {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
           Integrations
@@ -228,273 +368,155 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         </Alert>
       )}
 
-      {/* Slack Integration */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 3,
-          border: '1px solid',
-          borderColor: slack.connected ? TEAL : SLATE_200,
-          bgcolor: slack.connected ? alpha(TEAL, 0.02) : 'background.paper',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <Box sx={{
-            p: 1.5,
-            borderRadius: 2,
-            bgcolor: '#4A154B',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <SlackIcon />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Slack
-              </Typography>
-              {slack.connected && (
-                <Chip
-                  icon={<CheckCircle sx={{ fontSize: 14 }} />}
-                  label="Connected"
-                  size="small"
-                  sx={{
-                    bgcolor: alpha(TEAL, 0.1),
-                    color: TEAL,
-                    fontWeight: 600,
-                    fontSize: '0.7rem',
-                    height: 24,
-                  }}
-                />
-              )}
-            </Box>
-
-            {slack.connected ? (
-              <>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Connected to <strong>{slack.team_name}</strong>
-                  {slack.channel_name ? (
-                    <> • Notifications in <strong>#{slack.channel_name}</strong></>
-                  ) : (
-                    <> • Channel pending setup</>
-                  )}
-                </Typography>
-
-                {!slack.channel_id && (
-                  <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
-                    <Typography variant="body2">
-                      Channel wasn't created automatically.{' '}
-                      <Button
-                        size="small"
-                        onClick={handleCreateChannel}
-                        disabled={actionLoading === 'slack_channel'}
-                        sx={{ ml: 1, textTransform: 'none' }}
-                      >
-                        {actionLoading === 'slack_channel' ? 'Creating...' : 'Create Now'}
-                      </Button>
-                    </Typography>
-                  </Alert>
-                )}
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Notifications sx={{ fontSize: 18 }} />
-                  Notification Settings
-                </Typography>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={slackNotifications.checkin_reminders !== false}
-                        onChange={(e) => handleUpdateSlackSettings('checkin_reminders', e.target.checked)}
-                        size="small"
-                        sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
-                      />
-                    }
-                    label={<Typography variant="body2">Weekly check-in reminders</Typography>}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={slackNotifications.equity_updates !== false}
-                        onChange={(e) => handleUpdateSlackSettings('equity_updates', e.target.checked)}
-                        size="small"
-                        sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
-                      />
-                    }
-                    label={<Typography variant="body2">Equity agreement updates</Typography>}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={slackNotifications.advisor_activity !== false}
-                        onChange={(e) => handleUpdateSlackSettings('advisor_activity', e.target.checked)}
-                        size="small"
-                        sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
-                      />
-                    }
-                    label={<Typography variant="body2">Advisor activity</Typography>}
-                  />
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ display: 'flex', gap: 1 }}>
+      {/* Integration Cards Grid */}
+      <Grid container spacing={3}>
+        {/* Slack */}
+        <Grid item xs={12} md={6} lg={4}>
+          <IntegrationCard
+            icon={<SlackIcon />}
+            name="Slack"
+            description={
+              slack.connected
+                ? `Connected to ${slack.team_name}${slack.channel_name ? ` • #${slack.channel_name}` : ''}`
+                : 'Get check-in reminders, equity updates, and team notifications'
+            }
+            connected={slack.connected}
+            brandColor="#4A154B"
+            onConnect={handleConnectSlack}
+            connectLoading={actionLoading === 'slack_connect'}
+          >
+            {/* Slack Connected Content */}
+            {!slack.channel_id && (
+              <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+                <Typography variant="body2">
+                  Channel wasn't created.{' '}
                   <Button
-                    variant="outlined"
                     size="small"
-                    startIcon={<Send sx={{ fontSize: 16 }} />}
-                    onClick={handleTestNotification}
-                    disabled={!slack.channel_id || actionLoading === 'slack_test'}
+                    onClick={handleCreateChannel}
+                    disabled={actionLoading === 'slack_channel'}
+                    sx={{ ml: 1, textTransform: 'none' }}
                   >
-                    {actionLoading === 'slack_test' ? 'Sending...' : 'Send Test'}
+                    {actionLoading === 'slack_channel' ? 'Creating...' : 'Create Now'}
                   </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    color="error"
-                    startIcon={<LinkOff sx={{ fontSize: 16 }} />}
-                    onClick={handleDisconnectSlack}
-                    disabled={actionLoading === 'slack_disconnect'}
-                  >
-                    Disconnect
-                  </Button>
-                </Box>
-              </>
-            ) : (
-              <>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                  Get check-in reminders, equity updates, and team notifications in Slack
                 </Typography>
-                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: SLATE_500, fontStyle: 'italic' }}>
-                  Note: Both co-founders must be members of the same Slack workspace
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={handleConnectSlack}
-                  disabled={actionLoading === 'slack_connect'}
-                  sx={{ bgcolor: '#4A154B', '&:hover': { bgcolor: '#3a1039' } }}
-                >
-                  {actionLoading === 'slack_connect' ? (
-                    <CircularProgress size={20} sx={{ color: 'white' }} />
-                  ) : (
-                    'Connect Slack'
-                  )}
-                </Button>
-              </>
+              </Alert>
             )}
-          </Box>
-        </Box>
-      </Paper>
 
-      {/* Notion Integration - Coming Soon */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 3,
-          border: '1px solid',
-          borderColor: SLATE_200,
-          opacity: 0.7,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <Box sx={{
-            p: 1.5,
-            borderRadius: 2,
-            bgcolor: '#000',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <NotionIcon />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Notion
+            <Box sx={{ 
+              p: 2, 
+              borderRadius: 2, 
+              bgcolor: SLATE_100,
+              mb: 2,
+            }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Notifications sx={{ fontSize: 18, color: TEAL }} />
+                Notification Settings
               </Typography>
-              <Chip
-                label="Coming Soon"
-                size="small"
-                sx={{
-                  bgcolor: alpha(SLATE_500, 0.1),
-                  color: SLATE_500,
-                  fontWeight: 600,
-                  fontSize: '0.7rem',
-                  height: 24,
-                }}
-              />
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Auto-create a partnership workspace with tasks, docs, and meeting notes
-            </Typography>
-            <Button variant="outlined" disabled>
-              Connect Notion
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
 
-      {/* Google Calendar Integration - Coming Soon */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 3,
-          border: '1px solid',
-          borderColor: SLATE_200,
-          opacity: 0.7,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <Box sx={{
-            p: 1.5,
-            borderRadius: 2,
-            bgcolor: '#fff',
-            border: '1px solid',
-            borderColor: SLATE_200,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <CalendarIcon />
-          </Box>
-
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Google Calendar
-              </Typography>
-              <Chip
-                label="Coming Soon"
-                size="small"
-                sx={{
-                  bgcolor: alpha(SLATE_500, 0.1),
-                  color: SLATE_500,
-                  fontWeight: 600,
-                  fontSize: '0.7rem',
-                  height: 24,
-                }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={slackNotifications.checkin_reminders !== false}
+                      onChange={(e) => handleUpdateSlackSettings('checkin_reminders', e.target.checked)}
+                      size="small"
+                      sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
+                    />
+                  }
+                  label={<Typography variant="body2">Weekly check-in reminders</Typography>}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={slackNotifications.equity_updates !== false}
+                      onChange={(e) => handleUpdateSlackSettings('equity_updates', e.target.checked)}
+                      size="small"
+                      sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
+                    />
+                  }
+                  label={<Typography variant="body2">Equity agreement updates</Typography>}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={slackNotifications.advisor_activity !== false}
+                      onChange={(e) => handleUpdateSlackSettings('advisor_activity', e.target.checked)}
+                      size="small"
+                      sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
+                    />
+                  }
+                  label={<Typography variant="body2">Advisor activity</Typography>}
+                />
+              </Box>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Schedule partnership meetings and sync check-in deadlines
-            </Typography>
-            <Button variant="outlined" disabled>
-              Connect Google Calendar
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Send sx={{ fontSize: 16 }} />}
+                onClick={handleTestNotification}
+                disabled={!slack.channel_id || actionLoading === 'slack_test'}
+                sx={{ textTransform: 'none' }}
+              >
+                {actionLoading === 'slack_test' ? 'Sending...' : 'Send Test'}
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                startIcon={<LinkOff sx={{ fontSize: 16 }} />}
+                onClick={handleDisconnectSlack}
+                disabled={actionLoading === 'slack_disconnect'}
+                sx={{ textTransform: 'none' }}
+              >
+                Disconnect
+              </Button>
+            </Box>
+          </IntegrationCard>
+        </Grid>
+
+        {/* Notion */}
+        <Grid item xs={12} md={6} lg={4}>
+          <IntegrationCard
+            icon={<NotionIcon />}
+            name="Notion"
+            description="Auto-create a partnership workspace with tasks, docs, and meeting notes"
+            connected={false}
+            comingSoon
+            brandColor="#000000"
+          />
+        </Grid>
+
+        {/* Google Calendar */}
+        <Grid item xs={12} md={6} lg={4}>
+          <IntegrationCard
+            icon={<CalendarIcon />}
+            name="Google Calendar"
+            description="Schedule partnership meetings and sync check-in deadlines"
+            connected={false}
+            comingSoon
+            brandColor="#4285F4"
+          />
+        </Grid>
+      </Grid>
+
+      {/* Tip Box */}
+      <Box sx={{ 
+        mt: 4, 
+        p: 2.5, 
+        borderRadius: 2, 
+        bgcolor: alpha(TEAL, 0.05), 
+        border: '1px solid',
+        borderColor: alpha(TEAL, 0.15),
+      }}>
+        <Typography variant="body2" sx={{ color: SLATE_500 }}>
+          <strong style={{ color: TEAL }}>Tip:</strong> Connect your tools to stay in sync with your co-founder. 
+          Guild Space will send notifications for check-ins, equity updates, and important milestones.
+        </Typography>
+      </Box>
 
       <Snackbar
         open={snackbar.open}

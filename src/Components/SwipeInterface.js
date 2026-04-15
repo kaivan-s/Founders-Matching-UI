@@ -1305,8 +1305,8 @@ const SwipeInterface = () => {
                             {/* Project Title - Always visible */}
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                               <Typography variant="subtitle1" sx={{ fontWeight: 600, textAlign: 'left', fontSize: { xs: '0.9375rem', sm: '1rem' }, color: '#0f172a', lineHeight: 1.4, flex: 1 }}>
-                                {firstProject.title}
-                              </Typography>
+                              {firstProject.title}
+                            </Typography>
                               {/* Visibility indicator */}
                               {firstProject.visibility && firstProject.visibility !== 'open' && (
                                 <Chip
@@ -1330,98 +1330,98 @@ const SwipeInterface = () => {
                             {firstProject.has_access !== false ? (
                               <>
                                 {/* Full project details */}
-                                <Box
-                                  sx={{
-                                    mb: 1.25,
-                                    flex: '1 1 auto',
-                                    minHeight: 0,
-                                    maxHeight: { xs: '120px', sm: '140px' },
-                                    overflowY: 'auto',
-                                    overflowX: 'hidden',
-                                    textAlign: 'left',
+                            <Box
+                              sx={{
+                                mb: 1.25,
+                                flex: '1 1 auto',
+                                minHeight: 0,
+                                maxHeight: { xs: '120px', sm: '140px' },
+                                overflowY: 'auto',
+                                overflowX: 'hidden',
+                                textAlign: 'left',
                                     '&::-webkit-scrollbar': { width: '6px' },
                                     '&::-webkit-scrollbar-track': { background: 'transparent' },
-                                    '&::-webkit-scrollbar-thumb': {
-                                      background: 'rgba(148, 163, 184, 0.4)',
-                                      borderRadius: '3px',
+                                '&::-webkit-scrollbar-thumb': {
+                                  background: 'rgba(148, 163, 184, 0.4)',
+                                  borderRadius: '3px',
                                       '&:hover': { background: 'rgba(148, 163, 184, 0.6)' },
-                                    },
-                                  }}
-                                >
-                                  <Typography 
-                                    variant="body2" 
-                                    sx={{ 
-                                      lineHeight: 1.6,
-                                      textAlign: 'left',
-                                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                                      color: '#374151',
-                                      fontWeight: 400,
-                                    }}
-                                  >
-                                    {firstProject.description}
+                                },
+                              }}
+                            >
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  lineHeight: 1.6,
+                                  textAlign: 'left',
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  color: '#374151',
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {firstProject.description}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                              {firstProject.stage && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                      <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
+                                    Stage:
                                   </Typography>
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    <Chip 
+                                      label={firstProject.stage} 
+                                      size="small"
+                                      sx={{ 
+                                        textTransform: 'capitalize',
+                                        fontSize: '0.625rem',
+                                        height: 20,
+                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                        color: '#1e3a8a',
+                                        fontWeight: 500,
+                                        border: '1px solid rgba(30, 58, 138, 0.2)',
+                                      }}
+                                    />
+                                  </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
-                                  {firstProject.stage && (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              )}
+                              {firstProject.needed_skills && firstProject.needed_skills.length > 0 && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                       <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
-                                        Stage:
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        <Chip 
-                                          label={firstProject.stage} 
-                                          size="small"
-                                          sx={{ 
-                                            textTransform: 'capitalize',
-                                            fontSize: '0.625rem',
-                                            height: 20,
-                                            bgcolor: 'rgba(30, 58, 138, 0.1)',
-                                            color: '#1e3a8a',
-                                            fontWeight: 500,
-                                            border: '1px solid rgba(30, 58, 138, 0.2)',
-                                          }}
-                                        />
-                                      </Box>
-                                    </Box>
-                                  )}
-                                  {firstProject.needed_skills && firstProject.needed_skills.length > 0 && (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                      <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '0.6875rem', letterSpacing: '0.01em' }}>
-                                        Skills Needed:
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        {firstProject.needed_skills.slice(0, 3).map((skill, idx) => (
-                                          <Chip 
-                                            key={idx}
-                                            label={skill} 
-                                            size="small"
-                                            sx={{
-                                              fontSize: '0.625rem',
-                                              height: 20,
-                                              bgcolor: 'rgba(30, 58, 138, 0.1)',
-                                              color: '#1e3a8a',
-                                              fontWeight: 500,
-                                              border: '1px solid rgba(30, 58, 138, 0.2)',
-                                            }}
-                                          />
-                                        ))}
-                                        {firstProject.needed_skills.length > 3 && (
-                                          <Chip 
-                                            label={`+${firstProject.needed_skills.length - 3}`}
-                                            size="small"
-                                            sx={{
-                                              fontSize: '0.625rem',
-                                              height: 20,
-                                              bgcolor: 'rgba(30, 58, 138, 0.08)',
-                                              color: '#1e3a8a',
-                                              fontWeight: 500,
-                                            }}
-                                          />
-                                        )}
-                                      </Box>
-                                    </Box>
-                                  )}
+                                    Skills Needed:
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {firstProject.needed_skills.slice(0, 3).map((skill, idx) => (
+                                      <Chip 
+                                        key={idx}
+                                        label={skill} 
+                                        size="small"
+                                        sx={{
+                                          fontSize: '0.625rem',
+                                          height: 20,
+                                        bgcolor: 'rgba(30, 58, 138, 0.1)',
+                                        color: '#1e3a8a',
+                                        fontWeight: 500,
+                                        border: '1px solid rgba(30, 58, 138, 0.2)',
+                                        }}
+                                      />
+                                    ))}
+                                    {firstProject.needed_skills.length > 3 && (
+                                      <Chip 
+                                        label={`+${firstProject.needed_skills.length - 3}`}
+                                        size="small"
+                                        sx={{
+                                          fontSize: '0.625rem',
+                                          height: 20,
+                                          bgcolor: 'rgba(30, 58, 138, 0.08)',
+                                          color: '#1e3a8a',
+                                          fontWeight: 500,
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
                                 </Box>
+                              )}
+                            </Box>
                               </>
                             ) : (
                               /* Locked project - Request Access UI */
