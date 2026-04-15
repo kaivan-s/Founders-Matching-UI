@@ -277,25 +277,27 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               <>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   Connected to <strong>{slack.team_name}</strong>
-                  {slack.channel_name && (
-                    <> • Channel: <strong>#{slack.channel_name}</strong></>
+                  {slack.channel_name ? (
+                    <> • Notifications in <strong>#{slack.channel_name}</strong></>
+                  ) : (
+                    <> • Channel pending setup</>
                   )}
                 </Typography>
 
                 {!slack.channel_id && (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={handleCreateChannel}
-                    disabled={actionLoading === 'slack_channel'}
-                    sx={{ mb: 2, bgcolor: '#4A154B', '&:hover': { bgcolor: '#3a1039' } }}
-                  >
-                    {actionLoading === 'slack_channel' ? (
-                      <CircularProgress size={16} sx={{ color: 'white' }} />
-                    ) : (
-                      'Create Partnership Channel'
-                    )}
-                  </Button>
+                  <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+                    <Typography variant="body2">
+                      Channel wasn't created automatically.{' '}
+                      <Button
+                        size="small"
+                        onClick={handleCreateChannel}
+                        disabled={actionLoading === 'slack_channel'}
+                        sx={{ ml: 1, textTransform: 'none' }}
+                      >
+                        {actionLoading === 'slack_channel' ? 'Creating...' : 'Create Now'}
+                      </Button>
+                    </Typography>
+                  </Alert>
                 )}
 
                 <Divider sx={{ my: 2 }} />
@@ -367,8 +369,11 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </>
             ) : (
               <>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                   Get check-in reminders, equity updates, and team notifications in Slack
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: SLATE_500, fontStyle: 'italic' }}>
+                  Note: Both co-founders must be members of the same Slack workspace
                 </Typography>
                 <Button
                   variant="contained"
