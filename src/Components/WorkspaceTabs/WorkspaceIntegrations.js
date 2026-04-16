@@ -29,6 +29,8 @@ import {
   ExpandLess,
   PersonAdd,
   Check,
+  OpenInNew,
+  Add,
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 
@@ -44,9 +46,9 @@ const SlackIcon = () => (
   </svg>
 );
 
-const NotionIcon = () => (
+const NotionIcon = ({ color = '#000' }) => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-    <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.98-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466l1.823 1.447zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.354c0-.606-.233-.933-.746-.886l-15.177.887c-.56.046-.747.326-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.886.747-.933l3.222-.186zM2.168 1.108L16.06.054c1.682-.14 2.102.093 2.802.606l3.876 2.754c.56.42.747.793.747 1.353v15.778c0 .98-.373 1.587-1.68 1.68l-15.458.933c-.98.047-1.448-.093-1.962-.7l-3.083-4.012c-.56-.746-.793-1.306-.793-1.959V2.948c0-.793.373-1.493 1.168-1.587l.49-.253z" fill="#000"/>
+    <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.98-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466l1.823 1.447zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.354c0-.606-.233-.933-.746-.886l-15.177.887c-.56.046-.747.326-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.886.747-.933l3.222-.186zM2.168 1.108L16.06.054c1.682-.14 2.102.093 2.802.606l3.876 2.754c.56.42.747.793.747 1.353v15.778c0 .98-.373 1.587-1.68 1.68l-15.458.933c-.98.047-1.448-.093-1.962-.7l-3.083-4.012c-.56-.746-.793-1.306-.793-1.959V2.948c0-.793.373-1.493 1.168-1.587l.49-.253z" fill={color}/>
   </svg>
 );
 
@@ -67,6 +69,7 @@ const IntegrationCard = ({
   onConnect,
   connectLoading,
   headerExtra,
+  showSettings = true,
 }) => {
   const [expanded, setExpanded] = useState(connected);
 
@@ -148,7 +151,7 @@ const IntegrationCard = ({
 
         {/* Connected content or Connect button */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          {connected ? (
+          {connected && showSettings ? (
             <>
               <Button
                 size="small"
@@ -161,12 +164,14 @@ const IntegrationCard = ({
                   mb: expanded ? 2 : 0,
                 }}
               >
-                {expanded ? 'Hide settings' : 'Show settings'}
+                {expanded ? 'Hide options' : 'Show options'}
               </Button>
               <Collapse in={expanded}>
                 {children}
               </Collapse>
             </>
+          ) : connected ? (
+            children
           ) : (
             <Button
               variant="contained"
@@ -193,6 +198,56 @@ const IntegrationCard = ({
         </Box>
       </CardContent>
     </Card>
+  );
+};
+
+const ConnectedUsersDisplay = ({ connectedUsers, currentUserConnected }) => {
+  if (!connectedUsers || connectedUsers.length === 0) return null;
+
+  return (
+    <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      <AvatarGroup max={2} sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' } }}>
+        {connectedUsers.map((u, i) => (
+          <Tooltip key={i} title={u.name || 'Co-founder'}>
+            <Avatar sx={{ bgcolor: i === 0 ? TEAL : AMBER_500, width: 24, height: 24 }}>
+              {(u.name || 'C')[0].toUpperCase()}
+            </Avatar>
+          </Tooltip>
+        ))}
+      </AvatarGroup>
+      <Typography variant="caption" sx={{ color: SLATE_500 }}>
+        {connectedUsers.length === 1 
+          ? `${connectedUsers[0]?.name || 'Co-founder'} connected`
+          : `${connectedUsers.length} co-founders connected`
+        }
+      </Typography>
+      {connectedUsers.length === 1 && !currentUserConnected && (
+        <Chip
+          size="small"
+          label="You: pending"
+          sx={{ 
+            height: 20, 
+            fontSize: '0.65rem',
+            bgcolor: alpha(AMBER_500, 0.1),
+            color: AMBER_500,
+          }}
+        />
+      )}
+      {currentUserConnected && (
+        <Chip
+          size="small"
+          icon={<Check sx={{ fontSize: 12 }} />}
+          label="You're connected"
+          sx={{ 
+            height: 20, 
+            fontSize: '0.65rem',
+            bgcolor: alpha(TEAL, 0.1),
+            color: TEAL,
+            '& .MuiChip-icon': { color: TEAL },
+          }}
+        />
+      )}
+    </Box>
   );
 };
 
@@ -227,19 +282,35 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
     fetchIntegrations();
     
     const params = new URLSearchParams(window.location.search);
+    
+    // Handle Slack callbacks
     if (params.get('slack') === 'connected') {
       setSnackbar({ open: true, message: 'Slack connected successfully!', severity: 'success' });
       window.history.replaceState({}, '', window.location.pathname);
     } else if (params.get('error') === 'slack_mismatch') {
-      const message = params.get('message') || 'Your co-founder connected to a different Slack workspace. Please connect to the same workspace.';
+      const message = params.get('message') || 'Your co-founder connected to a different Slack workspace.';
       setSnackbar({ open: true, message: decodeURIComponent(message), severity: 'error' });
       window.history.replaceState({}, '', window.location.pathname);
-    } else if (params.get('error')) {
+    }
+    
+    // Handle Notion callbacks
+    if (params.get('notion') === 'connected') {
+      setSnackbar({ open: true, message: 'Notion connected successfully!', severity: 'success' });
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('error') === 'notion_mismatch') {
+      const message = params.get('message') || 'Your co-founder connected to a different Notion workspace.';
+      setSnackbar({ open: true, message: decodeURIComponent(message), severity: 'error' });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    
+    // Generic error
+    if (params.get('error') && !params.get('error').includes('mismatch')) {
       setSnackbar({ open: true, message: 'Failed to connect. Please try again.', severity: 'error' });
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [fetchIntegrations]);
 
+  // Slack handlers
   const handleConnectSlack = async () => {
     setActionLoading('slack_connect');
     try {
@@ -351,6 +422,70 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
     }
   };
 
+  // Notion handlers
+  const handleConnectNotion = async () => {
+    setActionLoading('notion_connect');
+    try {
+      const response = await fetch(`${API_BASE}/integrations/notion/auth-url?workspace_id=${workspaceId}`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        window.location.href = data.auth_url;
+      } else {
+        setSnackbar({ open: true, message: 'Failed to start Notion connection', severity: 'error' });
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Connection error', severity: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCreateNotionWorkspace = async () => {
+    setActionLoading('notion_workspace');
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/integrations/notion/create-workspace`, {
+        method: 'POST',
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+
+      if (response.ok) {
+        setSnackbar({ open: true, message: 'Notion workspace created!', severity: 'success' });
+        fetchIntegrations();
+      } else {
+        const data = await response.json();
+        setSnackbar({ open: true, message: data.error || 'Failed to create workspace', severity: 'error' });
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Error creating workspace', severity: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDisconnectNotion = async () => {
+    if (!window.confirm('Are you sure you want to disconnect Notion? This will affect both co-founders.')) return;
+
+    setActionLoading('notion_disconnect');
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/integrations/notion`, {
+        method: 'DELETE',
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+
+      if (response.ok) {
+        setSnackbar({ open: true, message: 'Notion disconnected', severity: 'success' });
+        fetchIntegrations();
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Error disconnecting', severity: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -360,14 +495,18 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
   }
 
   const slack = integrations.slack || {};
+  const notion = integrations.notion || {};
   const slackNotifications = slack.settings?.notifications || {};
-  const connectedUsers = slack.connected_users || [];
-  const currentUserConnected = slack.current_user_connected;
 
-  // Build description based on connection state
+  // Build descriptions
   let slackDescription = 'Get check-in reminders, equity updates, and team notifications';
   if (slack.connected) {
     slackDescription = `Connected to ${slack.team_name}${slack.channel_name ? ` • #${slack.channel_name}` : ''}`;
+  }
+
+  let notionDescription = 'Auto-create a partnership workspace with tasks, decisions, and meeting notes';
+  if (notion.connected) {
+    notionDescription = `Connected to ${notion.workspace_name}`;
   }
 
   return (
@@ -401,55 +540,14 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
             onConnect={handleConnectSlack}
             connectLoading={actionLoading === 'slack_connect'}
             headerExtra={
-              slack.connected && connectedUsers.length > 0 && (
-                <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <AvatarGroup max={2} sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' } }}>
-                    {connectedUsers.map((u, i) => (
-                      <Tooltip key={i} title={u.name || 'Co-founder'}>
-                        <Avatar sx={{ bgcolor: i === 0 ? TEAL : AMBER_500, width: 24, height: 24 }}>
-                          {(u.name || 'C')[0].toUpperCase()}
-                        </Avatar>
-                      </Tooltip>
-                    ))}
-                  </AvatarGroup>
-                  <Typography variant="caption" sx={{ color: SLATE_500 }}>
-                    {connectedUsers.length === 1 
-                      ? `${connectedUsers[0]?.name || 'Co-founder'} connected`
-                      : `${connectedUsers.length} co-founders connected`
-                    }
-                  </Typography>
-                  {connectedUsers.length === 1 && !currentUserConnected && (
-                    <Chip
-                      size="small"
-                      label="You: pending"
-                      sx={{ 
-                        height: 20, 
-                        fontSize: '0.65rem',
-                        bgcolor: alpha(AMBER_500, 0.1),
-                        color: AMBER_500,
-                      }}
-                    />
-                  )}
-                  {currentUserConnected && (
-                    <Chip
-                      size="small"
-                      icon={<Check sx={{ fontSize: 12 }} />}
-                      label="You're connected"
-                      sx={{ 
-                        height: 20, 
-                        fontSize: '0.65rem',
-                        bgcolor: alpha(TEAL, 0.1),
-                        color: TEAL,
-                        '& .MuiChip-icon': { color: TEAL },
-                      }}
-                    />
-                  )}
-                </Box>
-              )
+              <ConnectedUsersDisplay 
+                connectedUsers={slack.connected_users} 
+                currentUserConnected={slack.current_user_connected} 
+              />
             }
           >
             {/* Alert for second co-founder to connect */}
-            {slack.connected && !currentUserConnected && (
+            {slack.connected && !slack.current_user_connected && (
               <Alert 
                 severity="warning" 
                 sx={{ mb: 2, borderRadius: 2 }}
@@ -471,8 +569,8 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </Alert>
             )}
 
-            {/* Slack Connected Content */}
-            {!slack.channel_id && (
+            {/* Channel not created */}
+            {slack.connected && !slack.channel_id && (
               <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
                 <Typography variant="body2">
                   Channel wasn't created.{' '}
@@ -488,12 +586,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </Alert>
             )}
 
-            <Box sx={{ 
-              p: 2, 
-              borderRadius: 2, 
-              bgcolor: SLATE_100,
-              mb: 2,
-            }}>
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, mb: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Notifications sx={{ fontSize: 18, color: TEAL }} />
                 Notification Settings
@@ -567,13 +660,104 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         {/* Notion */}
         <Grid item xs={12} md={6} lg={4}>
           <IntegrationCard
-            icon={<NotionIcon />}
+            icon={<NotionIcon color="#fff" />}
             name="Notion"
-            description="Auto-create a partnership workspace with tasks, docs, and meeting notes"
-            connected={false}
-            comingSoon
+            description={notionDescription}
+            connected={notion.connected}
             brandColor="#000000"
-          />
+            onConnect={handleConnectNotion}
+            connectLoading={actionLoading === 'notion_connect'}
+            showSettings={notion.connected}
+            headerExtra={
+              <ConnectedUsersDisplay 
+                connectedUsers={notion.connected_users} 
+                currentUserConnected={notion.current_user_connected} 
+              />
+            }
+          >
+            {/* Alert for second co-founder to connect */}
+            {notion.connected && !notion.current_user_connected && (
+              <Alert 
+                severity="warning" 
+                sx={{ mb: 2, borderRadius: 2 }}
+                action={
+                  <Button 
+                    size="small" 
+                    color="inherit"
+                    onClick={handleConnectNotion}
+                    disabled={actionLoading === 'notion_connect'}
+                    startIcon={<PersonAdd sx={{ fontSize: 16 }} />}
+                  >
+                    Connect
+                  </Button>
+                }
+              >
+                <Typography variant="body2">
+                  Your co-founder connected Notion. Connect to the same workspace.
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Workspace not created */}
+            {notion.connected && !notion.has_workspace && (
+              <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+                <Typography variant="body2">
+                  Partnership workspace not created yet.{' '}
+                  <Button
+                    size="small"
+                    onClick={handleCreateNotionWorkspace}
+                    disabled={actionLoading === 'notion_workspace'}
+                    startIcon={<Add sx={{ fontSize: 16 }} />}
+                    sx={{ ml: 1, textTransform: 'none' }}
+                  >
+                    {actionLoading === 'notion_workspace' ? 'Creating...' : 'Create Now'}
+                  </Button>
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Show workspace link */}
+            {notion.connected && notion.has_workspace && (
+              <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                  Partnership Hub
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Your shared Notion workspace includes Tasks, Decisions, and Meeting Notes databases.
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<OpenInNew sx={{ fontSize: 16 }} />}
+                  href={notion.partnership_page_url}
+                  target="_blank"
+                  sx={{ 
+                    textTransform: 'none', 
+                    bgcolor: '#000',
+                    '&:hover': { bgcolor: '#333' },
+                  }}
+                >
+                  Open in Notion
+                </Button>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                startIcon={<LinkOff sx={{ fontSize: 16 }} />}
+                onClick={handleDisconnectNotion}
+                disabled={actionLoading === 'notion_disconnect'}
+                sx={{ textTransform: 'none' }}
+              >
+                Disconnect
+              </Button>
+            </Box>
+          </IntegrationCard>
         </Grid>
 
         {/* Google Calendar */}
@@ -599,7 +783,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         borderColor: alpha(TEAL, 0.15),
       }}>
         <Typography variant="body2" sx={{ color: SLATE_500 }}>
-          <strong style={{ color: TEAL }}>Tip:</strong> Both co-founders should connect to the same Slack workspace to receive notifications in the shared channel.
+          <strong style={{ color: TEAL }}>Tip:</strong> Both co-founders should connect to the same Slack and Notion workspaces to collaborate effectively.
         </Typography>
       </Box>
 
