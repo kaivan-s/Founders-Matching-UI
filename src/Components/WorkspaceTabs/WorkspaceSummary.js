@@ -110,6 +110,8 @@ const StatCard = ({ icon, label, value, color, subtext }) => (
     display: 'flex',
     alignItems: 'center',
     gap: 1.5,
+    height: 80,
+    minWidth: 0,
   }}>
     <Box sx={{
       width: 40,
@@ -120,21 +122,20 @@ const StatCard = ({ icon, label, value, color, subtext }) => (
       alignItems: 'center',
       justifyContent: 'center',
       color: color,
+      flexShrink: 0,
     }}>
       {icon}
     </Box>
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <Typography variant="h5" sx={{ fontWeight: 700, color, lineHeight: 1 }}>
         {value}
       </Typography>
-      <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500 }}>
+      <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
         {label}
       </Typography>
-      {subtext && (
-        <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', fontSize: '0.65rem' }}>
-          {subtext}
-        </Typography>
-      )}
+      <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', fontSize: '0.65rem', minHeight: 16, visibility: subtext ? 'visible' : 'hidden' }}>
+        {subtext || '-'}
+      </Typography>
     </Box>
   </Box>
 );

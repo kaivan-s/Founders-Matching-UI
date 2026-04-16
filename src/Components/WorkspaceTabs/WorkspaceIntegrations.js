@@ -92,8 +92,8 @@ const IntegrationCard = ({
       }}
     >
       <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+        {/* Header - fixed height for alignment */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2, minHeight: 100 }}>
           <Box
             sx={{
               width: 52,
@@ -150,7 +150,7 @@ const IntegrationCard = ({
         </Box>
 
         {/* Connected content or Connect button */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           {connected && showSettings ? (
             <>
               <Button
@@ -161,17 +161,22 @@ const IntegrationCard = ({
                   alignSelf: 'flex-start', 
                   textTransform: 'none', 
                   color: SLATE_500,
-                  mb: expanded ? 2 : 0,
+                  mb: expanded ? 1 : 0,
+                  ml: -0.5,
                 }}
               >
                 {expanded ? 'Hide options' : 'Show options'}
               </Button>
               <Collapse in={expanded}>
-                {children}
+                <Box sx={{ pt: 1 }}>
+                  {children}
+                </Box>
               </Collapse>
             </>
           ) : connected ? (
-            children
+            <Box sx={{ pt: 1 }}>
+              {children}
+            </Box>
           ) : (
             <Button
               variant="contained"
