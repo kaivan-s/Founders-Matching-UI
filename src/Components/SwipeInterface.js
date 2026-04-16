@@ -498,12 +498,11 @@ const SwipeInterface = () => {
 
       const swipeResult = await response.json();
       
-      // Refresh swipe limit after successful right swipe
-      if (direction === 'right') {
+      // Refresh swipe limit after successful right swipe (only for non-unlimited plans)
+      // Skip for Pro/Pro+ users who have unlimited swipes
+      if (direction === 'right' && swipeLimit?.max_allowed !== -1) {
         fetchSwipeLimit();
       }
-
-      // Note: Credits system replaced with plan-based limits
       
       // Show match notification if match was created
       if (swipeResult.match_created) {
@@ -511,25 +510,27 @@ const SwipeInterface = () => {
         setTimeout(() => setError(null), 5000);
       }
 
-      // Animate card out then remove from list
+      // Animate card out then remove from list immediately for faster UX
+      setFounders(prev => {
+        const newFounders = prev.filter(founder => founder.id !== founderId);
+        // Reset currentIndex if it's out of bounds
+        if (currentIndex >= newFounders.length && newFounders.length > 0) {
+          setCurrentIndex(newFounders.length - 1);
+        }
+        
+        // Auto-fetch more projects when running low (3-5 projects left)
+        if (newFounders.length <= 5 && hasMore && !loadingMore) {
+          // Use setTimeout to avoid state update conflicts
+          setTimeout(() => fetchMoreFounders(), 100);
+        }
+        
+        return newFounders;
+      });
+      
+      // Clear animation direction after card is removed
       setTimeout(() => {
-        setFounders(prev => {
-          const newFounders = prev.filter(founder => founder.id !== founderId);
-          // Reset currentIndex if it's out of bounds
-          if (currentIndex >= newFounders.length && newFounders.length > 0) {
-            setCurrentIndex(newFounders.length - 1);
-          }
-          
-          // Auto-fetch more projects when running low (3-5 projects left)
-          if (newFounders.length <= 5 && hasMore && !loadingMore) {
-            // Use setTimeout to avoid state update conflicts
-            setTimeout(() => fetchMoreFounders(), 100);
-          }
-          
-          return newFounders;
-        });
         setSwipeDirection(null);
-      }, 300); // Wait for animation to complete
+      }, 150); // Shorter delay for snappier feel
       
       // Close dialog if it was open for this founder
       if (selectedFounder && selectedFounder.id === founderId) {
