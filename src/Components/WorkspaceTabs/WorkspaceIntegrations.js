@@ -66,6 +66,7 @@ const IntegrationCard = ({
   comingSoon,
   brandColor,
   children,
+  footer,
   onConnect,
   connectLoading,
   headerExtra,
@@ -150,7 +151,7 @@ const IntegrationCard = ({
         </Box>
 
         {/* Connected content or Connect button */}
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
           {connected && showSettings ? (
             <>
               <Button
@@ -172,11 +173,29 @@ const IntegrationCard = ({
                   {children}
                 </Box>
               </Collapse>
+              {expanded && footer && (
+                <Box sx={{ mt: 'auto' }}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {footer}
+                  </Box>
+                </Box>
+              )}
             </>
           ) : connected ? (
-            <Box sx={{ pt: 1 }}>
-              {children}
-            </Box>
+            <>
+              <Box sx={{ pt: 1 }}>
+                {children}
+              </Box>
+              {footer && (
+                <Box sx={{ mt: 'auto' }}>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {footer}
+                  </Box>
+                </Box>
+              )}
+            </>
           ) : (
             <Button
               variant="contained"
@@ -550,6 +569,31 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
                 currentUserConnected={slack.current_user_connected} 
               />
             }
+            footer={
+              <>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Send sx={{ fontSize: 16 }} />}
+                  onClick={handleTestNotification}
+                  disabled={!slack.channel_id || actionLoading === 'slack_test'}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {actionLoading === 'slack_test' ? 'Sending...' : 'Send Test'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  startIcon={<LinkOff sx={{ fontSize: 16 }} />}
+                  onClick={handleDisconnectSlack}
+                  disabled={actionLoading === 'slack_disconnect'}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Disconnect
+                </Button>
+              </>
+            }
           >
             {/* Alert for second co-founder to connect */}
             {slack.connected && !slack.current_user_connected && (
@@ -591,7 +635,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </Alert>
             )}
 
-            <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, mb: 2 }}>
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, minHeight: 120 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Notifications sx={{ fontSize: 18, color: TEAL }} />
                 Notification Settings
@@ -633,32 +677,6 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
                 />
               </Box>
             </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Send sx={{ fontSize: 16 }} />}
-                onClick={handleTestNotification}
-                disabled={!slack.channel_id || actionLoading === 'slack_test'}
-                sx={{ textTransform: 'none' }}
-              >
-                {actionLoading === 'slack_test' ? 'Sending...' : 'Send Test'}
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                color="error"
-                startIcon={<LinkOff sx={{ fontSize: 16 }} />}
-                onClick={handleDisconnectSlack}
-                disabled={actionLoading === 'slack_disconnect'}
-                sx={{ textTransform: 'none' }}
-              >
-                Disconnect
-              </Button>
-            </Box>
           </IntegrationCard>
         </Grid>
 
@@ -678,6 +696,33 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
                 connectedUsers={notion.connected_users} 
                 currentUserConnected={notion.current_user_connected} 
               />
+            }
+            footer={
+              <>
+                {notion.has_workspace && notion.partnership_page_url && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<OpenInNew sx={{ fontSize: 16 }} />}
+                    href={notion.partnership_page_url}
+                    target="_blank"
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Open in Notion
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  startIcon={<LinkOff sx={{ fontSize: 16 }} />}
+                  onClick={handleDisconnectNotion}
+                  disabled={actionLoading === 'notion_disconnect'}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Disconnect
+                </Button>
+              </>
             }
           >
             {/* Alert for second co-founder to connect */}
@@ -723,7 +768,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
 
             {/* Show workspace info */}
             {notion.connected && notion.has_workspace && (
-              <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, mb: 2 }}>
+              <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, minHeight: 120 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                   Partnership Hub
                 </Typography>
@@ -732,34 +777,6 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
                 </Typography>
               </Box>
             )}
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {notion.has_workspace && notion.partnership_page_url && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<OpenInNew sx={{ fontSize: 16 }} />}
-                  href={notion.partnership_page_url}
-                  target="_blank"
-                  sx={{ textTransform: 'none' }}
-                >
-                  Open in Notion
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                size="small"
-                color="error"
-                startIcon={<LinkOff sx={{ fontSize: 16 }} />}
-                onClick={handleDisconnectNotion}
-                disabled={actionLoading === 'notion_disconnect'}
-                sx={{ textTransform: 'none' }}
-              >
-                Disconnect
-              </Button>
-            </Box>
           </IntegrationCard>
         </Grid>
 
