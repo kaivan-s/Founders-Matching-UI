@@ -16,6 +16,9 @@ import {
   Grid,
   Snackbar,
   Collapse,
+  Avatar,
+  AvatarGroup,
+  Tooltip,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -24,6 +27,8 @@ import {
   Notifications,
   ExpandMore,
   ExpandLess,
+  PersonAdd,
+  Check,
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 
@@ -31,6 +36,7 @@ const TEAL = '#0d9488';
 const SLATE_500 = '#64748b';
 const SLATE_200 = '#e2e8f0';
 const SLATE_100 = '#f1f5f9';
+const AMBER_500 = '#f59e0b';
 
 const SlackIcon = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -60,6 +66,7 @@ const IntegrationCard = ({
   children,
   onConnect,
   connectLoading,
+  headerExtra,
 }) => {
   const [expanded, setExpanded] = useState(connected);
 
@@ -135,6 +142,7 @@ const IntegrationCard = ({
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {description}
             </Typography>
+            {headerExtra}
           </Box>
         </Box>
 
@@ -222,6 +230,10 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
     if (params.get('slack') === 'connected') {
       setSnackbar({ open: true, message: 'Slack connected successfully!', severity: 'success' });
       window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('error') === 'slack_mismatch') {
+      const message = params.get('message') || 'Your co-founder connected to a different Slack workspace. Please connect to the same workspace.';
+      setSnackbar({ open: true, message: decodeURIComponent(message), severity: 'error' });
+      window.history.replaceState({}, '', window.location.pathname);
     } else if (params.get('error')) {
       setSnackbar({ open: true, message: 'Failed to connect. Please try again.', severity: 'error' });
       window.history.replaceState({}, '', window.location.pathname);
@@ -271,7 +283,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
   };
 
   const handleDisconnectSlack = async () => {
-    if (!window.confirm('Are you sure you want to disconnect Slack?')) return;
+    if (!window.confirm('Are you sure you want to disconnect Slack? This will affect both co-founders.')) return;
 
     setActionLoading('slack_disconnect');
     try {
@@ -349,6 +361,14 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
 
   const slack = integrations.slack || {};
   const slackNotifications = slack.settings?.notifications || {};
+  const connectedUsers = slack.connected_users || [];
+  const currentUserConnected = slack.current_user_connected;
+
+  // Build description based on connection state
+  let slackDescription = 'Get check-in reminders, equity updates, and team notifications';
+  if (slack.connected) {
+    slackDescription = `Connected to ${slack.team_name}${slack.channel_name ? ` • #${slack.channel_name}` : ''}`;
+  }
 
   return (
     <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
@@ -375,16 +395,82 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
           <IntegrationCard
             icon={<SlackIcon />}
             name="Slack"
-            description={
-              slack.connected
-                ? `Connected to ${slack.team_name}${slack.channel_name ? ` • #${slack.channel_name}` : ''}`
-                : 'Get check-in reminders, equity updates, and team notifications'
-            }
+            description={slackDescription}
             connected={slack.connected}
             brandColor="#4A154B"
             onConnect={handleConnectSlack}
             connectLoading={actionLoading === 'slack_connect'}
+            headerExtra={
+              slack.connected && connectedUsers.length > 0 && (
+                <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AvatarGroup max={2} sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.75rem' } }}>
+                    {connectedUsers.map((u, i) => (
+                      <Tooltip key={i} title={u.name || 'Co-founder'}>
+                        <Avatar sx={{ bgcolor: i === 0 ? TEAL : AMBER_500, width: 24, height: 24 }}>
+                          {(u.name || 'C')[0].toUpperCase()}
+                        </Avatar>
+                      </Tooltip>
+                    ))}
+                  </AvatarGroup>
+                  <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                    {connectedUsers.length === 1 
+                      ? `${connectedUsers[0]?.name || 'Co-founder'} connected`
+                      : `${connectedUsers.length} co-founders connected`
+                    }
+                  </Typography>
+                  {connectedUsers.length === 1 && !currentUserConnected && (
+                    <Chip
+                      size="small"
+                      label="You: pending"
+                      sx={{ 
+                        height: 20, 
+                        fontSize: '0.65rem',
+                        bgcolor: alpha(AMBER_500, 0.1),
+                        color: AMBER_500,
+                      }}
+                    />
+                  )}
+                  {currentUserConnected && (
+                    <Chip
+                      size="small"
+                      icon={<Check sx={{ fontSize: 12 }} />}
+                      label="You're connected"
+                      sx={{ 
+                        height: 20, 
+                        fontSize: '0.65rem',
+                        bgcolor: alpha(TEAL, 0.1),
+                        color: TEAL,
+                        '& .MuiChip-icon': { color: TEAL },
+                      }}
+                    />
+                  )}
+                </Box>
+              )
+            }
           >
+            {/* Alert for second co-founder to connect */}
+            {slack.connected && !currentUserConnected && (
+              <Alert 
+                severity="warning" 
+                sx={{ mb: 2, borderRadius: 2 }}
+                action={
+                  <Button 
+                    size="small" 
+                    color="inherit"
+                    onClick={handleConnectSlack}
+                    disabled={actionLoading === 'slack_connect'}
+                    startIcon={<PersonAdd sx={{ fontSize: 16 }} />}
+                  >
+                    Connect
+                  </Button>
+                }
+              >
+                <Typography variant="body2">
+                  Your co-founder connected Slack. Connect your account to join the channel.
+                </Typography>
+              </Alert>
+            )}
+
             {/* Slack Connected Content */}
             {!slack.channel_id && (
               <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
@@ -513,14 +599,13 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         borderColor: alpha(TEAL, 0.15),
       }}>
         <Typography variant="body2" sx={{ color: SLATE_500 }}>
-          <strong style={{ color: TEAL }}>Tip:</strong> Connect your tools to stay in sync with your co-founder. 
-          Guild Space will send notifications for check-ins, equity updates, and important milestones.
+          <strong style={{ color: TEAL }}>Tip:</strong> Both co-founders should connect to the same Slack workspace to receive notifications in the shared channel.
         </Typography>
       </Box>
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={4000}
+        autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
