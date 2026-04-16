@@ -31,12 +31,14 @@ import {
   Handshake,
   CheckCircleOutline,
   Link as LinkIcon,
+  Dashboard,
 } from '@mui/icons-material';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
 import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
+import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
@@ -53,17 +55,19 @@ const WorkspacePage = () => {
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
   const equityRolesMatch = useMatch(`/workspaces/${workspaceId}/equity-roles`);
   const accountabilityMatch = useMatch(`/workspaces/${workspaceId}/accountability`);
+  const summaryMatch = useMatch(`/workspaces/${workspaceId}/summary`);
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
   
   // Determine active tab based on route matches
-  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors, 3=Integrations
+  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors, 3=Summary, 4=Integrations
   const activeTab = useMemo(() => {
     if (overviewMatch) return 0;
     if (equityRolesMatch) return 1;
     if (accountabilityMatch) return 2;
-    if (integrationsMatch) return 3;
+    if (summaryMatch) return 3;
+    if (integrationsMatch) return 4;
     return 0; // Default to overview
-  }, [overviewMatch, equityRolesMatch, accountabilityMatch, integrationsMatch]);
+  }, [overviewMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
 
   // Fetch workspace plan tier
   useEffect(() => {
@@ -98,7 +102,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+    const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -165,6 +169,7 @@ const WorkspacePage = () => {
     <TrendingUp fontSize="small" />,
     <Groups fontSize="small" />,
     <Handshake fontSize="small" />,
+    <Dashboard fontSize="small" />,
     <LinkIcon fontSize="small" />,
   ];
 
@@ -451,6 +456,14 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[3]}
+                <span>Summary</span>
+              </Box>
+            }
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                {tabIcons[4]}
                 <span>Integrations</span>
               </Box>
             }
@@ -477,11 +490,15 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+                const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
               <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
               <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
+              <Route path="summary" element={<WorkspaceSummary workspaceId={workspaceId} onNavigateTab={(tab) => {
+                const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
+                navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
+              }} />} />
               <Route path="integrations" element={<WorkspaceIntegrations workspaceId={workspaceId} />} />
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="*" element={<Navigate to="overview" replace />} />
