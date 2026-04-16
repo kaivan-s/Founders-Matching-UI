@@ -15,6 +15,11 @@ import {
   alpha,
   Tooltip,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Badge,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -29,6 +34,14 @@ import {
   TrendingUp,
   Warning,
   ArrowForward,
+  Notifications,
+  Add,
+  Edit,
+  Delete,
+  SwapHoriz,
+  Person,
+  CalendarToday,
+  Close,
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 
@@ -359,11 +372,200 @@ const MeetingItem = ({ meeting }) => (
   </Box>
 );
 
+const getChangeIcon = (type) => {
+  switch (type) {
+    case 'task_created':
+    case 'decision_created':
+    case 'meeting_created':
+      return <Add sx={{ fontSize: 18 }} />;
+    case 'task_status_changed':
+    case 'decision_status_changed':
+      return <SwapHoriz sx={{ fontSize: 18 }} />;
+    case 'task_priority_changed':
+      return <TrendingUp sx={{ fontSize: 18 }} />;
+    case 'task_deadline_changed':
+      return <CalendarToday sx={{ fontSize: 18 }} />;
+    case 'task_assignee_changed':
+      return <Person sx={{ fontSize: 18 }} />;
+    case 'task_deleted':
+      return <Delete sx={{ fontSize: 18 }} />;
+    default:
+      return <Edit sx={{ fontSize: 18 }} />;
+  }
+};
+
+const getChangeColor = (type) => {
+  if (type.includes('created')) return GREEN_500;
+  if (type.includes('deleted')) return RED_500;
+  if (type.includes('status')) return BLUE_500;
+  if (type.includes('priority')) return AMBER_500;
+  if (type.includes('deadline')) return PURPLE_500;
+  return SLATE_500;
+};
+
+const getChangeLabel = (type) => {
+  const labels = {
+    'task_created': 'New Task',
+    'task_status_changed': 'Status Changed',
+    'task_priority_changed': 'Priority Changed',
+    'task_deadline_changed': 'Deadline Changed',
+    'task_assignee_changed': 'Assignee Changed',
+    'task_deleted': 'Task Removed',
+    'decision_created': 'New Decision',
+    'decision_status_changed': 'Decision Updated',
+    'meeting_created': 'New Meeting Notes',
+  };
+  return labels[type] || 'Update';
+};
+
+const ChangesDialog = ({ open, onClose, changes, onAcknowledge, loading }) => (
+  <Dialog 
+    open={open} 
+    onClose={onClose}
+    maxWidth="sm"
+    fullWidth
+    PaperProps={{
+      sx: {
+        borderRadius: 3,
+        maxHeight: '80vh',
+      }
+    }}
+  >
+    <DialogTitle sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between',
+      borderBottom: `1px solid ${SLATE_200}`,
+      pb: 2,
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{
+          width: 40,
+          height: 40,
+          borderRadius: 2,
+          bgcolor: alpha(TEAL, 0.1),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: TEAL,
+        }}>
+          <Notifications />
+        </Box>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Notion Updates
+          </Typography>
+          <Typography variant="caption" sx={{ color: SLATE_500 }}>
+            {changes.length} change{changes.length !== 1 ? 's' : ''} detected
+          </Typography>
+        </Box>
+      </Box>
+      <IconButton onClick={onClose} size="small">
+        <Close />
+      </IconButton>
+    </DialogTitle>
+    
+    <DialogContent sx={{ p: 0 }}>
+      <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+        {changes.map((change, index) => {
+          const color = getChangeColor(change.type);
+          return (
+            <Box
+              key={index}
+              component={change.url ? 'a' : 'div'}
+              href={change.url || undefined}
+              target={change.url ? '_blank' : undefined}
+              rel={change.url ? 'noopener noreferrer' : undefined}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2,
+                p: 2,
+                borderBottom: `1px solid ${SLATE_200}`,
+                textDecoration: 'none',
+                color: 'inherit',
+                transition: 'background 0.2s',
+                cursor: change.url ? 'pointer' : 'default',
+                '&:hover': {
+                  bgcolor: change.url ? SLATE_100 : 'transparent',
+                },
+                '&:last-child': {
+                  borderBottom: 'none',
+                },
+              }}
+            >
+              <Box sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 1.5,
+                bgcolor: alpha(color, 0.1),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: color,
+                flexShrink: 0,
+              }}>
+                {getChangeIcon(change.type)}
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Chip
+                    label={getChangeLabel(change.type)}
+                    size="small"
+                    sx={{
+                      bgcolor: alpha(color, 0.1),
+                      color: color,
+                      fontWeight: 600,
+                      fontSize: '0.65rem',
+                      height: 20,
+                    }}
+                  />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {change.title}
+                </Typography>
+                <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                  {change.details}
+                </Typography>
+              </Box>
+              {change.url && (
+                <OpenInNew sx={{ fontSize: 14, color: SLATE_500, mt: 0.5 }} />
+              )}
+            </Box>
+          );
+        })}
+      </Box>
+    </DialogContent>
+    
+    <DialogActions sx={{ p: 2, borderTop: `1px solid ${SLATE_200}` }}>
+      <Button
+        variant="contained"
+        onClick={onAcknowledge}
+        disabled={loading}
+        fullWidth
+        sx={{
+          bgcolor: TEAL,
+          textTransform: 'none',
+          fontWeight: 600,
+          py: 1.25,
+          borderRadius: 2,
+          '&:hover': { bgcolor: alpha(TEAL, 0.9) },
+        }}
+      >
+        {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Acknowledge All'}
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
 const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
   const { user } = useUser();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [changes, setChanges] = useState([]);
+  const [changesDialogOpen, setChangesDialogOpen] = useState(false);
+  const [acknowledging, setAcknowledging] = useState(false);
 
   const fetchSummary = async () => {
     if (!user?.id || !workspaceId) return;
@@ -392,9 +594,61 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
     }
   };
 
+  const fetchChanges = async () => {
+    if (!user?.id || !workspaceId) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/notion-changes`, {
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.has_changes && data.changes?.length > 0) {
+          setChanges(data.changes);
+          setChangesDialogOpen(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching changes:', err);
+    }
+  };
+
+  const handleAcknowledge = async () => {
+    if (!user?.id || !workspaceId) return;
+
+    setAcknowledging(true);
+    try {
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/notion-changes/acknowledge`, {
+        method: 'POST',
+        headers: {
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+
+      if (response.ok) {
+        setChanges([]);
+        setChangesDialogOpen(false);
+        fetchSummary();
+      }
+    } catch (err) {
+      console.error('Error acknowledging changes:', err);
+    } finally {
+      setAcknowledging(false);
+    }
+  };
+
   useEffect(() => {
     fetchSummary();
   }, [user?.id, workspaceId]);
+
+  useEffect(() => {
+    if (summary?.has_workspace) {
+      fetchChanges();
+    }
+  }, [summary?.has_workspace]);
 
   if (loading) {
     return (
@@ -551,9 +805,25 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          {changes.length > 0 && (
+            <Tooltip title={`${changes.length} new update${changes.length !== 1 ? 's' : ''}`}>
+              <IconButton 
+                onClick={() => setChangesDialogOpen(true)}
+                sx={{ 
+                  color: TEAL,
+                  bgcolor: alpha(TEAL, 0.1),
+                  '&:hover': { bgcolor: alpha(TEAL, 0.2) },
+                }}
+              >
+                <Badge badgeContent={changes.length} color="error" max={99}>
+                  <Notifications />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Refresh data">
-            <IconButton onClick={fetchSummary} sx={{ color: SLATE_500 }}>
+            <IconButton onClick={() => { fetchSummary(); fetchChanges(); }} sx={{ color: SLATE_500 }}>
               <Refresh />
             </IconButton>
           </Tooltip>
@@ -723,6 +993,15 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
           </SectionCard>
         </Grid>
       </Grid>
+
+      {/* Changes Dialog */}
+      <ChangesDialog
+        open={changesDialogOpen}
+        onClose={() => setChangesDialogOpen(false)}
+        changes={changes}
+        onAcknowledge={handleAcknowledge}
+        loading={acknowledging}
+      />
     </Box>
   );
 };
