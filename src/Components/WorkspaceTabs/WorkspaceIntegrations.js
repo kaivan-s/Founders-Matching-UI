@@ -721,35 +721,33 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </Alert>
             )}
 
-            {/* Show workspace link */}
+            {/* Show workspace info */}
             {notion.connected && notion.has_workspace && (
               <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                   Partnership Hub
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
                   Your shared Notion workspace includes Tasks, Decisions, and Meeting Notes databases.
                 </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<OpenInNew sx={{ fontSize: 16 }} />}
-                  href={notion.partnership_page_url}
-                  target="_blank"
-                  sx={{ 
-                    textTransform: 'none', 
-                    bgcolor: '#000',
-                    '&:hover': { bgcolor: '#333' },
-                  }}
-                >
-                  Open in Notion
-                </Button>
               </Box>
             )}
 
             <Divider sx={{ my: 2 }} />
 
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {notion.has_workspace && notion.partnership_page_url && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<OpenInNew sx={{ fontSize: 16 }} />}
+                  href={notion.partnership_page_url}
+                  target="_blank"
+                  sx={{ textTransform: 'none' }}
+                >
+                  Open in Notion
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 size="small"
