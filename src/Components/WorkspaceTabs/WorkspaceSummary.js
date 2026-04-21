@@ -42,7 +42,10 @@ import {
   Person,
   CalendarToday,
   Close,
+  Lock,
+  StarBorder,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../../config/api';
 
 const TEAL = '#0d9488';
@@ -560,18 +563,25 @@ const ChangesDialog = ({ open, onClose, changes, onAcknowledge, loading }) => (
 
 const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [changes, setChanges] = useState([]);
   const [changesDialogOpen, setChangesDialogOpen] = useState(false);
   const [acknowledging, setAcknowledging] = useState(false);
+
+  const handleUpgrade = () => {
+    navigate('/billing');
+  };
 
   const fetchSummary = async () => {
     if (!user?.id || !workspaceId) return;
 
     setLoading(true);
     setError(null);
+    setUpgradeRequired(false);
 
     try {
       const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/summary`, {
@@ -579,6 +589,15 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
           'X-Clerk-User-Id': user.id,
         },
       });
+
+      if (response.status === 403) {
+        const data = await response.json();
+        if (data.upgrade_required) {
+          setUpgradeRequired(true);
+          return;
+        }
+        throw new Error(data.error || 'Access denied');
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch summary');
@@ -666,6 +685,58 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
           Retry
         </Button>
       </Alert>
+    );
+  }
+
+  if (upgradeRequired) {
+    return (
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          border: `1px solid ${alpha(AMBER_500, 0.3)}`,
+          bgcolor: alpha(AMBER_500, 0.02),
+          textAlign: 'center',
+          py: 6,
+          px: 4,
+        }}
+      >
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            borderRadius: 3,
+            bgcolor: alpha(AMBER_500, 0.1),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 3,
+          }}
+        >
+          <Lock sx={{ fontSize: 40, color: AMBER_500 }} />
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+          Summary Dashboard - Pro Feature
+        </Typography>
+        <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, maxWidth: 400, mx: 'auto' }}>
+          Upgrade to Pro to access the Summary Dashboard and view your Notion tasks, decisions, and meeting notes in one place.
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={handleUpgrade}
+          startIcon={<StarBorder />}
+          sx={{
+            bgcolor: AMBER_500,
+            '&:hover': { bgcolor: alpha(AMBER_500, 0.9) },
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+          }}
+        >
+          Upgrade to Pro
+        </Button>
+      </Card>
     );
   }
 

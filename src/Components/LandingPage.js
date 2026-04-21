@@ -158,26 +158,26 @@ const LandingPage = () => {
   ];
 
   const features = [
-    { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and preferences.' },
+    { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and compatibility scores.' },
     { icon: <Handshake />, title: 'Equity & Agreements', desc: 'Choose from equity templates or use our detailed questionnaire. Generate co-founder agreements automatically.' },
-    { icon: <TrendingUp />, title: 'Weekly Check-ins', desc: 'Stay aligned with structured weekly updates and partnership health monitoring.' },
-    { icon: <Groups />, title: 'Partnership Workspace', desc: 'Dedicated workspace with equity tools, role definitions, and ready-to-use Slack & Notion templates.' },
-    { icon: <Shield />, title: 'Compatibility Scores', desc: 'See how well you match with projects based on work style and preferences. Pro feature.' },
+    { icon: <TrendingUp />, title: 'Weekly Check-ins', desc: 'Stay aligned with structured weekly updates and partnership health tracking over time.' },
+    { icon: <Groups />, title: 'Slack & Notion Sync', desc: 'Connect Slack for team notifications and Notion for syncing tasks, decisions, and KPIs in real-time.' },
+    { icon: <Shield />, title: 'Summary Dashboard', desc: 'See all your Notion tasks, decisions, and updates in one place. Get notified when things change.' },
     { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
   ];
 
   const plans = [
     {
       name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['1 lite workspace', '1 project', '3 swipes / month', '3 access requests / month', 'Weekly check-ins'],
+      features: ['1 workspace', '1 project', '5 swipes / month', 'Weekly check-ins', 'Basic KPIs & decisions'],
     },
     {
-      name: 'Pro', price: '$15', period: '/month', popular: true,
-      features: ['Up to 2 full workspaces', 'Up to 3 projects', 'Unlimited swipes & requests', 'Equity tools & agreements', 'Compatibility scores', 'Advisor marketplace'],
+      name: 'Pro', price: '$19', period: '/month', popular: true,
+      features: ['Up to 3 workspaces', 'Up to 5 projects', 'Unlimited swipes', 'Slack & Notion integration', 'Summary dashboard', 'Equity tools & agreements', 'Compatibility scores', 'Advisor marketplace'],
     },
     {
-      name: 'Pro+', price: '$35', period: '/month', popular: false,
-      features: ['Up to 5 workspaces', 'Unlimited projects', 'Everything in Pro', 'Advanced equity scenarios', 'Priority advisor access'],
+      name: 'Pro+', price: '$39', period: '/month', popular: false,
+      features: ['Unlimited workspaces', 'Unlimited projects', 'Everything in Pro', 'Priority advisor access', 'Priority support', 'Advanced analytics'],
     },
   ];
 
@@ -886,56 +886,83 @@ const LandingPage = () => {
 
       {/* ─── Works With Your Tools ─── */}
       <Box sx={{ bgcolor: '#fff', borderTop: '1px solid', borderBottom: '1px solid', borderColor: SLATE_200 }}>
-        <Container maxWidth="md" sx={{ py: { xs: 5, md: 6 } }}>
-          <Box sx={{ textAlign: 'center' }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
             <Typography variant="overline" sx={{ color: TEAL, fontWeight: 700, letterSpacing: '0.12em', fontSize: '0.75rem' }}>
-              Integrations
+              Native Integrations
             </Typography>
             <Typography variant="h5" sx={{
-              fontWeight: 700, mt: 1, mb: 3, color: SLATE_900,
+              fontWeight: 700, mt: 1, mb: 2, color: SLATE_900,
               fontSize: { xs: '1.25rem', md: '1.5rem' }, letterSpacing: '-0.01em',
             }}>
-              Works with your favorite tools
+              Sync with your favorite tools
             </Typography>
-            <Typography variant="body2" sx={{ color: SLATE_500, mb: 4, maxWidth: 500, mx: 'auto' }}>
-              Use Guild Space for equity, agreements, and check-ins. Connect your usual tools for day-to-day collaboration.
+            <Typography variant="body2" sx={{ color: SLATE_500, maxWidth: 500, mx: 'auto' }}>
+              Connect Slack and Notion to keep your partnership in sync. No more switching between apps.
             </Typography>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 3, md: 5 }, flexWrap: 'wrap' }}>
-              {/* Slack */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{ 
-                  width: 40, height: 40, borderRadius: 2, bgcolor: '#4A154B', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>#</Typography>
-                </Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Slack</Typography>
-              </Box>
-              
-              {/* Notion */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{ 
-                  width: 40, height: 40, borderRadius: 2, bgcolor: '#000', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>N</Typography>
-                </Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Notion</Typography>
-              </Box>
-              
-              {/* Google Calendar */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box sx={{ 
-                  width: 40, height: 40, borderRadius: 2, bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>📅</Typography>
-                </Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>Google Calendar</Typography>
-              </Box>
-            </Box>
           </Box>
+          
+          <Grid container spacing={3} sx={{ maxWidth: 900, mx: 'auto' }}>
+            {/* Slack Integration */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{
+                p: 3, borderRadius: 3, bgcolor: BG, border: '1px solid', borderColor: SLATE_200,
+                height: '100%', transition: 'all 0.25s ease',
+                '&:hover': { borderColor: alpha('#4A154B', 0.4), boxShadow: `0 8px 24px ${alpha('#4A154B', 0.08)}` },
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{ 
+                    width: 48, height: 48, borderRadius: 2, bgcolor: '#4A154B', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>#</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>Slack</Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_400 }}>Team communication</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {['Auto-create private channels for your partnership', 'Real-time notifications for matches & check-ins', 'Invite both co-founders automatically'].map((item, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.75rem' }}>{item}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Grid>
+            
+            {/* Notion Integration */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{
+                p: 3, borderRadius: 3, bgcolor: BG, border: '1px solid', borderColor: SLATE_200,
+                height: '100%', transition: 'all 0.25s ease',
+                '&:hover': { borderColor: alpha('#000', 0.3), boxShadow: `0 8px 24px ${alpha('#000', 0.06)}` },
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{ 
+                    width: 48, height: 48, borderRadius: 2, bgcolor: '#000', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>N</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>Notion</Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_400 }}>Project management</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {['Sync tasks, decisions & KPIs from Notion', 'Summary dashboard shows everything at a glance', 'Get notified when teammates make changes'].map((item, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.75rem' }}>{item}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
 

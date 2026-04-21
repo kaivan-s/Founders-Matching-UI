@@ -31,7 +31,10 @@ import {
   Check,
   OpenInNew,
   Add,
+  Lock,
+  StarBorder,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../../config/api';
 
 const TEAL = '#0d9488';
@@ -71,8 +74,11 @@ const IntegrationCard = ({
   connectLoading,
   headerExtra,
   showSettings = true,
+  hasAccess = true,
+  onUpgrade,
 }) => {
   const [expanded, setExpanded] = useState(connected);
+  const requiresUpgrade = !hasAccess && !connected;
 
   return (
     <Card
@@ -81,13 +87,13 @@ const IntegrationCard = ({
         height: '100%',
         borderRadius: 3,
         border: '1px solid',
-        borderColor: connected ? alpha(TEAL, 0.3) : SLATE_200,
-        bgcolor: connected ? alpha(TEAL, 0.02) : '#fff',
+        borderColor: connected ? alpha(TEAL, 0.3) : (requiresUpgrade ? alpha(AMBER_500, 0.3) : SLATE_200),
+        bgcolor: connected ? alpha(TEAL, 0.02) : (requiresUpgrade ? alpha(AMBER_500, 0.02) : '#fff'),
         transition: 'all 0.2s ease',
         opacity: comingSoon ? 0.7 : 1,
         '&:hover': {
-          borderColor: comingSoon ? SLATE_200 : (connected ? TEAL : brandColor),
-          boxShadow: comingSoon ? 'none' : `0 4px 20px ${alpha(brandColor, 0.15)}`,
+          borderColor: comingSoon ? SLATE_200 : (connected ? TEAL : (requiresUpgrade ? AMBER_500 : brandColor)),
+          boxShadow: comingSoon ? 'none' : `0 4px 20px ${alpha(requiresUpgrade ? AMBER_500 : brandColor, 0.15)}`,
           transform: comingSoon ? 'none' : 'translateY(-2px)',
         },
       }}
@@ -196,6 +202,38 @@ const IntegrationCard = ({
                 </Box>
               )}
             </>
+          ) : requiresUpgrade ? (
+            <Box sx={{ mt: 2 }}>
+              <Alert 
+                severity="warning" 
+                icon={<Lock sx={{ fontSize: 20 }} />}
+                sx={{ 
+                  mb: 2, 
+                  borderRadius: 2,
+                  '& .MuiAlert-message': { width: '100%' }
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                  Pro Feature
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Upgrade to Pro to connect {name} and sync your workspace.
+                </Typography>
+              </Alert>
+              <Button
+                variant="contained"
+                onClick={onUpgrade}
+                startIcon={<StarBorder />}
+                sx={{
+                  bgcolor: AMBER_500,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: alpha(AMBER_500, 0.85) },
+                }}
+              >
+                Upgrade to Pro
+              </Button>
+            </Box>
           ) : (
             <Button
               variant="contained"
@@ -277,11 +315,16 @@ const ConnectedUsersDisplay = ({ connectedUsers, currentUserConnected }) => {
 
 const WorkspaceIntegrations = ({ workspaceId }) => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [integrations, setIntegrations] = useState({});
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [actionLoading, setActionLoading] = useState(null);
+
+  const handleUpgrade = () => {
+    navigate('/billing');
+  };
 
   const fetchIntegrations = useCallback(async () => {
     if (!user?.id || !workspaceId) return;
@@ -345,6 +388,13 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
       if (response.ok) {
         const data = await response.json();
         window.location.href = data.auth_url;
+      } else if (response.status === 403) {
+        const data = await response.json();
+        if (data.upgrade_required) {
+          setSnackbar({ open: true, message: 'Upgrade to Pro to use Slack integration', severity: 'warning' });
+        } else {
+          setSnackbar({ open: true, message: data.error || 'Access denied', severity: 'error' });
+        }
       } else {
         setSnackbar({ open: true, message: 'Failed to start Slack connection', severity: 'error' });
       }
@@ -457,6 +507,13 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
       if (response.ok) {
         const data = await response.json();
         window.location.href = data.auth_url;
+      } else if (response.status === 403) {
+        const data = await response.json();
+        if (data.upgrade_required) {
+          setSnackbar({ open: true, message: 'Upgrade to Pro to use Notion integration', severity: 'warning' });
+        } else {
+          setSnackbar({ open: true, message: data.error || 'Access denied', severity: 'error' });
+        }
       } else {
         setSnackbar({ open: true, message: 'Failed to start Notion connection', severity: 'error' });
       }
@@ -520,6 +577,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
 
   const slack = integrations.slack || {};
   const notion = integrations.notion || {};
+  const featureAccess = integrations.feature_access || {};
   const slackNotifications = slack.settings?.notifications || {};
 
   // Build descriptions
@@ -563,6 +621,8 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
             brandColor="#4A154B"
             onConnect={handleConnectSlack}
             connectLoading={actionLoading === 'slack_connect'}
+            hasAccess={featureAccess.slackIntegration !== false}
+            onUpgrade={handleUpgrade}
             headerExtra={
               <ConnectedUsersDisplay 
                 connectedUsers={slack.connected_users} 
@@ -691,6 +751,8 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
             onConnect={handleConnectNotion}
             connectLoading={actionLoading === 'notion_connect'}
             showSettings={notion.connected}
+            hasAccess={featureAccess.notionIntegration !== false}
+            onUpgrade={handleUpgrade}
             headerExtra={
               <ConnectedUsersDisplay 
                 connectedUsers={notion.connected_users} 
