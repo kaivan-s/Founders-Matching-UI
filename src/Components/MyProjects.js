@@ -61,6 +61,7 @@ const MyProjects = () => {
     title: '',
     description: '',
     stage: 'idea',
+    application_questions: ['', '', ''],
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -100,10 +101,16 @@ const MyProjects = () => {
 
   const handleEditClick = (project) => {
     setEditingProject(project);
+    const questions = project.application_questions || [];
     setEditFormData({
       title: project.title || '',
       description: project.description || '',
       stage: project.stage || 'idea',
+      application_questions: [
+        questions[0] || '',
+        questions[1] || '',
+        questions[2] || '',
+      ],
     });
     setEditDialogOpen(true);
   };
@@ -116,13 +123,17 @@ const MyProjects = () => {
 
     setSaving(true);
     try {
+      const dataToSend = {
+        ...editFormData,
+        application_questions: editFormData.application_questions.filter(q => q && q.trim()),
+      };
       const response = await fetch(`${API_BASE}/projects/${editingProject.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'X-Clerk-User-Id': user.id,
         },
-        body: JSON.stringify(editFormData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
@@ -441,6 +452,45 @@ const MyProjects = () => {
                 ))}
               </Select>
             </FormControl>
+
+            {/* Application Questions */}
+            {editingProject?.visibility === 'request_access' && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: SLATE_900, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Psychology sx={{ fontSize: 18, color: SLATE_500 }} />
+                  Application Questions
+                </Typography>
+                <Typography variant="caption" sx={{ mb: 2, display: 'block', color: SLATE_500 }}>
+                  Questions that applicants must answer when requesting to connect
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {[0, 1, 2].map((index) => (
+                    <TextField
+                      key={index}
+                      fullWidth
+                      size="small"
+                      label={`Question ${index + 1}`}
+                      placeholder={
+                        index === 0 ? "e.g., Why are you interested in this project?" :
+                        index === 1 ? "e.g., What relevant experience do you have?" :
+                        "e.g., What's your availability?"
+                      }
+                      value={editFormData.application_questions[index] || ''}
+                      onChange={(e) => {
+                        const newQuestions = [...editFormData.application_questions];
+                        newQuestions[index] = e.target.value;
+                        setEditFormData(prev => ({ ...prev, application_questions: newQuestions }));
+                      }}
+                      disabled={saving}
+                      multiline
+                      rows={2}
+                      inputProps={{ maxLength: 500 }}
+                      helperText={`${(editFormData.application_questions[index] || '').length}/500`}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>

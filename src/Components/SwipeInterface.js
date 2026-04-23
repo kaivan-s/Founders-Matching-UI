@@ -48,6 +48,7 @@ import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
 import AdvancedSearch from './AdvancedSearch';
 import DiscoveryPreferencesDialog from './DiscoveryPreferencesDialog';
 import NewProjectDialog from './NewProjectDialog';
+import ConnectionRequestDialog from './ConnectionRequestDialog';
 import { API_BASE } from '../config/api';
 
 const SwipeInterface = () => {
@@ -105,6 +106,10 @@ const SwipeInterface = () => {
       return false;
     }
   });
+  
+  // Connection Request Dialog state (for projects with application questions)
+  const [connectionRequestOpen, setConnectionRequestOpen] = useState(false);
+  const [connectionRequestData, setConnectionRequestData] = useState(null); // {founder, project, founderId, direction}
 
   const fetchUserProjects = useCallback(async () => {
     if (!user?.id) return;
@@ -452,7 +457,19 @@ const SwipeInterface = () => {
     }
   };
 
-  const handleSwipe = async (founderId, direction, projectId = null) => {
+  const handleConnectionRequestSubmit = async (applicationData) => {
+    if (!connectionRequestData) return;
+    
+    const { founderId, direction, projectId } = connectionRequestData;
+    setConnectionRequestOpen(false);
+    
+    // Call handleSwipe with the application data
+    await handleSwipe(founderId, direction, projectId, applicationData);
+    
+    setConnectionRequestData(null);
+  };
+
+  const handleSwipe = async (founderId, direction, projectId = null, applicationData = null) => {
     // Check swipe limit for right swipes
     if (direction === 'right' && swipeLimit && swipeLimit.max_allowed !== -1) {
       if (!swipeLimit.can_swipe) {
@@ -462,11 +479,27 @@ const SwipeInterface = () => {
       }
     }
     
+    // Find the founder/project being swiped on
+    const founder = founders.find(f => f.id === founderId);
+    const project = founder?.projects?.[0];
+    const applicationQuestions = project?.application_questions || [];
+    
+    // For right swipes on projects with application questions, show the dialog first
+    if (direction === 'right' && applicationQuestions.length > 0 && !applicationData) {
+      setConnectionRequestData({
+        founder,
+        project,
+        founderId,
+        direction,
+        projectId,
+      });
+      setConnectionRequestOpen(true);
+      return;
+    }
+    
     setSwiping(founderId);
     setSwipeDirection(direction); // Set animation direction
     
-    // Find the founder/project being swiped on
-    const founder = founders.find(f => f.id === founderId);
     // In project mode, use founder_id for the swipe, but project_id for the project
     const actualFounderId = founder?.founder_id || founderId;
     const primaryProjectId = founder?.primary_project_id || projectId || (founder?.projects?.[0]?.id);
@@ -474,7 +507,8 @@ const SwipeInterface = () => {
     try {
       const swipeData = {
         swiped_id: actualFounderId,  // Use actual founder ID for the swipe
-        swipe_type: direction
+        swipe_type: direction,
+        ...(applicationData || {}), // Include question_answers, video_intro_url, voice_intro_url if provided
       };
       
       // Add project information (project_id is required - all swipes must be project-based)
@@ -2297,6 +2331,19 @@ const SwipeInterface = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Connection Request Dialog (for projects with application questions) */}
+      <ConnectionRequestDialog
+        open={connectionRequestOpen}
+        onClose={() => {
+          setConnectionRequestOpen(false);
+          setConnectionRequestData(null);
+        }}
+        onSubmit={handleConnectionRequestSubmit}
+        project={connectionRequestData?.project}
+        founderName={connectionRequestData?.founder?.name}
+        loading={swiping === connectionRequestData?.founderId}
+      />
       </Box>
     </Box>
   );

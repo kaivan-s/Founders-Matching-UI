@@ -20,6 +20,9 @@ import {
   AccessTime,
   LinkedIn,
   LocationOn,
+  Psychology,
+  Videocam,
+  Mic,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../config/api';
@@ -314,6 +317,89 @@ const AccessRequests = () => {
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6, fontStyle: 'italic' }}>
                         "{request.message}"
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Application Questions & Answers */}
+                  {request.question_answers && Object.keys(request.question_answers).length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
+                        <Psychology sx={{ color: TEAL, fontSize: 18 }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                          Application Answers
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        {Object.entries(request.question_answers).map(([question, answer], idx) => (
+                          <Box key={idx} sx={{ 
+                            p: 2, 
+                            borderRadius: '10px', 
+                            bgcolor: alpha(TEAL, 0.03),
+                            border: '1px solid',
+                            borderColor: alpha(TEAL, 0.1),
+                          }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', mb: 0.5 }}>
+                              Q: {question}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: SLATE_500, whiteSpace: 'pre-wrap' }}>
+                              {answer}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Video/Voice Introductions */}
+                  {(request.video_intro_url || request.voice_intro_url) && (
+                    <Box sx={{ mb: 2, display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                      {request.video_intro_url && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          component="a"
+                          href={request.video_intro_url}
+                          target="_blank"
+                          startIcon={<Videocam />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: alpha(TEAL, 0.3),
+                            color: TEAL,
+                            borderRadius: '8px',
+                            '&:hover': { borderColor: TEAL, bgcolor: alpha(TEAL, 0.05) },
+                          }}
+                        >
+                          Watch Video
+                        </Button>
+                      )}
+                      {request.voice_intro_url && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          component="a"
+                          href={request.voice_intro_url}
+                          target="_blank"
+                          startIcon={<Mic />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: alpha(TEAL, 0.3),
+                            color: TEAL,
+                            borderRadius: '8px',
+                            '&:hover': { borderColor: TEAL, bgcolor: alpha(TEAL, 0.05) },
+                          }}
+                        >
+                          Listen to Voice Note
+                        </Button>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Enhanced Profile Info */}
+                  {request.requester?.headline && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" sx={{ color: SLATE_500, fontStyle: 'italic' }}>
+                        "{request.requester.headline}"
                       </Typography>
                     </Box>
                   )}

@@ -43,6 +43,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     genre: '',
     needed_skills: [],
     visibility: 'open',
+    application_questions: ['', '', ''],
   });
   const [otherSkill, setOtherSkill] = useState('');
   const [compatibilityAnswers, setCompatibilityAnswers] = useState({});
@@ -297,6 +298,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           needed_skills: formData.needed_skills,
           visibility: formData.visibility,
           compatibility_answers: compatibilityAnswers,
+          application_questions: formData.application_questions.filter(q => q && q.trim()),
         }),
       });
 
@@ -321,6 +323,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         genre: '',
         needed_skills: [],
         visibility: 'open',
+        application_questions: ['', '', ''],
       });
       setOtherSkill('');
       setCompatibilityAnswers({});
@@ -342,6 +345,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         genre: '',
         needed_skills: [],
         visibility: 'open',
+        application_questions: ['', '', ''],
       });
       setOtherSkill('');
       setCompatibilityAnswers({});
@@ -807,6 +811,61 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               </Box>
 
               </Box>
+
+            {/* Application Questions - Only show for request_access visibility */}
+            {formData.visibility === 'request_access' && (
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Psychology sx={{ fontSize: 18, color: '#64748b' }} />
+                  Application Questions
+                  <Chip label="Optional" size="small" sx={{ ml: 1, fontSize: '0.65rem', height: 20, bgcolor: '#f1f5f9', color: '#64748b' }} />
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                  Ask up to 3 questions that potential co-founders must answer when requesting to connect. This helps you evaluate their fit and seriousness.
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {[0, 1, 2].map((index) => (
+                    <TextField
+                      key={index}
+                      fullWidth
+                      label={`Question ${index + 1}`}
+                      placeholder={
+                        index === 0 ? "e.g., Why are you interested in this project?" :
+                        index === 1 ? "e.g., What relevant experience do you have?" :
+                        "e.g., What's your availability and commitment level?"
+                      }
+                      value={formData.application_questions[index] || ''}
+                      onChange={(e) => {
+                        const newQuestions = [...formData.application_questions];
+                        newQuestions[index] = e.target.value;
+                        setFormData(prev => ({ ...prev, application_questions: newQuestions }));
+                      }}
+                      disabled={loading}
+                      multiline
+                      rows={2}
+                      inputProps={{ maxLength: 500 }}
+                      helperText={`${(formData.application_questions[index] || '').length}/500`}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#0d9488',
+                          },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#0d9488',
+                        },
+                      }}
+                    />
+                  ))}
+                </Box>
+                <Alert severity="info" sx={{ mt: 2, borderRadius: '12px', bgcolor: 'rgba(13, 148, 136, 0.05)', border: '1px solid rgba(13, 148, 136, 0.15)' }}>
+                  <Typography variant="caption">
+                    <strong>Tip:</strong> Good questions help filter serious applicants. Ask about specific experience, availability, or their vision for the collaboration.
+                  </Typography>
+                </Alert>
+              </Box>
+            )}
 
             <Alert severity="info" sx={{ borderRadius: '12px', bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
               <Typography variant="body2">

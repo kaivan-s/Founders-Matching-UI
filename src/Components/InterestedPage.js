@@ -16,7 +16,7 @@ import {
   IconButton,
   alpha,
 } from '@mui/material';
-import { LocationOn, Language, LinkedIn, Business, Close, CheckCircle, Visibility } from '@mui/icons-material';
+import { LocationOn, Language, LinkedIn, Business, Close, CheckCircle, Visibility, Psychology, Videocam, Mic, Twitter, GitHub, Work } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../config/api';
 
@@ -505,12 +505,57 @@ const InterestedPage = () => {
                 >
                   {selectedLike.founder.name ? selectedLike.founder.name.split(' ').map(n => n[0]).join('') : '?'}
                 </Avatar>
+                {selectedLike.founder.headline && (
+                  <Typography variant="body1" sx={{ color: SLATE_500, mb: 1, fontWeight: 500 }}>
+                    {selectedLike.founder.headline}
+                  </Typography>
+                )}
+                
                 {selectedLike.founder.location && (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 2 }}>
                     <LocationOn sx={{ fontSize: 18, color: SLATE_400 }} />
                     <Typography variant="body2" sx={{ color: SLATE_500 }}>
                       {selectedLike.founder.location}
                     </Typography>
+                  </Box>
+                )}
+
+                {/* Social links */}
+                {(selectedLike.founder.twitter_url || selectedLike.founder.github_url || selectedLike.founder.portfolio_url) && (
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', mb: 2 }}>
+                    {selectedLike.founder.twitter_url && (
+                      <IconButton 
+                        component="a" 
+                        href={selectedLike.founder.twitter_url}
+                        target="_blank"
+                        size="small"
+                        sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
+                      >
+                        <Twitter fontSize="small" />
+                      </IconButton>
+                    )}
+                    {selectedLike.founder.github_url && (
+                      <IconButton 
+                        component="a" 
+                        href={selectedLike.founder.github_url}
+                        target="_blank"
+                        size="small"
+                        sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
+                      >
+                        <GitHub fontSize="small" />
+                      </IconButton>
+                    )}
+                    {selectedLike.founder.portfolio_url && (
+                      <IconButton 
+                        component="a" 
+                        href={selectedLike.founder.portfolio_url}
+                        target="_blank"
+                        size="small"
+                        sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
+                      >
+                        <Language fontSize="small" />
+                      </IconButton>
+                    )}
                   </Box>
                 )}
                 
@@ -554,6 +599,153 @@ const InterestedPage = () => {
                   </Box>
                 )}
               </Box>
+
+              {/* Application Questions & Answers */}
+              {selectedLike.question_answers && Object.keys(selectedLike.question_answers).length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Divider sx={{ mb: 2 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Psychology sx={{ color: TEAL, fontSize: 20 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                      Application Answers
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {Object.entries(selectedLike.question_answers).map(([question, answer], idx) => (
+                      <Box key={idx} sx={{ 
+                        p: 2, 
+                        borderRadius: 2, 
+                        bgcolor: alpha(TEAL, 0.03),
+                        border: '1px solid',
+                        borderColor: alpha(TEAL, 0.1),
+                      }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                          Q: {question}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: SLATE_500, whiteSpace: 'pre-wrap' }}>
+                          {answer}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Video/Voice Introductions */}
+              {(selectedLike.video_intro_url || selectedLike.voice_intro_url) && (
+                <Box sx={{ mb: 3 }}>
+                  <Divider sx={{ mb: 2 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: SLATE_900 }}>
+                    Personal Introduction
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    {selectedLike.video_intro_url && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        component="a"
+                        href={selectedLike.video_intro_url}
+                        target="_blank"
+                        startIcon={<Videocam />}
+                        sx={{
+                          textTransform: 'none',
+                          borderColor: alpha(SKY, 0.3),
+                          color: SKY,
+                          '&:hover': { borderColor: SKY, bgcolor: alpha(SKY, 0.05) },
+                        }}
+                      >
+                        Watch Video
+                      </Button>
+                    )}
+                    {selectedLike.voice_intro_url && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        component="a"
+                        href={selectedLike.voice_intro_url}
+                        target="_blank"
+                        startIcon={<Mic />}
+                        sx={{
+                          textTransform: 'none',
+                          borderColor: alpha(TEAL, 0.3),
+                          color: TEAL,
+                          '&:hover': { borderColor: TEAL, bgcolor: alpha(TEAL, 0.05) },
+                        }}
+                      >
+                        Listen to Voice Note
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Bio */}
+              {selectedLike.founder.bio && (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                    About
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, whiteSpace: 'pre-wrap' }}>
+                    {selectedLike.founder.bio}
+                  </Typography>
+                </>
+              )}
+
+              {/* Work Preferences */}
+              {selectedLike.founder.work_preferences && Object.keys(selectedLike.founder.work_preferences).length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Work fontSize="small" />
+                    Work Preferences
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {selectedLike.founder.work_preferences.commitment && (
+                      <Chip 
+                        label={selectedLike.founder.work_preferences.commitment.replace('_', ' ')} 
+                        size="small" 
+                        sx={{ textTransform: 'capitalize', bgcolor: alpha(TEAL, 0.1), color: TEAL }}
+                      />
+                    )}
+                    {selectedLike.founder.work_preferences.location_preference && (
+                      <Chip 
+                        label={selectedLike.founder.work_preferences.location_preference.replace('_', ' ')} 
+                        size="small" 
+                        sx={{ textTransform: 'capitalize', bgcolor: alpha(SKY, 0.1), color: SKY }}
+                      />
+                    )}
+                    {selectedLike.founder.work_preferences.timezone && (
+                      <Chip 
+                        label={selectedLike.founder.work_preferences.timezone} 
+                        size="small" 
+                        sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Interests */}
+              {selectedLike.founder.interests && selectedLike.founder.interests.length > 0 && (
+                <>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                    Interests
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                    {selectedLike.founder.interests.map((interest, idx) => (
+                      <Chip 
+                        key={idx}
+                        label={interest} 
+                        size="small" 
+                        sx={{
+                          bgcolor: alpha(NAVY, 0.08),
+                          color: NAVY,
+                          fontSize: '0.75rem',
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </>
+              )}
 
               {selectedLike.founder.looking_for && (
                 <>

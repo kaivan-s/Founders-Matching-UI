@@ -7,7 +7,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge, Box as MuiBox } from '@mui/material';
-import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz, AdminPanelSettings } from '@mui/icons-material';
+import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz, AdminPanelSettings, Person } from '@mui/icons-material';
 import SwipeInterface from './Components/SwipeInterface';
 import InterestedPage from './Components/InterestedPage';
 import LandingPage from './Components/LandingPage';
@@ -30,6 +30,7 @@ import PrivacyPolicy from './Components/PrivacyPolicy';
 import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
 import AdminAdvisors from './Components/AdminAdvisors';
+import ProfilePage from './Components/ProfilePage';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -362,6 +363,29 @@ function Header() {
                     Admin
                   </Button>
                 )}
+
+                <Button
+                  variant="outlined"
+                  startIcon={<Person />}
+                  onClick={() => navigate('/profile')}
+                  sx={{
+                    borderColor: '#e2e8f0',
+                    color: '#1e3a8a',
+                    px: 2,
+                    py: 0.75,
+                    height: 36,
+                    fontSize: '0.8125rem',
+                    borderRadius: 3,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': {
+                      borderColor: '#0d9488',
+                      bgcolor: 'rgba(13, 148, 136, 0.04)',
+                    },
+                  }}
+                >
+                  Profile
+                </Button>
 
                 <UserButton />
               </>
@@ -1291,6 +1315,32 @@ function AppContent() {
           }}>
             <AdvisorLanding />
           </Box>
+        } />
+        <Route path="/profile" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              <NavigationTabs />
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+                <ProfilePage />
+              </Box>
+            </Box>
+          </RouteWrapper>
         } />
         <Route path="/admin" element={<AdminAdvisors />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
