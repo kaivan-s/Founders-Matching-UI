@@ -151,18 +151,18 @@ const LandingPage = () => {
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
   const problems = [
-    { num: '01', title: 'Ghosting & Flakiness', desc: 'Founders match, exchange a few messages, then vanish.' },
-    { num: '02', title: 'Equity Confusion', desc: 'No clear splits or vesting. Months later, you\'re arguing over ownership.' },
+    { num: '01', title: 'IP Theft Risk', desc: 'Share your idea with strangers, get rejected, and watch them build it without you.' },
+    { num: '02', title: 'Ghosting & Flakiness', desc: 'Founders match, exchange a few messages, then vanish.' },
     { num: '03', title: 'Misaligned Expectations', desc: 'Work styles, commitment levels, and goals don\'t align until it\'s too late.' },
-    { num: '04', title: 'Zero Structure', desc: 'Scattered across Zoom, WhatsApp, and Docs. No decisions logged. No accountability.' },
+    { num: '04', title: 'Zero Structure', desc: 'No equity clarity, no accountability, no partnership framework.' },
   ];
 
   const features = [
     { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and compatibility scores.' },
+    { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing details.' },
+    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential co-founders know who you really are.' },
+    { icon: <BarChart />, title: 'Personal Intros', desc: 'Add video or voice introductions to stand out. Show your personality beyond just text.' },
     { icon: <Handshake />, title: 'Equity & Agreements', desc: 'Choose from equity templates or use our detailed questionnaire. Generate co-founder agreements automatically.' },
-    { icon: <TrendingUp />, title: 'Weekly Check-ins', desc: 'Stay aligned with structured weekly updates and partnership health tracking over time.' },
-    { icon: <Groups />, title: 'Slack & Notion Sync', desc: 'Connect Slack for team notifications and Notion for syncing tasks, decisions, and KPIs in real-time.' },
-    { icon: <Shield />, title: 'Summary Dashboard', desc: 'See all your Notion tasks, decisions, and updates in one place. Get notified when things change.' },
     { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
   ];
 
@@ -491,7 +491,78 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {/* ─ Card 2: Equity & Agreements (tall, 4 cols, spans 2 rows) ─ */}
+          {/* ─ Card 2: Apply to Connect (4 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 4' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 12px 32px ${alpha(TEAL, 0.1)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.08), color: TEAL, display: 'flex' }}>
+                <Shield sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Apply to Connect
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              Screen applicants with custom questions. Protect your ideas before sharing details.
+            </Typography>
+
+            {/* Application Questions mockup */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, mb: 1.5, display: 'block', letterSpacing: '0.06em' }}>
+                YOUR SCREENING QUESTIONS
+              </Typography>
+              {[
+                'Why are you interested in this project?',
+                'What relevant experience do you bring?',
+                'What\'s your availability?',
+              ].map((q, i) => (
+                <Box key={i} sx={{
+                  p: 1.5, mb: 1, borderRadius: 2, bgcolor: BG,
+                  border: '1px solid', borderColor: SLATE_200,
+                }}>
+                  <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: alpha(TEAL, 0.1), color: TEAL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 700 }}>{i + 1}</Box>
+                    {q}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Applicant preview */}
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: alpha(SKY, 0.04), border: '1px solid', borderColor: alpha(SKY, 0.15) }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                <Box sx={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  bgcolor: alpha(SKY, 0.15), color: SKY,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: '0.7rem',
+                }}>JD</Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
+                    Jane Doe
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem' }}>
+                    Ex-Meta PM • 8 years exp
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 0.75 }}>
+                  <Box sx={{ px: 1, py: 0.3, borderRadius: 1, bgcolor: '#ef4444', color: '#fff', fontSize: '0.55rem', fontWeight: 600 }}>✕</Box>
+                  <Box sx={{ px: 1, py: 0.3, borderRadius: 1, bgcolor: TEAL, color: '#fff', fontSize: '0.55rem', fontWeight: 600 }}>✓</Box>
+                </Box>
+              </Box>
+              <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem', fontStyle: 'italic' }}>
+                "I've built 3 fintech products and want to bring my expertise..."
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* ─ Card 3: Equity & Agreements (tall, 4 cols, spans 2 rows) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 4' },
             gridRow: { xs: 'auto', md: 'span 2' },
@@ -597,7 +668,155 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {/* ─ Card 3: Advisor Marketplace (5 cols) ─ */}
+          {/* ─ Card 4: Rich Profiles (4 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 4' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(NAVY, 0.4), boxShadow: `0 12px 32px ${alpha(NAVY, 0.08)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(NAVY, 0.08), color: NAVY, display: 'flex' }}>
+                <People sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Rich Founder Profiles
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              Showcase your experience. Let co-founders know who you really are.
+            </Typography>
+
+            {/* Profile mockup */}
+            <Box sx={{ p: 2, borderRadius: 2, bgcolor: BG, border: '1px solid', borderColor: SLATE_200 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  bgcolor: alpha(TEAL, 0.15), color: TEAL,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: '0.85rem',
+                }}>SK</Box>
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.8rem' }}>
+                    Sarah Kim
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: TEAL, fontStyle: 'italic', fontSize: '0.65rem' }}>
+                    "Ex-Meta PM building the future of health tech"
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Profile sections */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.05em' }}>SKILLS</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                    {['Product', 'Python', 'ML', 'Strategy'].map((s, i) => (
+                      <Box key={i} sx={{ px: 0.75, py: 0.25, borderRadius: 1, bgcolor: alpha(TEAL, 0.08), color: TEAL, fontSize: '0.55rem', fontWeight: 600 }}>{s}</Box>
+                    ))}
+                  </Box>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.05em' }}>INTERESTS</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                    {['AI/ML', 'Healthcare', 'B2B SaaS'].map((s, i) => (
+                      <Box key={i} sx={{ px: 0.75, py: 0.25, borderRadius: 1, bgcolor: alpha(NAVY, 0.08), color: NAVY, fontSize: '0.55rem', fontWeight: 600 }}>{s}</Box>
+                    ))}
+                  </Box>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.05em' }}>WORK STYLE</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+                    <Box sx={{ px: 0.75, py: 0.25, borderRadius: 1, bgcolor: alpha(SKY, 0.08), color: SKY, fontSize: '0.55rem', fontWeight: 600 }}>Full-time</Box>
+                    <Box sx={{ px: 0.75, py: 0.25, borderRadius: 1, bgcolor: alpha(SKY, 0.08), color: SKY, fontSize: '0.55rem', fontWeight: 600 }}>Remote</Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ─ Card 5: Video & Voice Intros (4 cols) ─ */}
+          <Box sx={{
+            gridColumn: { xs: '1', md: 'span 4' },
+            p: 3, borderRadius: 3, bgcolor: '#fff',
+            border: '1px solid', borderColor: SLATE_200,
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': { borderColor: alpha(SKY, 0.4), boxShadow: `0 12px 32px ${alpha(SKY, 0.08)}` },
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(SKY, 0.08), color: SKY, display: 'flex' }}>
+                <BarChart sx={{ fontSize: 20 }} />
+              </Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Personal Introductions
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
+              Go beyond text. Add video or voice intros to stand out from other applicants.
+            </Typography>
+
+            {/* Video/Voice mockup */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {/* Video intro button */}
+              <Box sx={{
+                p: 2, borderRadius: 2, bgcolor: BG,
+                border: '1px solid', borderColor: SLATE_200,
+                display: 'flex', alignItems: 'center', gap: 1.5,
+              }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: 2,
+                  bgcolor: alpha('#ef4444', 0.1), color: '#ef4444',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Box sx={{ width: 0, height: 0, borderLeft: '8px solid #ef4444', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', ml: 0.5 }} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
+                    Watch Video Intro
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem' }}>
+                    2:30 • Loom recording
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Voice note button */}
+              <Box sx={{
+                p: 2, borderRadius: 2, bgcolor: BG,
+                border: '1px solid', borderColor: SLATE_200,
+                display: 'flex', alignItems: 'center', gap: 1.5,
+              }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: 2,
+                  bgcolor: alpha(TEAL, 0.1), color: TEAL,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1rem',
+                }}>
+                  🎙️
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
+                    Listen to Voice Note
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.6rem' }}>
+                    1:15 • Audio intro
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Audio waveform mockup */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1 }}>
+                {[3, 5, 8, 6, 9, 4, 7, 10, 6, 8, 5, 7, 4, 6, 8, 5, 3].map((h, i) => (
+                  <Box key={i} sx={{ width: 3, height: h * 2, borderRadius: 1, bgcolor: i < 10 ? TEAL : alpha(TEAL, 0.3) }} />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ─ Card 6: Advisor Marketplace (5 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 5' },
             p: 3, borderRadius: 3, bgcolor: '#fff',
@@ -859,8 +1078,8 @@ const LandingPage = () => {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
-            { step: '1', title: 'Discover & Match', desc: 'Swipe through project profiles. Match based on skills, stage, location, and working style.' },
-            { step: '2', title: 'Set the Foundation', desc: 'Use equity templates or our detailed questionnaire, then generate co-founder agreements automatically.' },
+            { step: '1', title: 'Discover & Apply', desc: 'Browse project profiles. Answer screening questions to show you\'re serious. Project owners review your profile and responses.' },
+            { step: '2', title: 'Connect & Agree', desc: 'Once accepted, share full project details. Use equity templates to set clear ownership from day one.' },
             { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and connect with advisors—all from your partnership workspace.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
