@@ -38,6 +38,7 @@ const InterestedPage = () => {
   const [responding, setResponding] = useState(null);
   const [selectedLike, setSelectedLike] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showFullProfile, setShowFullProfile] = useState(false);
 
   useEffect(() => {
     fetchLikes();
@@ -110,6 +111,7 @@ const InterestedPage = () => {
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedLike(null);
+    setShowFullProfile(false);
   };
 
   const getTimeSince = (timestamp) => {
@@ -463,7 +465,7 @@ const InterestedPage = () => {
       <Dialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
@@ -489,22 +491,44 @@ const InterestedPage = () => {
             </DialogTitle>
             <DialogContent sx={{ pt: 3 }}>
               <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Avatar
-                  src={selectedLike.founder.profile_picture_url}
-                  alt={selectedLike.founder.name}
+                {/* Clickable Profile Section */}
+                <Box 
+                  onClick={() => setShowFullProfile(!showFullProfile)}
                   sx={{ 
-                    width: 100,
-                    height: 100,
-                    bgcolor: alpha(SKY, 0.1),
-                    color: SKY,
-                    fontSize: '2.5rem',
-                    fontWeight: 700,
-                    margin: '0 auto',
-                    mb: 2,
+                    cursor: 'pointer',
+                    display: 'inline-block',
+                    p: 2,
+                    borderRadius: 2,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      bgcolor: alpha(SKY, 0.05),
+                    },
                   }}
                 >
-                  {selectedLike.founder.name ? selectedLike.founder.name.split(' ').map(n => n[0]).join('') : '?'}
-                </Avatar>
+                  <Avatar
+                    src={selectedLike.founder.profile_picture_url}
+                    alt={selectedLike.founder.name}
+                    sx={{ 
+                      width: 100,
+                      height: 100,
+                      bgcolor: alpha(SKY, 0.1),
+                      color: SKY,
+                      fontSize: '2.5rem',
+                      fontWeight: 700,
+                      margin: '0 auto',
+                      mb: 2,
+                      border: '3px solid',
+                      borderColor: showFullProfile ? TEAL : 'transparent',
+                      transition: 'border-color 0.2s',
+                    }}
+                  >
+                    {selectedLike.founder.name ? selectedLike.founder.name.split(' ').map(n => n[0]).join('') : '?'}
+                  </Avatar>
+                  <Typography variant="body2" sx={{ color: TEAL, fontWeight: 600, mt: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                    <Visibility sx={{ fontSize: 16 }} />
+                    {showFullProfile ? 'Hide Profile Details' : 'View Profile Details'}
+                  </Typography>
+                </Box>
                 {selectedLike.founder.headline && (
                   <Typography variant="body1" sx={{ color: SLATE_500, mb: 1, fontWeight: 500 }}>
                     {selectedLike.founder.headline}
@@ -529,6 +553,7 @@ const InterestedPage = () => {
                         href={selectedLike.founder.twitter_url}
                         target="_blank"
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
                       >
                         <Twitter fontSize="small" />
@@ -540,6 +565,7 @@ const InterestedPage = () => {
                         href={selectedLike.founder.github_url}
                         target="_blank"
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
                       >
                         <GitHub fontSize="small" />
@@ -551,11 +577,188 @@ const InterestedPage = () => {
                         href={selectedLike.founder.portfolio_url}
                         target="_blank"
                         size="small"
+                        onClick={(e) => e.stopPropagation()}
                         sx={{ color: SLATE_400, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
                       >
                         <Language fontSize="small" />
                       </IconButton>
                     )}
+                  </Box>
+                )}
+
+                {/* Expanded Profile Details */}
+                {showFullProfile && (
+                  <Box sx={{ 
+                    mt: 2, 
+                    p: 2.5, 
+                    borderRadius: 2, 
+                    bgcolor: alpha(SLATE_200, 0.3),
+                    textAlign: 'left',
+                  }}>
+                    {selectedLike.founder.bio && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900 }}>
+                          About
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: SLATE_500, whiteSpace: 'pre-wrap' }}>
+                          {selectedLike.founder.bio}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {selectedLike.founder.looking_for && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900 }}>
+                          Looking For
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                          {selectedLike.founder.looking_for}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {selectedLike.founder.work_preferences && Object.keys(selectedLike.founder.work_preferences).length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Work fontSize="small" />
+                          Work Preferences
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {selectedLike.founder.work_preferences.commitment && (
+                            <Chip 
+                              label={selectedLike.founder.work_preferences.commitment.replace('_', ' ')} 
+                              size="small" 
+                              sx={{ textTransform: 'capitalize', bgcolor: alpha(TEAL, 0.1), color: TEAL }}
+                            />
+                          )}
+                          {selectedLike.founder.work_preferences.location_preference && (
+                            <Chip 
+                              label={selectedLike.founder.work_preferences.location_preference.replace('_', ' ')} 
+                              size="small" 
+                              sx={{ textTransform: 'capitalize', bgcolor: alpha(SKY, 0.1), color: SKY }}
+                            />
+                          )}
+                          {selectedLike.founder.work_preferences.timezone && (
+                            <Chip 
+                              label={selectedLike.founder.work_preferences.timezone} 
+                              size="small" 
+                              sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {selectedLike.founder.interests && selectedLike.founder.interests.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                          Interests
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selectedLike.founder.interests.map((interest, idx) => (
+                            <Chip 
+                              key={idx}
+                              label={interest} 
+                              size="small" 
+                              sx={{
+                                bgcolor: alpha(NAVY, 0.08),
+                                color: NAVY,
+                                fontSize: '0.75rem',
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {selectedLike.founder.skills && selectedLike.founder.skills.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                          Skills
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selectedLike.founder.skills.map((skill, idx) => (
+                            <Chip 
+                              key={idx}
+                              label={skill} 
+                              size="small" 
+                              sx={{
+                                bgcolor: alpha(SLATE_400, 0.1),
+                                color: SLATE_500,
+                                border: `1px solid ${alpha(SLATE_400, 0.3)}`,
+                                fontSize: '0.75rem',
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {selectedLike.founder.projects && selectedLike.founder.projects.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                          Their Projects
+                        </Typography>
+                        {selectedLike.founder.projects.map((project, idx) => (
+                          <Box key={idx} sx={{ 
+                            mb: 1, 
+                            p: 1.5, 
+                            borderRadius: 1.5, 
+                            bgcolor: '#fff',
+                            border: '1px solid',
+                            borderColor: SLATE_200,
+                          }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                              {project.title}
+                            </Typography>
+                            {project.description && (
+                              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                                {project.description}
+                              </Typography>
+                            )}
+                            {project.stage && (
+                              <Chip 
+                                label={project.stage} 
+                                size="small" 
+                                sx={{ 
+                                  mt: 0.5, 
+                                  textTransform: 'capitalize',
+                                  bgcolor: alpha(SLATE_400, 0.1),
+                                  color: SLATE_500,
+                                  fontSize: '0.7rem',
+                                  height: 20,
+                                }}
+                              />
+                            )}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      {selectedLike.founder.website_url && (
+                        <IconButton 
+                          component="a" 
+                          href={selectedLike.founder.website_url}
+                          target="_blank"
+                          size="small"
+                          sx={{ color: SLATE_500, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
+                        >
+                          <Language />
+                        </IconButton>
+                      )}
+                      {selectedLike.founder.linkedin_url && (
+                        <IconButton 
+                          component="a" 
+                          href={selectedLike.founder.linkedin_url}
+                          target="_blank"
+                          size="small"
+                          sx={{ color: SLATE_500, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
+                        >
+                          <LinkedIn />
+                        </IconButton>
+                      )}
+                    </Box>
                   </Box>
                 )}
                 
@@ -679,91 +882,13 @@ const InterestedPage = () => {
                 </Box>
               )}
 
-              {/* Bio */}
-              {selectedLike.founder.bio && (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
-                    About
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, whiteSpace: 'pre-wrap' }}>
-                    {selectedLike.founder.bio}
-                  </Typography>
-                </>
-              )}
-
-              {/* Work Preferences */}
-              {selectedLike.founder.work_preferences && Object.keys(selectedLike.founder.work_preferences).length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Work fontSize="small" />
-                    Work Preferences
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {selectedLike.founder.work_preferences.commitment && (
-                      <Chip 
-                        label={selectedLike.founder.work_preferences.commitment.replace('_', ' ')} 
-                        size="small" 
-                        sx={{ textTransform: 'capitalize', bgcolor: alpha(TEAL, 0.1), color: TEAL }}
-                      />
-                    )}
-                    {selectedLike.founder.work_preferences.location_preference && (
-                      <Chip 
-                        label={selectedLike.founder.work_preferences.location_preference.replace('_', ' ')} 
-                        size="small" 
-                        sx={{ textTransform: 'capitalize', bgcolor: alpha(SKY, 0.1), color: SKY }}
-                      />
-                    )}
-                    {selectedLike.founder.work_preferences.timezone && (
-                      <Chip 
-                        label={selectedLike.founder.work_preferences.timezone} 
-                        size="small" 
-                        sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }}
-                      />
-                    )}
-                  </Box>
-                </Box>
-              )}
-
-              {/* Interests */}
-              {selectedLike.founder.interests && selectedLike.founder.interests.length > 0 && (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
-                    Interests
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                    {selectedLike.founder.interests.map((interest, idx) => (
-                      <Chip 
-                        key={idx}
-                        label={interest} 
-                        size="small" 
-                        sx={{
-                          bgcolor: alpha(NAVY, 0.08),
-                          color: NAVY,
-                          fontSize: '0.75rem',
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </>
-              )}
-
-              {selectedLike.founder.looking_for && (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
-                    Looking For
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
-                    {selectedLike.founder.looking_for}
-                  </Typography>
-                </>
-              )}
-
+              {/* Skills - Always visible at bottom */}
               {selectedLike.founder.skills && selectedLike.founder.skills.length > 0 && (
-                <>
+                <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
                     Skills
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {selectedLike.founder.skills.map((skill, idx) => (
                       <Chip 
                         key={idx}
@@ -778,63 +903,9 @@ const InterestedPage = () => {
                       />
                     ))}
                   </Box>
-                </>
+                </Box>
               )}
 
-              {selectedLike.founder.projects && selectedLike.founder.projects.length > 0 && (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
-                    Projects
-                  </Typography>
-                  {selectedLike.founder.projects.map((project, idx) => (
-                    <Box key={idx} sx={{ mb: 2 }}>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                        {project.title}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                        {project.description}
-                      </Typography>
-                      {project.stage && (
-                        <Chip 
-                          label={project.stage} 
-                          size="small" 
-                          sx={{ 
-                            mt: 1, 
-                            textTransform: 'capitalize',
-                            bgcolor: alpha(SLATE_400, 0.1),
-                            color: SLATE_500,
-                          }}
-                        />
-                      )}
-                    </Box>
-                  ))}
-                </>
-              )}
-
-              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                {selectedLike.founder.website_url && (
-                  <IconButton 
-                    component="a" 
-                    href={selectedLike.founder.website_url}
-                    target="_blank"
-                    size="small"
-                    sx={{ color: SLATE_500, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
-                  >
-                    <Language />
-                  </IconButton>
-                )}
-                {selectedLike.founder.linkedin_url && (
-                  <IconButton 
-                    component="a" 
-                    href={selectedLike.founder.linkedin_url}
-                    target="_blank"
-                    size="small"
-                    sx={{ color: SLATE_500, '&:hover': { bgcolor: alpha(SKY, 0.1), color: SKY } }}
-                  >
-                    <LinkedIn />
-                  </IconButton>
-                )}
-              </Box>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2, gap: 1, borderTop: '1px solid', borderColor: SLATE_200 }}>
               <Button
