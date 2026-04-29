@@ -705,6 +705,17 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
                 <FormControlLabel
                   control={
                     <Switch
+                      checked={slackNotifications.chat_messages !== false}
+                      onChange={(e) => handleUpdateSlackSettings('chat_messages', e.target.checked)}
+                      size="small"
+                      sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: TEAL } }}
+                    />
+                  }
+                  label={<Typography variant="body2">Chat messages</Typography>}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
                       checked={slackNotifications.checkin_reminders !== false}
                       onChange={(e) => handleUpdateSlackSettings('checkin_reminders', e.target.checked)}
                       size="small"

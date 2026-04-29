@@ -46,7 +46,7 @@ const FAQ = () => {
     },
     {
       question: 'How do advisors earn equity?',
-      answer: 'Advisors join workspaces and provide guidance to founders. The equity allocation for advisors is typically 1-3% and is determined by the founders when setting up their equity structure. Advisors must pay a one-time onboarding fee ($69) and annual renewal ($39/year) to maintain their profile and receive project requests.',
+      answer: 'Advisors join workspaces and provide guidance to founders. The equity allocation for advisors is typically 1-3% and is determined by the founders when setting up their equity structure. Advisors pay a small introduction fee ($29, refundable if no value in 30 days) and set their own monthly rates based on experience tier.',
     },
     {
       question: 'What if I disagree with the calculated equity split?',

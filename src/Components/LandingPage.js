@@ -169,15 +169,15 @@ const LandingPage = () => {
   const plans = [
     {
       name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['1 workspace', '1 project', '5 swipes / month', 'Weekly check-ins', 'Basic KPIs & decisions'],
+      features: ['25 swipes / day', '2 projects', 'Join unlimited workspaces', 'Slack integration', 'Advisor marketplace', 'Weekly check-ins'],
     },
     {
-      name: 'Pro', price: '$19', period: '/month', popular: true,
-      features: ['Up to 3 workspaces', 'Up to 5 projects', 'Unlimited swipes', 'Slack & Notion integration', 'Summary dashboard', 'Equity tools & agreements', 'Compatibility scores', 'Advisor marketplace'],
+      name: 'Pro', price: '$12', period: '/month', popular: true,
+      features: ['Unlimited swipes', 'Up to 10 projects', 'Create 3 workspaces', 'Notion integration', 'Summary dashboard'],
     },
     {
-      name: 'Pro+', price: '$39', period: '/month', popular: false,
-      features: ['Unlimited workspaces', 'Unlimited projects', 'Everything in Pro', 'Priority advisor access', 'Priority support', 'Advanced analytics'],
+      name: 'Pro+', price: '$29', period: '/month', popular: false,
+      features: ['Everything in Pro', 'Equity tools & agreements', 'Unlimited projects', 'Unlimited workspaces'],
     },
   ];
 

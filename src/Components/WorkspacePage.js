@@ -32,6 +32,7 @@ import {
   CheckCircleOutline,
   Link as LinkIcon,
   Dashboard,
+  ChatBubbleOutline,
 } from '@mui/icons-material';
 import { useWorkspace } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
@@ -40,6 +41,7 @@ import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
 import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
 import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
+import WorkspaceChat from './WorkspaceChat';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
 
@@ -53,21 +55,23 @@ const WorkspacePage = () => {
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
+  const chatMatch = useMatch(`/workspaces/${workspaceId}/chat`);
   const equityRolesMatch = useMatch(`/workspaces/${workspaceId}/equity-roles`);
   const accountabilityMatch = useMatch(`/workspaces/${workspaceId}/accountability`);
   const summaryMatch = useMatch(`/workspaces/${workspaceId}/summary`);
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
   
   // Determine active tab based on route matches
-  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors, 3=Summary, 4=Integrations
+  // Tabs: 0=Overview, 1=Chat, 2=Equity & Roles, 3=Advisors, 4=Summary, 5=Integrations
   const activeTab = useMemo(() => {
     if (overviewMatch) return 0;
-    if (equityRolesMatch) return 1;
-    if (accountabilityMatch) return 2;
-    if (summaryMatch) return 3;
-    if (integrationsMatch) return 4;
+    if (chatMatch) return 1;
+    if (equityRolesMatch) return 2;
+    if (accountabilityMatch) return 3;
+    if (summaryMatch) return 4;
+    if (integrationsMatch) return 5;
     return 0; // Default to overview
-  }, [overviewMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
+  }, [overviewMatch, chatMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
 
   // Fetch workspace plan tier
   useEffect(() => {
@@ -102,7 +106,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -167,6 +171,7 @@ const WorkspacePage = () => {
 
   const tabIcons = [
     <TrendingUp fontSize="small" />,
+    <ChatBubbleOutline fontSize="small" />,
     <Groups fontSize="small" />,
     <Handshake fontSize="small" />,
     <Dashboard fontSize="small" />,
@@ -440,7 +445,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[1]}
-                <span>Equity & Roles</span>
+                <span>Chat</span>
               </Box>
             }
           />
@@ -448,7 +453,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[2]}
-                <span>Advisors</span>
+                <span>Equity & Roles</span>
               </Box>
             }
           />
@@ -456,7 +461,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[3]}
-                <span>Summary</span>
+                <span>Advisors</span>
               </Box>
             }
           />
@@ -464,6 +469,14 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[4]}
+                <span>Summary</span>
+              </Box>
+            }
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                {tabIcons[5]}
                 <span>Integrations</span>
               </Box>
             }
@@ -490,13 +503,29 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
+                const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
+              <Route path="chat" element={
+                workspace?.match_id ? (
+                  <Box sx={{ height: 'calc(100vh - 240px)', minHeight: 500 }}>
+                    <WorkspaceChat 
+                      matchId={workspace.match_id} 
+                      currentFounderId={workspace?.participants?.find(p => p.user?.clerk_user_id === user?.id)?.user_id}
+                    />
+                  </Box>
+                ) : (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography color="text.secondary">
+                      Chat is only available for workspaces created from a match.
+                    </Typography>
+                  </Box>
+                )
+              } />
               <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
               <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
               <Route path="summary" element={<WorkspaceSummary workspaceId={workspaceId} onNavigateTab={(tab) => {
-                const routes = ['overview', 'equity-roles', 'accountability', 'summary', 'integrations'];
+                const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
               <Route path="integrations" element={<WorkspaceIntegrations workspaceId={workspaceId} />} />

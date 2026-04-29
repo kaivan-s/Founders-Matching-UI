@@ -37,13 +37,9 @@ import {
 import {
   ArrowBack,
   TrendingUp,
-  Assignment,
   Send,
   CalendarMonth,
   Close,
-  AccessTime,
-  CheckCircle,
-  Schedule,
   Message,
   Group,
 } from '@mui/icons-material';
@@ -57,7 +53,6 @@ const AdvisorWorkspaceView = () => {
   const [error, setError] = useState(null);
   const [workspace, setWorkspace] = useState(null);
   const [kpis, setKpis] = useState([]);
-  const [tasks, setTasks] = useState([]);
   const [participants, setParticipants] = useState([]);
   
   // Activity feed state
@@ -111,14 +106,6 @@ const AdvisorWorkspaceView = () => {
       });
       if (kpisResponse.ok) {
         setKpis(await kpisResponse.json() || []);
-      }
-
-      // Fetch tasks
-      const tasksResponse = await fetch(`${API_BASE}/workspaces/${workspaceId}/tasks`, {
-        headers: { 'X-Clerk-User-Id': user.id },
-      });
-      if (tasksResponse.ok) {
-        setTasks(await tasksResponse.json() || []);
       }
 
       // Fetch participants with roles
@@ -313,13 +300,6 @@ const AdvisorWorkspaceView = () => {
     );
   }
 
-  // Get tasks assigned to current advisor
-  const myTasks = tasks.filter(t => {
-    const ownerName = t.owner?.name?.toLowerCase() || '';
-    const userName = user?.fullName?.toLowerCase() || user?.firstName?.toLowerCase() || '';
-    return ownerName.includes(userName) || t.owner_id === participants.find(p => p.role === 'ADVISOR')?.id;
-  });
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
@@ -362,7 +342,6 @@ const AdvisorWorkspaceView = () => {
           >
             <Tab icon={<Message sx={{ fontSize: 18 }} />} iconPosition="start" label="Activity" />
             <Tab icon={<TrendingUp sx={{ fontSize: 18 }} />} iconPosition="start" label={`KPIs (${kpis.length})`} />
-            <Tab icon={<Assignment sx={{ fontSize: 18 }} />} iconPosition="start" label={`My Tasks (${myTasks.length})`} />
             <Tab icon={<Group sx={{ fontSize: 18 }} />} iconPosition="start" label="Team" />
           </Tabs>
         </Paper>
@@ -526,86 +505,8 @@ const AdvisorWorkspaceView = () => {
           </Box>
         )}
 
-        {/* My Tasks Tab */}
-        {tabValue === 2 && (
-          <Box>
-            {myTasks.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {myTasks.map((task) => (
-                  <Paper key={task.id} sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                        {task.status === 'DONE' ? (
-                          <CheckCircle sx={{ color: '#10b981', mt: 0.3 }} />
-                        ) : task.status === 'IN_PROGRESS' ? (
-                          <Schedule sx={{ color: '#f59e0b', mt: 0.3 }} />
-                        ) : (
-                          <AccessTime sx={{ color: '#94a3b8', mt: 0.3 }} />
-                        )}
-                        <Box>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                            {task.title}
-                          </Typography>
-                          {task.kpi?.label && (
-                            <Typography variant="caption" color="text.secondary">
-                              KPI: {task.kpi.label}
-                            </Typography>
-                          )}
-                          {task.decision?.content && (
-                            <Typography variant="caption" color="text.secondary">
-                              Decision: {task.decision.content.substring(0, 50)}...
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Chip
-                          label={task.status || 'TODO'}
-                          size="small"
-                          color={task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'warning' : 'default'}
-                        />
-                        {task.due_date && (
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Due: {new Date(task.due_date).toLocaleDateString()}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography color="text.secondary">No tasks assigned to you yet.</Typography>
-              </Paper>
-            )}
-            
-            {/* All Tasks Section */}
-            {tasks.length > myTasks.length && (
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>All Workspace Tasks</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {tasks.filter(t => !myTasks.includes(t)).map((task) => (
-                    <Paper key={task.id} sx={{ p: 1.5, bgcolor: '#f8fafc' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body2">{task.title}</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            {task.owner?.name || 'Unassigned'}
-                          </Typography>
-                          <Chip label={task.status || 'TODO'} size="small" />
-                        </Box>
-                      </Box>
-                    </Paper>
-                  ))}
-                </Box>
-              </Box>
-            )}
-          </Box>
-        )}
-
         {/* Team Tab */}
-        {tabValue === 3 && (
+        {tabValue === 2 && (
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Team Members</Typography>
             <List>
