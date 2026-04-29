@@ -609,7 +609,7 @@ const ProfilePage = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        window.location.href = data.authorization_url;
+        window.location.href = data.auth_url;
       } else {
         const err = await res.json();
         setSnackbar({ open: true, message: err.error || 'Failed to connect LinkedIn', severity: 'error' });
@@ -652,7 +652,7 @@ const ProfilePage = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        window.location.href = data.authorization_url;
+        window.location.href = data.auth_url;
       } else {
         const err = await res.json();
         setSnackbar({ open: true, message: err.error || 'Failed to connect GitHub', severity: 'error' });
