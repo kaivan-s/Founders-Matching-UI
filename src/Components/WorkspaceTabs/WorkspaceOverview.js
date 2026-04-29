@@ -47,6 +47,8 @@ import {
   SentimentSatisfied,
   SentimentVerySatisfied,
   Create,
+  VideoCall,
+  PlayArrow,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -104,6 +106,65 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
     partnership_health: 4,
     cofounder_shoutout: '',
   });
+  
+  // Founder Date state
+  const [founderDates, setFounderDates] = useState([]);
+  const [founderDatesLoading, setFounderDatesLoading] = useState(true);
+  const [startingFounderDate, setStartingFounderDate] = useState(false);
+  
+  // Fetch founder dates
+  useEffect(() => {
+    const fetchFounderDates = async () => {
+      if (!user?.id) return;
+      try {
+        const res = await fetch(`${API_BASE}/founder-dates`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFounderDates(data.founder_dates || []);
+        }
+      } catch (err) {
+        console.error('Error fetching founder dates:', err);
+      } finally {
+        setFounderDatesLoading(false);
+      }
+    };
+    fetchFounderDates();
+  }, [user?.id]);
+  
+  // Start a founder date
+  const handleStartFounderDate = async () => {
+    if (!user?.id || !workspace?.match_id) return;
+    
+    const otherParticipant = participants.find(p => p.user?.clerk_user_id !== user.id);
+    if (!otherParticipant) return;
+    
+    setStartingFounderDate(true);
+    try {
+      const res = await fetch(`${API_BASE}/founder-dates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({
+          other_founder_id: otherParticipant.user_id,
+          match_id: workspace.match_id,
+          project_id: workspace.project_id,
+        }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        navigate(`/founder-dates/${data.id}`);
+      }
+    } catch (err) {
+      console.error('Error starting founder date:', err);
+    } finally {
+      setStartingFounderDate(false);
+    }
+  };
   
   const handleDissolvePartnership = async () => {
     if (!workspace?.match_id) {
@@ -569,6 +630,111 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           </Box>
         </Grid>
       </Grid>
+
+      {/* Founder Date Card */}
+      {(() => {
+        const activeFounderDate = founderDates.find(fd => fd.status === 'ACTIVE');
+        const otherParticipant = participants.find(p => p.user?.clerk_user_id !== user?.id);
+        
+        if (founderDatesLoading) return null;
+        
+        return (
+          <Box sx={{
+            mb: 3,
+            p: 2.5,
+            bgcolor: activeFounderDate ? alpha('#6366f1', 0.08) : '#fff',
+            border: '1px solid',
+            borderColor: activeFounderDate ? alpha('#6366f1', 0.2) : SLATE_200,
+            borderRadius: 2,
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2,
+                  bgcolor: alpha('#6366f1', 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <VideoCall sx={{ fontSize: 24, color: '#6366f1' }} />
+                </Box>
+                <Box>
+                  {activeFounderDate ? (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                        Founder Date in Progress
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                        Stage {activeFounderDate.current_stage}/3 with {activeFounderDate.other_founder?.name?.split(' ')[0]}
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                        Founder Date
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                        Evaluate co-founder fit through structured calls
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+              </Box>
+              
+              {activeFounderDate ? (
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<PlayArrow />}
+                  onClick={() => navigate(`/founder-dates/${activeFounderDate.id}`)}
+                  sx={{
+                    textTransform: 'none',
+                    bgcolor: '#6366f1',
+                    '&:hover': { bgcolor: '#5558dd' },
+                  }}
+                >
+                  Continue
+                </Button>
+              ) : otherParticipant ? (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={startingFounderDate ? <CircularProgress size={16} /> : <VideoCall />}
+                  onClick={handleStartFounderDate}
+                  disabled={startingFounderDate}
+                  sx={{
+                    textTransform: 'none',
+                    borderColor: '#6366f1',
+                    color: '#6366f1',
+                    '&:hover': { borderColor: '#5558dd', bgcolor: alpha('#6366f1', 0.05) },
+                  }}
+                >
+                  Start
+                </Button>
+              ) : null}
+            </Box>
+            
+            {activeFounderDate?.next_action && (
+              <Box sx={{
+                mt: 2,
+                pt: 2,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}>
+                <Schedule sx={{ fontSize: 16, color: '#f59e0b' }} />
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                  Next: {activeFounderDate.next_action.description}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        );
+      })()}
 
       {/* Main Content */}
       <Grid container spacing={3}>

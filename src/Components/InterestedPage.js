@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Box,
@@ -19,6 +20,7 @@ import {
 import { LocationOn, Language, LinkedIn, Business, Close, CheckCircle, Visibility, Psychology, Videocam, Mic, Twitter, GitHub, Work } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../config/api';
+import FirstMatchCoaching from './FirstMatchCoaching';
 
 const NAVY = '#1e3a8a';
 const TEAL = '#0d9488';
@@ -32,6 +34,7 @@ const BG = '#f8fafc';
 
 const InterestedPage = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,6 +42,10 @@ const InterestedPage = () => {
   const [selectedLike, setSelectedLike] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showFullProfile, setShowFullProfile] = useState(false);
+  
+  // First match coaching
+  const [coachingOpen, setCoachingOpen] = useState(false);
+  const [newMatchId, setNewMatchId] = useState(null);
 
   useEffect(() => {
     fetchLikes();
@@ -85,6 +92,8 @@ const InterestedPage = () => {
         throw new Error(errorData.error || 'Failed to respond');
       }
 
+      const data = await res.json();
+      
       setLikes(prev => prev.filter(like => like.swipe_id !== swipeId));
       if (selectedLike && selectedLike.swipe_id === swipeId) {
         setDialogOpen(false);
@@ -95,6 +104,12 @@ const InterestedPage = () => {
         setError('✅ Connection accepted! Check your Connections tab.');
         setTimeout(() => setError(null), 3000);
         window.dispatchEvent(new Event('interestAccepted'));
+        
+        // Show coaching modal for new matches
+        if (data.match_id) {
+          setNewMatchId(data.match_id);
+          setCoachingOpen(true);
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -951,6 +966,24 @@ const InterestedPage = () => {
           </>
         )}
       </Dialog>
+
+      {/* First Match Coaching Modal */}
+      <FirstMatchCoaching
+        matchId={newMatchId}
+        open={coachingOpen}
+        onClose={() => {
+          setCoachingOpen(false);
+          setNewMatchId(null);
+        }}
+        onOpenChat={() => {
+          setCoachingOpen(false);
+          navigate('/connections');
+        }}
+        onStartFounderDate={() => {
+          setCoachingOpen(false);
+          navigate('/connections');
+        }}
+      />
     </Box>
   );
 };

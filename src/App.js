@@ -31,6 +31,7 @@ import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
 import AdminAdvisors from './Components/AdminAdvisors';
 import ProfilePage from './Components/ProfilePage';
+import FounderDatePage from './Components/FounderDatePage';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -1338,6 +1339,32 @@ function AppContent() {
               <NavigationTabs />
               <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
                 <ProfilePage />
+              </Box>
+            </Box>
+          </RouteWrapper>
+        } />
+        <Route path="/founder-dates/:founderDateId" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              <NavigationTabs />
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+                <FounderDatePage />
               </Box>
             </Box>
           </RouteWrapper>

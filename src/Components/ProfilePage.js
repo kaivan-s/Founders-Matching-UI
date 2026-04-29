@@ -21,6 +21,11 @@ import {
   Tabs,
   Tab,
   alpha,
+  Menu,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Save,
@@ -38,9 +43,12 @@ import {
   Warning,
   Link as LinkIcon,
   Search,
+  AutoAwesome,
+  LightbulbOutlined,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
+import ActivationPanel from './ActivationPanel';
 
 const NAVY = '#1e3a8a';
 const TEAL = '#0d9488';
@@ -63,6 +71,12 @@ const ProfilePage = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [skillInput, setSkillInput] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  
+  // Bio templates
+  const [bioTemplates, setBioTemplates] = useState([]);
+  const [bioTemplateMenuAnchor, setBioTemplateMenuAnchor] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   const tabs = [
     { label: 'Basic Info', icon: <Person fontSize="small" /> },
@@ -88,6 +102,18 @@ const ProfilePage = () => {
       console.error('Error fetching verification:', error);
     }
   }, [user?.id]);
+
+  const fetchBioTemplates = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/activation/bio-templates`);
+      if (res.ok) {
+        const data = await res.json();
+        setBioTemplates(data.templates || []);
+      }
+    } catch (error) {
+      console.error('Error fetching bio templates:', error);
+    }
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -133,7 +159,8 @@ const ProfilePage = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+    fetchBioTemplates();
+  }, [fetchProfile, fetchBioTemplates]);
 
   const handleSave = async () => {
     if (!user?.id || !profile) return;
@@ -264,18 +291,83 @@ const ProfilePage = () => {
           />
         </Grid>
         <Grid item xs={12}>
-          <TextField
-            label="Bio"
-            fullWidth
-            multiline
-            rows={4}
-            value={profile.bio || ''}
-            onChange={(e) => updateField('bio', e.target.value)}
-            placeholder="Tell others about your background, experience, and what drives you..."
-            helperText={`${(profile.bio || '').length}/2000 characters`}
-            inputProps={{ maxLength: 2000 }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
+          <Box sx={{ position: 'relative' }}>
+            <TextField
+              label="Bio"
+              fullWidth
+              multiline
+              rows={4}
+              value={profile.bio || ''}
+              onChange={(e) => updateField('bio', e.target.value)}
+              placeholder="Tell others about your background, experience, and what drives you..."
+              helperText={`${(profile.bio || '').length}/2000 characters`}
+              inputProps={{ maxLength: 2000 }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+            {bioTemplates.length > 0 && (
+              <Button
+                size="small"
+                startIcon={<AutoAwesome />}
+                onClick={(e) => setBioTemplateMenuAnchor(e.currentTarget)}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  bgcolor: alpha(TEAL, 0.1),
+                  color: TEAL,
+                  fontWeight: 600,
+                  '&:hover': { bgcolor: alpha(TEAL, 0.15) },
+                }}
+              >
+                Use Template
+              </Button>
+            )}
+            <Menu
+              anchorEl={bioTemplateMenuAnchor}
+              open={Boolean(bioTemplateMenuAnchor)}
+              onClose={() => setBioTemplateMenuAnchor(null)}
+              PaperProps={{
+                sx: { 
+                  maxWidth: 340, 
+                  maxHeight: 400,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: SLATE_200,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                }
+              }}
+            >
+              {bioTemplates.map((template, index) => (
+                <MenuItem
+                  key={template.id}
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    setTemplateDialogOpen(true);
+                    setBioTemplateMenuAnchor(null);
+                  }}
+                  sx={{ 
+                    whiteSpace: 'normal',
+                    py: 1.5,
+                    px: 2,
+                    borderBottom: index < bioTemplates.length - 1 ? '1px solid' : 'none',
+                    borderColor: SLATE_200,
+                    '&:hover': { bgcolor: alpha(TEAL, 0.05) },
+                  }}
+                >
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                      {template.archetype}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', mt: 0.5 }}>
+                      {template.template.substring(0, 80)}...
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Menu>
+          </Box>
         </Grid>
       </Grid>
     </Box>
@@ -1120,6 +1212,9 @@ const ProfilePage = () => {
         </Box>
       </Box>
 
+      {/* Activation Panel - Next Steps */}
+      <ActivationPanel variant="full" />
+
       {/* Tabbed Content Box */}
       <Box sx={{ 
         flex: 1,
@@ -1193,6 +1288,116 @@ const ProfilePage = () => {
           {renderTabContent()}
         </Box>
       </Box>
+
+      {/* Bio Template Preview Dialog */}
+      <Dialog
+        open={templateDialogOpen}
+        onClose={() => setTemplateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { 
+            borderRadius: 3, 
+            bgcolor: '#fff',
+            border: '1px solid',
+            borderColor: SLATE_200,
+          }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, borderBottom: '1px solid', borderColor: SLATE_200 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 2,
+              bgcolor: alpha('#fbbf24', 0.15),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <LightbulbOutlined sx={{ color: '#f59e0b', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+              {selectedTemplate?.archetype}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ color: SLATE_500, fontWeight: 600, mb: 1 }}>
+              Template (fill in the brackets):
+            </Typography>
+            <Box sx={{ 
+              p: 2.5, 
+              bgcolor: alpha(TEAL, 0.05), 
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: alpha(TEAL, 0.2),
+            }}>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', color: SLATE_900, lineHeight: 1.7 }}>
+                {selectedTemplate?.template}
+              </Typography>
+            </Box>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: SLATE_500, fontWeight: 600, mb: 1 }}>
+              Example:
+            </Typography>
+            <Box sx={{ 
+              p: 2.5, 
+              bgcolor: alpha('#10b981', 0.05), 
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: alpha('#10b981', 0.2),
+            }}>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: SLATE_900, lineHeight: 1.7 }}>
+                {selectedTemplate?.example}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+          <Button 
+            onClick={() => setTemplateDialogOpen(false)}
+            sx={{ color: SLATE_500, textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              updateField('bio', selectedTemplate?.template || '');
+              setTemplateDialogOpen(false);
+              setSnackbar({ open: true, message: 'Template added - fill in the brackets!', severity: 'info' });
+            }}
+            sx={{ 
+              borderColor: TEAL, 
+              color: TEAL,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { borderColor: TEAL_LIGHT, bgcolor: alpha(TEAL, 0.05) }
+            }}
+          >
+            Use Template
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              updateField('bio', selectedTemplate?.example || '');
+              setTemplateDialogOpen(false);
+              setSnackbar({ open: true, message: 'Example added - customize it to fit your story!', severity: 'success' });
+            }}
+            sx={{ 
+              bgcolor: TEAL, 
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { bgcolor: TEAL_LIGHT } 
+            }}
+          >
+            Use Example
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar */}
       <Snackbar

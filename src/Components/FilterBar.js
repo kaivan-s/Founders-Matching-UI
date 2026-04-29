@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Chip, IconButton } from '@mui/material';
-import { Clear } from '@mui/icons-material';
+import { Clear, Verified } from '@mui/icons-material';
 
 const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange, preferences }) => {
   const hasActiveFilters = activeFilters && (
@@ -8,7 +8,9 @@ const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange, prefere
     (activeFilters.skills && activeFilters.skills.length > 0) ||
     activeFilters.location ||
     activeFilters.project_stage ||
-    activeFilters.looking_for
+    activeFilters.looking_for ||
+    activeFilters.verification_tier ||
+    activeFilters.time_commitment
   );
   
   const hasActivePreferences = preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0;
@@ -32,8 +34,29 @@ const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange, prefere
         skills: [],
         location: '',
         project_stage: '',
-        looking_for: ''
+        looking_for: '',
+        verification_tier: '',
+        time_commitment: ''
       });
+    }
+  };
+
+  const getVerificationLabel = (tier) => {
+    switch (tier) {
+      case 'HIGHLY_VERIFIED': return 'Highly Verified';
+      case 'PRO_VERIFIED': return 'Pro Verified';
+      case 'VERIFIED': return 'Verified';
+      default: return tier;
+    }
+  };
+
+  const getCommitmentLabel = (commitment) => {
+    switch (commitment) {
+      case 'full_time': return 'Full-time';
+      case 'part_time': return 'Part-time';
+      case 'flexible': return 'Flexible';
+      case 'advisory': return 'Advisory';
+      default: return commitment;
     }
   };
 
@@ -104,6 +127,29 @@ const FilterBar = ({ onFilterChange, activeFilters, onPreferencesChange, prefere
             />
           ))}
         </>
+      )}
+      {activeFilters.verification_tier && (
+        <Chip
+          icon={<Verified sx={{ fontSize: 14 }} />}
+          label={getVerificationLabel(activeFilters.verification_tier)}
+          onDelete={() => handleClearFilter('verification_tier')}
+          size="small"
+          sx={{ 
+            bgcolor: activeFilters.verification_tier === 'HIGHLY_VERIFIED' ? '#dcfce7' :
+                     activeFilters.verification_tier === 'PRO_VERIFIED' ? '#dbeafe' : '#ccfbf1',
+            color: activeFilters.verification_tier === 'HIGHLY_VERIFIED' ? '#16a34a' :
+                   activeFilters.verification_tier === 'PRO_VERIFIED' ? '#2563eb' : '#0d9488',
+            '& .MuiChip-icon': { color: 'inherit' }
+          }}
+        />
+      )}
+      {activeFilters.time_commitment && (
+        <Chip
+          label={`Commitment: ${getCommitmentLabel(activeFilters.time_commitment)}`}
+          onDelete={() => handleClearFilter('time_commitment')}
+          size="small"
+          sx={{ bgcolor: '#fef3c7', color: '#d97706' }}
+        />
       )}
       <IconButton
         size="small"

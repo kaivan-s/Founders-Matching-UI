@@ -19,7 +19,12 @@ import {
   Divider,
   Tabs,
   Tab,
-  Paper
+  Paper,
+  Menu,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import { 
   Handshake, 
@@ -42,7 +47,8 @@ import {
   Rocket,
   Add,
   CheckCircle,
-  Verified
+  Verified,
+  FilterList
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
@@ -51,6 +57,7 @@ import AdvancedSearch from './AdvancedSearch';
 import DiscoveryPreferencesDialog from './DiscoveryPreferencesDialog';
 import NewProjectDialog from './NewProjectDialog';
 import ConnectionRequestDialog from './ConnectionRequestDialog';
+import ActivationPanel from './ActivationPanel';
 import { API_BASE } from '../config/api';
 
 const SwipeInterface = () => {
@@ -76,7 +83,9 @@ const SwipeInterface = () => {
     skills: [],
     location: '',
     project_stage: '',
-    looking_for: ''
+    looking_for: '',
+    verification_tier: '',
+    time_commitment: ''
   });
   const [preferences, setPreferences] = useState(() => {
     try {
@@ -88,6 +97,7 @@ const SwipeInterface = () => {
   });
   const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
   const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
+  const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
   const [plan, setPlan] = useState(null);
   const [swipeLimit, setSwipeLimit] = useState(null); // {can_swipe, current_count, max_allowed, remaining}
   
@@ -179,6 +189,9 @@ const SwipeInterface = () => {
       if (currentFilters?.skills) {
         currentFilters.skills.forEach(skill => params.append('skills', skill));
       }
+      // New filters
+      if (currentFilters?.verification_tier) params.append('verification_tier', currentFilters.verification_tier);
+      if (currentFilters?.time_commitment) params.append('time_commitment', currentFilters.time_commitment);
       
       // Add preferences to the request
       if (currentPreferences && Object.keys(currentPreferences).length > 0) {
@@ -378,7 +391,9 @@ const SwipeInterface = () => {
            filters.skills.length > 0 || 
            filters.location || 
            filters.project_stage || 
-           filters.looking_for;
+           filters.looking_for ||
+           filters.verification_tier ||
+           filters.time_commitment;
   };
 
   const handleClearFilters = () => {
@@ -387,7 +402,9 @@ const SwipeInterface = () => {
       skills: [],
       location: '',
       project_stage: '',
-      looking_for: ''
+      looking_for: '',
+      verification_tier: '',
+      time_commitment: ''
     };
     setFilters(emptyFilters);
     setOffset(0);
@@ -923,6 +940,11 @@ const SwipeInterface = () => {
         </Alert>
       )}
 
+      {/* Activation Panel - Profile Completeness & Next Steps */}
+      <Box sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 }, pt: 1 }}>
+        <ActivationPanel variant="compact" />
+      </Box>
+
       {founders.length === 0 ? (
         renderEmptyState()
       ) : (
@@ -985,6 +1007,133 @@ const SwipeInterface = () => {
                     preferences={preferences}
                   />
                 </Box>
+                {/* Quick Filters Button */}
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterList />}
+                  onClick={(e) => setFilterMenuAnchor(e.currentTarget)}
+                  size="small"
+                  sx={{
+                    borderColor: (filters.verification_tier || filters.time_commitment) 
+                      ? '#0d9488' 
+                      : '#e2e8f0',
+                    color: (filters.verification_tier || filters.time_commitment) 
+                      ? '#0d9488' 
+                      : '#64748b',
+                    bgcolor: (filters.verification_tier || filters.time_commitment) 
+                      ? 'rgba(13, 148, 136, 0.08)' 
+                      : 'transparent',
+                    fontWeight: (filters.verification_tier || filters.time_commitment) 
+                      ? 600 
+                      : 400,
+                    '&:hover': {
+                      borderColor: '#0d9488',
+                      bgcolor: 'rgba(13, 148, 136, 0.08)',
+                    },
+                  }}
+                >
+                  Filters {(filters.verification_tier || filters.time_commitment) ? `(${[filters.verification_tier, filters.time_commitment].filter(Boolean).length})` : ''}
+                </Button>
+                {/* Filter Menu */}
+                <Menu
+                  anchorEl={filterMenuAnchor}
+                  open={Boolean(filterMenuAnchor)}
+                  onClose={() => setFilterMenuAnchor(null)}
+                  PaperProps={{
+                    sx: { 
+                      p: 2, 
+                      minWidth: 280,
+                      borderRadius: 2,
+                    }
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#0f172a' }}>
+                    Filter Projects
+                  </Typography>
+                  
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Verification Level</InputLabel>
+                    <Select
+                      value={filters.verification_tier}
+                      label="Verification Level"
+                      onChange={(e) => {
+                        const newFilters = { ...filters, verification_tier: e.target.value };
+                        setFilters(newFilters);
+                        setOffset(0);
+                        setHasMore(true);
+                        fetchFounders(newFilters, preferences, 0, false);
+                      }}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      <MenuItem value="">Any</MenuItem>
+                      <MenuItem value="VERIFIED">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Verified sx={{ fontSize: 16, color: '#0d9488' }} />
+                          Verified
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="PRO_VERIFIED">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Verified sx={{ fontSize: 16, color: '#2563eb' }} />
+                          Pro Verified
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="HIGHLY_VERIFIED">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Verified sx={{ fontSize: 16, color: '#16a34a' }} />
+                          Highly Verified
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                    <InputLabel>Time Commitment</InputLabel>
+                    <Select
+                      value={filters.time_commitment}
+                      label="Time Commitment"
+                      onChange={(e) => {
+                        const newFilters = { ...filters, time_commitment: e.target.value };
+                        setFilters(newFilters);
+                        setOffset(0);
+                        setHasMore(true);
+                        fetchFounders(newFilters, preferences, 0, false);
+                      }}
+                      sx={{ borderRadius: '10px' }}
+                    >
+                      <MenuItem value="">Any</MenuItem>
+                      <MenuItem value="full_time">Full-time</MenuItem>
+                      <MenuItem value="part_time">Part-time</MenuItem>
+                      <MenuItem value="flexible">Flexible</MenuItem>
+                      <MenuItem value="advisory">Advisory only</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button 
+                      size="small" 
+                      onClick={() => {
+                        const newFilters = { ...filters, verification_tier: '', time_commitment: '' };
+                        setFilters(newFilters);
+                        setOffset(0);
+                        setHasMore(true);
+                        fetchFounders(newFilters, preferences, 0, false);
+                      }}
+                      sx={{ color: '#64748b' }}
+                    >
+                      Clear
+                    </Button>
+                    <Box sx={{ flex: 1 }} />
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      onClick={() => setFilterMenuAnchor(null)}
+                      sx={{ bgcolor: '#0d9488', '&:hover': { bgcolor: '#0f766e' } }}
+                    >
+                      Done
+                    </Button>
+                  </Box>
+                </Menu>
                 <Button
                   variant="outlined"
                   startIcon={<Tune />}
