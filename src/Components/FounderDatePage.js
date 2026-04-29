@@ -213,7 +213,7 @@ const FounderDatePage = () => {
   };
 
   const handleSubmitEvaluation = async (callId) => {
-    if (evaluationForm.continue_decision === null) {
+    if (!evaluationForm.continue_decision) {
       setError('Please select whether you want to continue');
       return;
     }
@@ -841,16 +841,21 @@ const FounderDatePage = () => {
               Do you want to continue? *
             </Typography>
             <RadioGroup
-              value={evaluationForm.continue_decision}
-              onChange={(e) => setEvaluationForm({ ...evaluationForm, continue_decision: e.target.value === 'true' })}
+              value={evaluationForm.continue_decision || ''}
+              onChange={(e) => setEvaluationForm({ ...evaluationForm, continue_decision: e.target.value })}
             >
               <FormControlLabel
-                value="true"
+                value="CONTINUE"
                 control={<Radio color="success" />}
                 label={activeCall?.stage < 3 ? 'Yes, proceed to next stage' : 'Yes, let\'s start a workspace together'}
               />
               <FormControlLabel
-                value="false"
+                value="PAUSE"
+                control={<Radio color="warning" />}
+                label="Need more time to think"
+              />
+              <FormControlLabel
+                value="STOP"
                 control={<Radio color="error" />}
                 label="No, this isn't a good fit"
               />
@@ -872,7 +877,7 @@ const FounderDatePage = () => {
           <Button
             variant="contained"
             onClick={() => activeCall && handleSubmitEvaluation(activeCall.id)}
-            disabled={evaluationForm.continue_decision === null || actionLoading}
+            disabled={!evaluationForm.continue_decision || actionLoading}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
             Submit Evaluation
