@@ -856,7 +856,7 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
               color="success"
               sx={{ mb: 3 }}
             >
-              {generatingDoc ? <CircularProgress size={20} /> : 'Generate Co-Founder Agreement'}
+              {generatingDoc ? <CircularProgress size={20} /> : "Generate Founders' Agreement Template"}
             </Button>
           )}
           
@@ -866,11 +866,14 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
                 <Description sx={{ color: 'success.main' }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  Agreement Ready
+                  Draft Template Ready
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Your co-founder agreement has been generated. Download it below.
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Your Founders' Agreement template has been generated. Download it below.
+              </Typography>
+              <Typography variant="caption" color="warning.main" sx={{ mb: 2, display: 'block', fontStyle: 'italic' }}>
+                ⚠️ This is a draft — please have it reviewed by a qualified lawyer in your jurisdiction before signing.
               </Typography>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button

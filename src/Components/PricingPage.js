@@ -299,7 +299,7 @@ const PricingPage = () => {
       { icon: <TrendingUp />, text: 'Everything in Pro' },
       { icon: <Business />, text: 'Unlimited workspaces' },
       { icon: <Rocket />, text: 'Unlimited projects' },
-      { icon: <Star />, text: 'Equity tools & agreements' },
+      { icon: <Star />, text: 'Equity calculator & agreement template' },
     ],
   };
 

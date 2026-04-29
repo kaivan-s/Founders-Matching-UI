@@ -124,6 +124,7 @@ const ACCELERATION_OPTIONS = [
 const JURISDICTIONS = [
   { value: 'india', label: 'India' },
   { value: 'us', label: 'United States' },
+  { value: 'uk', label: 'United Kingdom' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -856,7 +857,7 @@ const EquityQuestionnaireWizard = ({ workspaceId, participants, onComplete }) =>
               Equity Agreement Setup
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Complete all steps to generate your co-founder agreement
+              Complete all steps to generate your founders' agreement template
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
@@ -2115,10 +2116,13 @@ const EquityQuestionnaireWizard = ({ workspaceId, participants, onComplete }) =>
       <Box>
         {/* Header */}
         <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 700, color: 'primary.main' }}>
-          Co-Founder Agreement
+          Founders' Agreement (Draft Template)
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Generate or download agreements for approved equity scenarios
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+          Generate a starting-point template for your approved equity scenario.
+        </Typography>
+        <Typography variant="caption" color="warning.main" sx={{ mb: 2, display: 'block', fontStyle: 'italic' }}>
+          ⚠️ This is a draft template — it must be reviewed by a qualified lawyer in your jurisdiction before signing.
         </Typography>
 
         {/* Approved scenarios - generate or download documents */}
@@ -2186,7 +2190,7 @@ const EquityQuestionnaireWizard = ({ workspaceId, participants, onComplete }) =>
                           disabled={generatingDoc}
                           sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}
                         >
-                          {generatingDoc ? 'Generating...' : 'Generate Document'}
+                          {generatingDoc ? 'Generating...' : 'Generate Draft Template'}
                         </Button>
                       )}
                     </Paper>

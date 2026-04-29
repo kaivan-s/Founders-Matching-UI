@@ -162,7 +162,7 @@ const LandingPage = () => {
     { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing details.' },
     { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential co-founders know who you really are.' },
     { icon: <BarChart />, title: 'Personal Intros', desc: 'Add video or voice introductions to stand out. Show your personality beyond just text.' },
-    { icon: <Handshake />, title: 'Equity & Agreements', desc: 'Choose from equity templates or use our detailed questionnaire. Generate co-founder agreements automatically.' },
+    { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Founders\' Agreement template ready for legal review.' },
     { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
   ];
 
@@ -177,7 +177,7 @@ const LandingPage = () => {
     },
     {
       name: 'Pro+', price: '$29', period: '/month', popular: false,
-      features: ['Everything in Pro', 'Equity tools & agreements', 'Unlimited projects', 'Unlimited workspaces'],
+      features: ['Everything in Pro', 'Equity calculator & agreement template', 'Unlimited projects', 'Unlimited workspaces'],
     },
   ];
 
