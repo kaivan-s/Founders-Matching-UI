@@ -516,7 +516,7 @@ const FounderDatePage = () => {
                         )}
                         {stageCall.status === 'IN_PROGRESS' && (
                           <>
-                            {stageCall.room_url && (
+                            {stageCall.daily_room_url && (
                               <Button
                                 size="small"
                                 variant="contained"
@@ -604,7 +604,7 @@ const FounderDatePage = () => {
               disabled={actionLoading}
               sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
-              {nextAction.room_url ? 'Join Call' : 'Start Call'}
+              {nextAction.daily_room_url ? 'Join Call' : 'Start Call'}
             </Button>
           )}
           
@@ -711,7 +711,7 @@ const FounderDatePage = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          {activeCall?.room_url ? (
+          {activeCall?.daily_room_url ? (
             <Box sx={{ height: 200, bgcolor: alpha(TEAL, 0.05), borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
               <Box sx={{ textAlign: 'center' }}>
                 <VideoCall sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.7 }} />
@@ -721,7 +721,7 @@ const FounderDatePage = () => {
                 <Button
                   variant="contained"
                   startIcon={<VideoCall />}
-                  onClick={() => window.open(activeCall.room_url, '_blank')}
+                  onClick={() => window.open(activeCall.daily_room_url, '_blank')}
                   sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
                 >
                   Join Video Call
@@ -729,7 +729,9 @@ const FounderDatePage = () => {
               </Box>
             </Box>
           ) : (
-            <Alert severity="info">Video room is being created...</Alert>
+            <Alert severity="warning">
+              Video room could not be created. You can still conduct your call via another platform and return here to complete the evaluation.
+            </Alert>
           )}
           
           {/* Prompts during call */}
