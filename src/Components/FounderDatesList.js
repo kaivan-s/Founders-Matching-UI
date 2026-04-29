@@ -254,7 +254,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Timer sx={{ fontSize: 16, color: '#f59e0b' }} />
                         <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                          Next: {fd.next_action?.description}
+                          Next: {fd.next_action?.message || fd.next_action?.description}
                         </Typography>
                       </Box>
                     </Box>

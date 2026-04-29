@@ -581,10 +581,10 @@ const FounderDatePage = () => {
             Next Step
           </Typography>
           <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
-            {nextAction.description}
+            {nextAction.message || nextAction.description}
           </Typography>
           
-          {nextAction.action_type === 'schedule_call' && (
+          {nextAction.action === 'SCHEDULE_CALL' && (
             <Button
               variant="contained"
               startIcon={<Schedule />}
@@ -596,24 +596,25 @@ const FounderDatePage = () => {
             </Button>
           )}
           
-          {nextAction.action_type === 'start_call' && (
+          {nextAction.action === 'JOIN_CALL' && (
             <Button
               variant="contained"
               startIcon={<PlayArrow />}
-              onClick={() => currentCall && handleStartCall(currentCall.id)}
+              onClick={() => nextAction.call_id && handleStartCall(nextAction.call_id)}
               disabled={actionLoading}
               sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
-              Start Call
+              {nextAction.room_url ? 'Join Call' : 'Start Call'}
             </Button>
           )}
           
-          {nextAction.action_type === 'submit_evaluation' && (
+          {nextAction.action === 'EVALUATE_CALL' && (
             <Button
               variant="contained"
               startIcon={<RateReview />}
               onClick={() => {
-                setActiveCall(currentCall);
+                const callToEval = calls.find(c => c.id === nextAction.call_id) || currentCall;
+                setActiveCall(callToEval);
                 setEvaluationDialogOpen(true);
               }}
               disabled={actionLoading}
@@ -623,11 +624,19 @@ const FounderDatePage = () => {
             </Button>
           )}
           
-          {nextAction.action_type === 'waiting_for_other' && (
+          {nextAction.action === 'WAIT_FOR_PEER' && (
             <Chip
               icon={<Timer />}
               label="Waiting for partner's evaluation"
               sx={{ bgcolor: alpha('#f59e0b', 0.15), color: '#f59e0b' }}
+            />
+          )}
+          
+          {nextAction.action === 'ADVANCE_STAGE' && (
+            <Chip
+              icon={<CheckCircle />}
+              label={`Ready for Stage ${nextAction.next_stage}!`}
+              sx={{ bgcolor: alpha(TEAL, 0.15), color: TEAL }}
             />
           )}
         </Paper>

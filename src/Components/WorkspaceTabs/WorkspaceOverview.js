@@ -728,7 +728,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               }}>
                 <Schedule sx={{ fontSize: 16, color: '#f59e0b' }} />
                 <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                  Next: {activeFounderDate.next_action.description}
+                  Next: {activeFounderDate.next_action.message || activeFounderDate.next_action.description}
                 </Typography>
               </Box>
             )}
