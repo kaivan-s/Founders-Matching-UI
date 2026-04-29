@@ -961,25 +961,14 @@ const SwipeInterface = () => {
           pb: 0,
           minHeight: 0,
         }}>
-          {/* Filters and Preferences */}
-                {swipeLimit && swipeLimit.max_allowed !== -1 && (
-                  <Chip
-                    label={`${swipeLimit.remaining} swipes remaining`}
-                    size="small"
-                    color={swipeLimit.remaining <= 2 ? 'error' : swipeLimit.remaining <= 5 ? 'warning' : 'default'}
-                    sx={{ 
-                      fontSize: '0.7rem',
-                      height: '20px',
-                      fontWeight: swipeLimit.remaining <= 2 ? 600 : 400
-                    }}
-                  />
-                )}
+          {/* Filters and Preferences - All in one row */}
           <Box sx={{ 
             mb: 0.5, 
             px: { xs: 1, sm: 2 },
             width: '100%',
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+              {/* Left: Projects count */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 {filtering && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -998,6 +987,19 @@ const SwipeInterface = () => {
                   </Typography>
                 )}
               </Box>
+              {/* Center: Swipes remaining */}
+              {swipeLimit && swipeLimit.max_allowed !== -1 && (
+                <Chip
+                  label={`${swipeLimit.remaining} swipes remaining`}
+                  size="small"
+                  color={swipeLimit.remaining <= 2 ? 'error' : swipeLimit.remaining <= 5 ? 'warning' : 'default'}
+                  sx={{ 
+                    fontSize: '0.7rem',
+                    height: '20px',
+                    fontWeight: swipeLimit.remaining <= 2 ? 600 : 400
+                  }}
+                />
+              )}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                 <Box data-tutorial-id="filter-bar">
                   <FilterBar 
