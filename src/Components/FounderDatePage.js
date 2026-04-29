@@ -51,6 +51,7 @@ import { API_BASE } from '../config/api';
 
 const SLATE_900 = '#0f172a';
 const SLATE_500 = '#64748b';
+const SLATE_200 = '#e2e8f0';
 const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
 
@@ -382,26 +383,26 @@ const FounderDatePage = () => {
 
       {/* Other Founder Card */}
       {otherFounder && (
-        <Paper sx={{ p: 2.5, mb: 3, borderRadius: 2, bgcolor: '#1a1a2e' }}>
+        <Paper sx={{ p: 2.5, mb: 3, borderRadius: 2, bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar
               src={otherFounder.avatar_url}
-              sx={{ width: 56, height: 56 }}
+              sx={{ width: 56, height: 56, bgcolor: alpha(TEAL, 0.1), color: TEAL }}
             >
               {otherFounder.name?.[0]}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="subtitle1" fontWeight={600}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
                 {otherFounder.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: SLATE_500 }}>
                 {otherFounder.headline || otherFounder.location}
               </Typography>
             </Box>
             <Button
               size="small"
               startIcon={<Chat />}
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: 'none', color: TEAL }}
               onClick={() => founderDate?.match_id && navigate(`/workspaces`)}
             >
               Message
@@ -411,10 +412,10 @@ const FounderDatePage = () => {
       )}
 
       {/* Progress */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, bgcolor: '#1a1a2e' }}>
+      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <TrendingUp sx={{ color: '#6366f1' }} />
-          <Typography variant="subtitle1" fontWeight={600}>
+          <TrendingUp sx={{ color: TEAL }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Progress
           </Typography>
         </Box>
@@ -462,10 +463,11 @@ const FounderDatePage = () => {
                           py: 0.75,
                           px: 1.5,
                           mb: 0.5,
-                          bgcolor: alpha('#6366f1', 0.08),
+                          bgcolor: alpha(TEAL, 0.06),
                           borderRadius: 1,
                           borderLeft: '3px solid',
-                          borderColor: '#6366f1',
+                          borderColor: TEAL,
+                          color: SLATE_900,
                         }}
                       >
                         {prompt}
@@ -549,7 +551,7 @@ const FounderDatePage = () => {
                               setActiveCall(stageCall);
                               setEvaluationDialogOpen(true);
                             }}
-                            sx={{ textTransform: 'none', bgcolor: '#6366f1' }}
+                            sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
                           >
                             Submit Evaluation
                           </Button>
@@ -574,11 +576,11 @@ const FounderDatePage = () => {
 
       {/* Next Action */}
       {nextAction && founderDate?.status === 'ACTIVE' && (
-        <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha('#6366f1', 0.1), border: '1px solid', borderColor: alpha('#6366f1', 0.2) }}>
-          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+        <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }} gutterBottom>
             Next Step
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
             {nextAction.description}
           </Typography>
           
@@ -588,7 +590,7 @@ const FounderDatePage = () => {
               startIcon={<Schedule />}
               onClick={() => setScheduleDialogOpen(true)}
               disabled={actionLoading}
-              sx={{ textTransform: 'none', bgcolor: '#6366f1' }}
+              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
               Schedule Call
             </Button>
@@ -600,7 +602,7 @@ const FounderDatePage = () => {
               startIcon={<PlayArrow />}
               onClick={() => currentCall && handleStartCall(currentCall.id)}
               disabled={actionLoading}
-              sx={{ textTransform: 'none', bgcolor: TEAL }}
+              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
               Start Call
             </Button>
@@ -615,7 +617,7 @@ const FounderDatePage = () => {
                 setEvaluationDialogOpen(true);
               }}
               disabled={actionLoading}
-              sx={{ textTransform: 'none', bgcolor: '#6366f1' }}
+              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
               Submit Evaluation
             </Button>
@@ -633,20 +635,20 @@ const FounderDatePage = () => {
 
       {/* Completed State */}
       {founderDate?.status === 'COMPLETED' && (
-        <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha('#10b981', 0.1), border: '1px solid', borderColor: alpha('#10b981', 0.2) }}>
+        <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <CheckCircle sx={{ color: '#10b981' }} />
-            <Typography variant="subtitle1" fontWeight={600}>
+            <CheckCircle sx={{ color: TEAL }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
               Founder Date Completed!
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
             Congratulations! You've completed all 3 stages. Ready to take the next step?
           </Typography>
           <Button
             variant="contained"
             onClick={() => navigate('/workspaces')}
-            sx={{ textTransform: 'none', bgcolor: '#10b981' }}
+            sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
             Open Workspace
           </Button>
@@ -674,12 +676,12 @@ const FounderDatePage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setScheduleDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setScheduleDialogOpen(false)} sx={{ color: SLATE_500 }}>Cancel</Button>
           <Button
             variant="contained"
             onClick={handleScheduleCall}
             disabled={!scheduleForm.scheduled_at || actionLoading}
-            sx={{ bgcolor: '#6366f1' }}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
             Schedule
           </Button>
@@ -701,16 +703,17 @@ const FounderDatePage = () => {
         </DialogTitle>
         <DialogContent>
           {activeCall?.room_url ? (
-            <Box sx={{ height: 400, bgcolor: '#000', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ height: 200, bgcolor: alpha(TEAL, 0.05), borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body1" color="white" sx={{ mb: 2 }}>
+                <VideoCall sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.7 }} />
+                <Typography variant="body1" sx={{ color: SLATE_900, mb: 2 }}>
                   Click to join video call in new tab
                 </Typography>
                 <Button
                   variant="contained"
                   startIcon={<VideoCall />}
                   onClick={() => window.open(activeCall.room_url, '_blank')}
-                  sx={{ bgcolor: TEAL }}
+                  sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
                 >
                   Join Video Call
                 </Button>
@@ -722,7 +725,7 @@ const FounderDatePage = () => {
           
           {/* Prompts during call */}
           <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }} gutterBottom>
               Discussion Prompts
             </Typography>
             {currentStage?.prompts?.map((prompt, i) => (
@@ -733,10 +736,11 @@ const FounderDatePage = () => {
                   py: 1,
                   px: 1.5,
                   mb: 1,
-                  bgcolor: alpha('#6366f1', 0.08),
+                  bgcolor: alpha(TEAL, 0.06),
                   borderRadius: 1,
                   borderLeft: '3px solid',
-                  borderColor: '#6366f1',
+                  borderColor: TEAL,
+                  color: SLATE_900,
                 }}
               >
                 {i + 1}. {prompt}
@@ -761,8 +765,10 @@ const FounderDatePage = () => {
       <Dialog open={evaluationDialogOpen} onClose={() => setEvaluationDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <RateReview sx={{ color: '#6366f1' }} />
-            Post-Call Evaluation
+            <RateReview sx={{ color: TEAL }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+              Post-Call Evaluation
+            </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -851,12 +857,12 @@ const FounderDatePage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEvaluationDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setEvaluationDialogOpen(false)} sx={{ color: SLATE_500 }}>Cancel</Button>
           <Button
             variant="contained"
             onClick={() => activeCall && handleSubmitEvaluation(activeCall.id)}
             disabled={evaluationForm.continue_decision === null || actionLoading}
-            sx={{ bgcolor: '#6366f1' }}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
             Submit Evaluation
           </Button>

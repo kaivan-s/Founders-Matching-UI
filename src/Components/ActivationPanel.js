@@ -26,6 +26,12 @@ import {
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.founder-match.in/api';
 
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_200 = '#e2e8f0';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+
 const ActivationPanel = ({ variant = 'full', onDismiss }) => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -99,16 +105,16 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
           gap: 1.5,
           px: 2,
           py: 1,
-          bgcolor: alpha(isComplete ? '#10b981' : '#f59e0b', 0.15),
+          bgcolor: isComplete ? alpha(TEAL, 0.08) : alpha('#f59e0b', 0.08),
           borderRadius: 2,
           border: '1px solid',
-          borderColor: alpha(isComplete ? '#10b981' : '#f59e0b', 0.3),
+          borderColor: isComplete ? alpha(TEAL, 0.2) : alpha('#f59e0b', 0.2),
         }}
       >
         {!isComplete ? (
           <>
             <VisibilityOff sx={{ fontSize: 18, color: '#f59e0b' }} />
-            <Typography variant="body2" sx={{ flex: 1, color: '#f59e0b' }}>
+            <Typography variant="body2" sx={{ flex: 1, color: '#92400e' }}>
               Profile {score}% complete - reach {threshold}% to appear in discovery
             </Typography>
             <Button
@@ -116,7 +122,8 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
               onClick={() => navigate('/profile')}
               sx={{ 
                 textTransform: 'none', 
-                color: '#f59e0b',
+                color: '#92400e',
+                fontWeight: 600,
                 fontSize: '0.75rem',
               }}
               endIcon={<ArrowForward sx={{ fontSize: 14 }} />}
@@ -126,8 +133,8 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
           </>
         ) : next_milestone_hint ? (
           <>
-            <TrendingUp sx={{ fontSize: 18, color: '#6366f1' }} />
-            <Typography variant="body2" sx={{ flex: 1 }}>
+            <TrendingUp sx={{ fontSize: 18, color: TEAL }} />
+            <Typography variant="body2" sx={{ flex: 1, color: SLATE_900 }}>
               {next_milestone_hint.title}
             </Typography>
             <Button
@@ -135,7 +142,8 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
               onClick={handleCtaClick}
               sx={{ 
                 textTransform: 'none', 
-                color: '#6366f1',
+                color: TEAL,
+                fontWeight: 600,
                 fontSize: '0.75rem',
               }}
               endIcon={<ArrowForward sx={{ fontSize: 14 }} />}
@@ -145,7 +153,7 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
           </>
         ) : null}
         <IconButton size="small" onClick={handleDismiss} sx={{ ml: -0.5 }}>
-          <Close sx={{ fontSize: 16 }} />
+          <Close sx={{ fontSize: 16, color: SLATE_500 }} />
         </IconButton>
       </Box>
     );
@@ -155,25 +163,25 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
     <Box
       sx={{
         p: 2.5,
-        bgcolor: '#1a1a2e',
+        bgcolor: '#fff',
         borderRadius: 3,
         border: '1px solid',
-        borderColor: alpha('#6366f1', 0.2),
+        borderColor: SLATE_200,
         mb: 3,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <TrendingUp sx={{ color: '#6366f1' }} />
-          <Typography variant="h6" fontWeight={600}>
+          <TrendingUp sx={{ color: TEAL }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Your Progress
           </Typography>
           <Chip
             size="small"
             label={`${activation.milestones_count}/${activation.milestones_total} milestones`}
             sx={{ 
-              bgcolor: alpha('#6366f1', 0.2),
-              color: '#a5b4fc',
+              bgcolor: alpha(TEAL, 0.15),
+              color: TEAL,
               fontSize: '0.7rem',
             }}
           />
@@ -185,16 +193,16 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
 
       <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: SLATE_500 }}>
             Profile Completeness
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="body2" fontWeight={600} color={isComplete ? '#10b981' : '#f59e0b'}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: isComplete ? TEAL : '#f59e0b' }}>
               {score}%
             </Typography>
             <Tooltip title={visible_in_discovery ? 'Visible in discovery' : `Reach ${threshold}% to appear in discovery`}>
               {visible_in_discovery ? (
-                <Visibility sx={{ fontSize: 18, color: '#10b981' }} />
+                <Visibility sx={{ fontSize: 18, color: TEAL }} />
               ) : (
                 <VisibilityOff sx={{ fontSize: 18, color: '#f59e0b' }} />
               )}
@@ -207,10 +215,10 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
           sx={{
             height: 8,
             borderRadius: 4,
-            bgcolor: alpha('#6366f1', 0.1),
+            bgcolor: alpha(TEAL, 0.1),
             '& .MuiLinearProgress-bar': {
               borderRadius: 4,
-              bgcolor: isComplete ? '#10b981' : '#f59e0b',
+              bgcolor: isComplete ? TEAL : '#f59e0b',
             },
           }}
         />
@@ -226,16 +234,16 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
         <Box
           sx={{
             p: 2,
-            bgcolor: alpha('#6366f1', 0.1),
+            bgcolor: alpha(TEAL, 0.05),
             borderRadius: 2,
             border: '1px solid',
-            borderColor: alpha('#6366f1', 0.2),
+            borderColor: alpha(TEAL, 0.15),
           }}
         >
-          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }} gutterBottom>
             Next Step: {next_milestone_hint.title}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 1.5 }}>
             {next_milestone_hint.reason}
           </Typography>
           <Button
@@ -244,8 +252,8 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
             onClick={handleCtaClick}
             sx={{
               textTransform: 'none',
-              bgcolor: '#6366f1',
-              '&:hover': { bgcolor: '#5558dd' },
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: TEAL_LIGHT },
             }}
           >
             {next_milestone_hint.cta}
@@ -254,23 +262,23 @@ const ActivationPanel = ({ variant = 'full', onDismiss }) => {
       )}
 
       <Collapse in={expanded}>
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+          <Typography variant="subtitle2" sx={{ color: SLATE_500 }} gutterBottom>
             Milestones
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {activation.milestones_reached?.map((m) => (
               <Box key={m.milestone} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
-                <Typography variant="body2">
+                <CheckCircle sx={{ fontSize: 16, color: TEAL }} />
+                <Typography variant="body2" sx={{ color: SLATE_900 }}>
                   {m.milestone.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                 </Typography>
               </Box>
             ))}
             {next_milestone && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, opacity: 0.5 }}>
-                <RadioButtonUnchecked sx={{ fontSize: 16 }} />
-                <Typography variant="body2">
+                <RadioButtonUnchecked sx={{ fontSize: 16, color: SLATE_500 }} />
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
                   {next_milestone.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                 </Typography>
               </Box>

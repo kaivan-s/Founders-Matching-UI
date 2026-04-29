@@ -26,6 +26,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../config/api';
 
+const SLATE_900 = '#0f172a';
+const SLATE_500 = '#64748b';
+const SLATE_200 = '#e2e8f0';
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
+
 const FounderDatesList = ({ compact = false, onStartNew }) => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -59,10 +65,10 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return '#10b981';
-      case 'COMPLETED': return '#6366f1';
+      case 'ACTIVE': return TEAL;
+      case 'COMPLETED': return TEAL;
       case 'ABANDONED': return '#ef4444';
-      default: return '#64748b';
+      default: return SLATE_500;
     }
   };
 
@@ -97,23 +103,25 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
           alignItems: 'center',
           gap: 1.5,
           p: 1.5,
-          bgcolor: alpha('#6366f1', 0.1),
+          bgcolor: alpha(TEAL, 0.08),
           borderRadius: 2,
           cursor: 'pointer',
+          border: '1px solid',
+          borderColor: alpha(TEAL, 0.2),
           transition: 'all 0.2s',
-          '&:hover': { bgcolor: alpha('#6366f1', 0.15) },
+          '&:hover': { bgcolor: alpha(TEAL, 0.12) },
         }}
       >
-        <VideoCall sx={{ color: '#6366f1', fontSize: 20 }} />
+        <VideoCall sx={{ color: TEAL, fontSize: 20 }} />
         <Box sx={{ flex: 1 }}>
-          <Typography variant="body2" fontWeight={600}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Founder Date with {activeDate.other_founder?.name?.split(' ')[0]}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" sx={{ color: SLATE_500 }}>
             Stage {activeDate.current_stage}/3
           </Typography>
         </Box>
-        <ArrowForward sx={{ fontSize: 16, color: '#6366f1' }} />
+        <ArrowForward sx={{ fontSize: 16, color: TEAL }} />
       </Box>
     );
   }
@@ -122,15 +130,15 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <VideoCall sx={{ color: '#6366f1' }} />
-          <Typography variant="h6" fontWeight={600}>
+          <VideoCall sx={{ color: TEAL }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Founder Dates
           </Typography>
           {founderDates.length > 0 && (
             <Chip
               size="small"
               label={founderDates.length}
-              sx={{ bgcolor: alpha('#6366f1', 0.2), color: '#6366f1' }}
+              sx={{ bgcolor: alpha(TEAL, 0.15), color: TEAL }}
             />
           )}
         </Box>
@@ -142,12 +150,12 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
       </Box>
 
       {founderDates.length === 0 ? (
-        <Paper sx={{ p: 3, textAlign: 'center', bgcolor: '#1a1a2e', borderRadius: 2 }}>
-          <VideoCall sx={{ fontSize: 48, color: '#6366f1', mb: 2, opacity: 0.5 }} />
-          <Typography variant="body1" color="text.secondary" gutterBottom>
+        <Paper sx={{ p: 3, textAlign: 'center', bgcolor: '#fff', borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+          <VideoCall sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.5 }} />
+          <Typography variant="body1" sx={{ color: SLATE_900 }} gutterBottom>
             No Founder Dates yet
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
             Start a Founder Date to evaluate co-founder fit through structured calls
           </Typography>
           {onStartNew && (
@@ -155,7 +163,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
               variant="contained"
               startIcon={<Add />}
               onClick={onStartNew}
-              sx={{ textTransform: 'none', bgcolor: '#6366f1' }}
+              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
             >
               Start Founder Date
             </Button>
@@ -176,29 +184,30 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                   onClick={() => navigate(`/founder-dates/${fd.id}`)}
                   sx={{
                     p: 2.5,
-                    bgcolor: '#1a1a2e',
+                    bgcolor: '#fff',
                     borderRadius: 2,
                     cursor: 'pointer',
                     border: '1px solid',
-                    borderColor: fd.status === 'ACTIVE' ? alpha('#6366f1', 0.3) : 'transparent',
+                    borderColor: fd.status === 'ACTIVE' ? alpha(TEAL, 0.3) : SLATE_200,
                     transition: 'all 0.2s',
                     '&:hover': {
-                      bgcolor: alpha('#6366f1', 0.05),
+                      bgcolor: alpha(TEAL, 0.03),
                       transform: 'translateY(-2px)',
+                      boxShadow: `0 4px 12px ${alpha(SLATE_900, 0.1)}`,
                     },
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar
                       src={fd.other_founder?.avatar_url}
-                      sx={{ width: 48, height: 48 }}
+                      sx={{ width: 48, height: 48, bgcolor: alpha(TEAL, 0.1), color: TEAL }}
                     >
                       {fd.other_founder?.name?.[0]}
                     </Avatar>
                     
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                        <Typography variant="subtitle1" fontWeight={600} noWrap>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }} noWrap>
                           {fd.other_founder?.name}
                         </Typography>
                         <Chip
@@ -216,13 +225,13 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                       </Box>
                       
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: SLATE_500 }}>
                           Stage {fd.current_stage}/3
                         </Typography>
                         {fd.project?.name && (
                           <>
                             <Divider orientation="vertical" flexItem />
-                            <Typography variant="body2" color="text.secondary" noWrap>
+                            <Typography variant="body2" sx={{ color: SLATE_500 }} noWrap>
                               {fd.project.name}
                             </Typography>
                           </>
@@ -230,7 +239,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                       </Box>
                     </Box>
                     
-                    <ArrowForward sx={{ color: '#6366f1' }} />
+                    <ArrowForward sx={{ color: TEAL }} />
                   </Box>
                   
                   {fd.status === 'ACTIVE' && fd.next_action && (
@@ -239,12 +248,12 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                         mt: 2,
                         pt: 2,
                         borderTop: '1px solid',
-                        borderColor: 'divider',
+                        borderColor: SLATE_200,
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Timer sx={{ fontSize: 16, color: '#f59e0b' }} />
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: SLATE_500 }}>
                           Next: {fd.next_action?.description}
                         </Typography>
                       </Box>
