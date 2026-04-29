@@ -281,8 +281,8 @@ const FounderDatePage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return '#10b981';
-      case 'COMPLETED': return '#6366f1';
+      case 'IN_PROGRESS': return TEAL;
+      case 'COMPLETED': return TEAL;
       case 'ABANDONED': return '#ef4444';
       default: return SLATE_500;
     }
@@ -349,10 +349,10 @@ const FounderDatePage = () => {
             </Typography>
             <Chip
               size="small"
-              label={founderDate?.status}
+              label={founderDate?.overall_status?.replace('_', ' ')}
               sx={{
-                bgcolor: alpha(getStatusColor(founderDate?.status), 0.15),
-                color: getStatusColor(founderDate?.status),
+                bgcolor: alpha(getStatusColor(founderDate?.overall_status), 0.15),
+                color: getStatusColor(founderDate?.overall_status),
                 fontWeight: 600,
               }}
             />
@@ -362,7 +362,7 @@ const FounderDatePage = () => {
           </Typography>
         </Box>
         
-        {founderDate?.status === 'ACTIVE' && (
+        {founderDate?.overall_status === 'IN_PROGRESS' && (
           <Button
             variant="outlined"
             color="error"
@@ -575,7 +575,7 @@ const FounderDatePage = () => {
       </Paper>
 
       {/* Next Action */}
-      {nextAction && founderDate?.status === 'ACTIVE' && (
+      {nextAction && founderDate?.overall_status === 'IN_PROGRESS' && (
         <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }} gutterBottom>
             Next Step
@@ -643,7 +643,7 @@ const FounderDatePage = () => {
       )}
 
       {/* Completed State */}
-      {founderDate?.status === 'COMPLETED' && (
+      {founderDate?.overall_status === 'COMPLETED' && (
         <Paper sx={{ p: 3, borderRadius: 2, bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <CheckCircle sx={{ color: TEAL }} />

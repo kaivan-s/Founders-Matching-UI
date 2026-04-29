@@ -633,7 +633,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
       {/* Founder Date Card */}
       {(() => {
-        const activeFounderDate = founderDates.find(fd => fd.status === 'ACTIVE');
+        const activeFounderDate = founderDates.find(fd => fd.overall_status === 'IN_PROGRESS');
         const otherParticipant = participants.find(p => p.user?.clerk_user_id !== user?.id);
         
         if (founderDatesLoading) return null;

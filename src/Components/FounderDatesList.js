@@ -65,7 +65,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE': return TEAL;
+      case 'IN_PROGRESS': return TEAL;
       case 'COMPLETED': return TEAL;
       case 'ABANDONED': return '#ef4444';
       default: return SLATE_500;
@@ -74,7 +74,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'ACTIVE': return <TrendingUp sx={{ fontSize: 16 }} />;
+      case 'IN_PROGRESS': return <TrendingUp sx={{ fontSize: 16 }} />;
       case 'COMPLETED': return <CheckCircle sx={{ fontSize: 16 }} />;
       case 'ABANDONED': return <Cancel sx={{ fontSize: 16 }} />;
       default: return <Timer sx={{ fontSize: 16 }} />;
@@ -92,7 +92,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
   if (compact) {
     if (founderDates.length === 0) return null;
     
-    const activeDate = founderDates.find(fd => fd.status === 'ACTIVE');
+    const activeDate = founderDates.find(fd => fd.overall_status === 'IN_PROGRESS');
     if (!activeDate) return null;
 
     return (
@@ -188,7 +188,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                     borderRadius: 2,
                     cursor: 'pointer',
                     border: '1px solid',
-                    borderColor: fd.status === 'ACTIVE' ? alpha(TEAL, 0.3) : SLATE_200,
+                    borderColor: fd.overall_status === 'IN_PROGRESS' ? alpha(TEAL, 0.3) : SLATE_200,
                     transition: 'all 0.2s',
                     '&:hover': {
                       bgcolor: alpha(TEAL, 0.03),
@@ -212,11 +212,11 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                         </Typography>
                         <Chip
                           size="small"
-                          icon={getStatusIcon(fd.status)}
-                          label={fd.status}
+                          icon={getStatusIcon(fd.overall_status)}
+                          label={fd.overall_status?.replace('_', ' ')}
                           sx={{
-                            bgcolor: alpha(getStatusColor(fd.status), 0.15),
-                            color: getStatusColor(fd.status),
+                            bgcolor: alpha(getStatusColor(fd.overall_status), 0.15),
+                            color: getStatusColor(fd.overall_status),
                             fontSize: '0.7rem',
                             height: 24,
                             '& .MuiChip-icon': { color: 'inherit' },
@@ -242,7 +242,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
                     <ArrowForward sx={{ color: TEAL }} />
                   </Box>
                   
-                  {fd.status === 'ACTIVE' && fd.next_action && (
+                  {fd.overall_status === 'IN_PROGRESS' && fd.next_action && (
                     <Box
                       sx={{
                         mt: 2,
