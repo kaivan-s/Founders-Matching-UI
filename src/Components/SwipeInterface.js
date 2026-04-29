@@ -27,6 +27,7 @@ import {
   LocationOn, 
   Language, 
   LinkedIn,
+  GitHub,
   Business,
   Clear,
   Psychology,
@@ -40,7 +41,8 @@ import {
   Send,
   Rocket,
   Add,
-  CheckCircle
+  CheckCircle,
+  Verified
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import FilterBar from '../Components/FilterBar';
@@ -1308,21 +1310,31 @@ const SwipeInterface = () => {
                           {founder?.name ? founder.name.split(' ').map(n => n[0]).join('') : '?'}
                         </Avatar>
                         <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                          <Typography variant="h6" sx={{ 
-                            fontWeight: 600, 
-                            mb: 0.25, 
-                            fontSize: { xs: '0.875rem', sm: '0.9375rem' }, 
-                            color: '#111827', 
-                            letterSpacing: '-0.01em',
-                            WebkitFontSmoothing: 'antialiased',
-                            MozOsxFontSmoothing: 'grayscale',
-                            textRendering: 'optimizeLegibility',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}>
-                            {founder?.name || 'Unknown'}
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+                            <Typography variant="h6" sx={{ 
+                              fontWeight: 600, 
+                              fontSize: { xs: '0.875rem', sm: '0.9375rem' }, 
+                              color: '#111827', 
+                              letterSpacing: '-0.01em',
+                              WebkitFontSmoothing: 'antialiased',
+                              MozOsxFontSmoothing: 'grayscale',
+                              textRendering: 'optimizeLegibility',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {founder?.name || 'Unknown'}
+                            </Typography>
+                            {/* Verification Badge */}
+                            {founder?.verification && founder.verification.tier !== 'UNVERIFIED' && (
+                              <Verified sx={{ 
+                                fontSize: 14, 
+                                color: founder.verification.tier === 'HIGHLY_VERIFIED' ? '#16a34a' :
+                                       founder.verification.tier === 'PRO_VERIFIED' ? '#2563eb' : '#0d9488',
+                                flexShrink: 0,
+                              }} />
+                            )}
+                          </Box>
                           {founder?.location && (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <LocationOn sx={{ fontSize: 12, color: '#64748b', flexShrink: 0 }} />
@@ -1818,9 +1830,32 @@ const SwipeInterface = () => {
                   {selectedFounder.name ? selectedFounder.name.split(' ').map(n => n[0]).join('') : '?'}
                 </Avatar>
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {selectedFounder.name}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      {selectedFounder.name}
+                    </Typography>
+                    {selectedFounder.verification && selectedFounder.verification.tier !== 'UNVERIFIED' && (
+                      <Chip
+                        icon={<Verified sx={{ fontSize: 14 }} />}
+                        label={selectedFounder.verification.tier === 'HIGHLY_VERIFIED' ? 'Highly Verified' :
+                               selectedFounder.verification.tier === 'PRO_VERIFIED' ? 'Pro Verified' : 'Verified'}
+                        size="small"
+                        sx={{
+                          height: 22,
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          bgcolor: selectedFounder.verification.tier === 'HIGHLY_VERIFIED' ? alpha('#16a34a', 0.1) :
+                                   selectedFounder.verification.tier === 'PRO_VERIFIED' ? alpha('#2563eb', 0.1) : alpha('#0d9488', 0.1),
+                          color: selectedFounder.verification.tier === 'HIGHLY_VERIFIED' ? '#16a34a' :
+                                 selectedFounder.verification.tier === 'PRO_VERIFIED' ? '#2563eb' : '#0d9488',
+                          border: '1px solid',
+                          borderColor: selectedFounder.verification.tier === 'HIGHLY_VERIFIED' ? alpha('#16a34a', 0.3) :
+                                       selectedFounder.verification.tier === 'PRO_VERIFIED' ? alpha('#2563eb', 0.3) : alpha('#0d9488', 0.3),
+                          '& .MuiChip-icon': { color: 'inherit', marginLeft: '6px' }
+                        }}
+                      />
+                    )}
+                  </Box>
                   {selectedFounder.location && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <LocationOn fontSize="small" sx={{ color: 'text.secondary' }} />
@@ -1961,6 +1996,69 @@ const SwipeInterface = () => {
                           }}
                         />
                       ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Verification Details */}
+                {selectedFounder.verification && (selectedFounder.verification.linkedin?.verified || selectedFounder.verification.github?.verified) && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 1, display: 'block' }}>
+                      VERIFIED ACCOUNTS
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {selectedFounder.verification.linkedin?.verified && (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 1, 
+                          p: 1.5, 
+                          bgcolor: alpha('#0077b5', 0.05), 
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: alpha('#0077b5', 0.2),
+                        }}>
+                          <LinkedIn sx={{ color: '#0077b5', fontSize: 20 }} />
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.8rem' }}>
+                              {selectedFounder.verification.linkedin.name || 'LinkedIn Verified'}
+                            </Typography>
+                          </Box>
+                          <CheckCircle sx={{ fontSize: 14, color: '#16a34a', ml: 0.5 }} />
+                        </Box>
+                      )}
+                      {selectedFounder.verification.github?.verified && (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 1, 
+                          p: 1.5, 
+                          bgcolor: alpha('#333', 0.03), 
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: alpha('#333', 0.15),
+                        }}>
+                          <GitHub sx={{ color: '#333', fontSize: 20 }} />
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#0f172a', fontSize: '0.8rem' }}>
+                              @{selectedFounder.verification.github.login}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1.5 }}>
+                              {selectedFounder.verification.github.public_repos !== undefined && (
+                                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                                  {selectedFounder.verification.github.public_repos} repos
+                                </Typography>
+                              )}
+                              {selectedFounder.verification.github.followers !== undefined && (
+                                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                                  {selectedFounder.verification.github.followers} followers
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                          <CheckCircle sx={{ fontSize: 14, color: '#16a34a', ml: 0.5 }} />
+                        </Box>
+                      )}
                     </Box>
                   </Box>
                 )}

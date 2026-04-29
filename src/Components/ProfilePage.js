@@ -58,6 +58,8 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [options, setOptions] = useState({ interests: [], work_preferences: {} });
   const [completeness, setCompleteness] = useState({ score: 0, missing: [], complete: false });
+  const [verification, setVerification] = useState(null);
+  const [verificationLoading, setVerificationLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [skillInput, setSkillInput] = useState('');
   const [activeTab, setActiveTab] = useState(0);
@@ -69,7 +71,23 @@ const ProfilePage = () => {
     { label: 'Past Projects', icon: <Work fontSize="small" /> },
     { label: 'Preferences', icon: <Settings fontSize="small" /> },
     { label: 'Links', icon: <LinkIcon fontSize="small" /> },
+    { label: 'Verification', icon: <CheckCircle fontSize="small" /> },
   ];
+
+  const fetchVerification = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`${API_BASE}/founders/verification/status`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVerification(data);
+      }
+    } catch (error) {
+      console.error('Error fetching verification:', error);
+    }
+  }, [user?.id]);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
@@ -102,13 +120,16 @@ const ProfilePage = () => {
         const data = await completenessRes.json();
         setCompleteness(data);
       }
+
+      // Also fetch verification status
+      await fetchVerification();
     } catch (error) {
       console.error('Error fetching profile:', error);
       setSnackbar({ open: true, message: 'Failed to load profile', severity: 'error' });
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, fetchVerification]);
 
   useEffect(() => {
     fetchProfile();
@@ -579,6 +600,369 @@ const ProfilePage = () => {
     </Box>
   );
 
+  const handleLinkedInConnect = async () => {
+    if (!user?.id) return;
+    setVerificationLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/founders/linkedin/connect`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = data.authorization_url;
+      } else {
+        const err = await res.json();
+        setSnackbar({ open: true, message: err.error || 'Failed to connect LinkedIn', severity: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Failed to connect LinkedIn', severity: 'error' });
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleLinkedInDisconnect = async () => {
+    if (!user?.id) return;
+    setVerificationLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/founders/linkedin/revoke`, {
+        method: 'POST',
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.ok) {
+        setSnackbar({ open: true, message: 'LinkedIn disconnected', severity: 'success' });
+        await fetchVerification();
+      } else {
+        const err = await res.json();
+        setSnackbar({ open: true, message: err.error || 'Failed to disconnect LinkedIn', severity: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Failed to disconnect LinkedIn', severity: 'error' });
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleGitHubConnect = async () => {
+    if (!user?.id) return;
+    setVerificationLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/integrations/github/connect`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = data.authorization_url;
+      } else {
+        const err = await res.json();
+        setSnackbar({ open: true, message: err.error || 'Failed to connect GitHub', severity: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Failed to connect GitHub', severity: 'error' });
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleGitHubDisconnect = async () => {
+    if (!user?.id) return;
+    setVerificationLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/integrations/github/revoke`, {
+        method: 'POST',
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.ok) {
+        setSnackbar({ open: true, message: 'GitHub disconnected', severity: 'success' });
+        await fetchVerification();
+      } else {
+        const err = await res.json();
+        setSnackbar({ open: true, message: err.error || 'Failed to disconnect GitHub', severity: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Failed to disconnect GitHub', severity: 'error' });
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const getTierColor = (tier) => {
+    switch (tier) {
+      case 'HIGHLY_VERIFIED': return '#16a34a';
+      case 'PRO_VERIFIED': return '#2563eb';
+      case 'VERIFIED': return '#0d9488';
+      default: return SLATE_400;
+    }
+  };
+
+  const getTierLabel = (tier) => {
+    switch (tier) {
+      case 'HIGHLY_VERIFIED': return 'Highly Verified';
+      case 'PRO_VERIFIED': return 'Pro Verified';
+      case 'VERIFIED': return 'Verified';
+      default: return 'Unverified';
+    }
+  };
+
+  const renderVerification = () => (
+    <Box sx={{ p: 3 }}>
+      {/* Current Verification Status */}
+      <Box sx={{ 
+        mb: 4, 
+        p: 3, 
+        borderRadius: 2, 
+        bgcolor: verification?.tier !== 'UNVERIFIED' ? alpha(getTierColor(verification?.tier), 0.08) : alpha(SLATE_400, 0.08),
+        border: '1px solid',
+        borderColor: verification?.tier !== 'UNVERIFIED' ? alpha(getTierColor(verification?.tier), 0.2) : SLATE_200,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <CheckCircle sx={{ 
+            fontSize: 40, 
+            color: getTierColor(verification?.tier) 
+          }} />
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900 }}>
+              {getTierLabel(verification?.tier)}
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+              {verification?.tier === 'UNVERIFIED' 
+                ? 'Connect your accounts to get a verification badge'
+                : 'Your profile has a verification badge visible to others'
+              }
+            </Typography>
+          </Box>
+        </Box>
+        {verification?.next_tier?.message && (
+          <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${SLATE_200}` }}>
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+              <strong>Next level:</strong> {verification.next_tier.message}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: SLATE_900 }}>
+        Connect Your Accounts
+      </Typography>
+
+      <Grid container spacing={3}>
+        {/* LinkedIn */}
+        <Grid item xs={12} md={6}>
+          <Box sx={{ 
+            p: 3, 
+            borderRadius: 2, 
+            border: '1px solid',
+            borderColor: verification?.linkedin?.verified ? '#0077b5' : SLATE_200,
+            bgcolor: verification?.linkedin?.verified ? alpha('#0077b5', 0.05) : '#fff',
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <LinkedIn sx={{ fontSize: 32, color: '#0077b5' }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  LinkedIn
+                </Typography>
+                {verification?.linkedin?.verified ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <CheckCircle sx={{ fontSize: 16, color: '#16a34a' }} />
+                    <Typography variant="body2" sx={{ color: '#16a34a' }}>
+                      Connected
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                    Not connected
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {verification?.linkedin?.verified ? (
+              <>
+                <Box sx={{ mb: 2, p: 2, bgcolor: alpha(SLATE_400, 0.05), borderRadius: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                    {verification.linkedin.name}
+                  </Typography>
+                  {verification.linkedin.email && (
+                    <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                      {verification.linkedin.email}
+                    </Typography>
+                  )}
+                </Box>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleLinkedInDisconnect}
+                  disabled={verificationLoading}
+                  sx={{ 
+                    borderColor: '#ef4444', 
+                    color: '#ef4444', 
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    '&:hover': { borderColor: '#dc2626', bgcolor: alpha('#ef4444', 0.05) }
+                  }}
+                >
+                  {verificationLoading ? <CircularProgress size={20} /> : 'Disconnect'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+                  Verify your professional identity by connecting your LinkedIn account.
+                </Typography>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  startIcon={<LinkedIn />}
+                  onClick={handleLinkedInConnect}
+                  disabled={verificationLoading}
+                  sx={{
+                    bgcolor: '#0077b5',
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: '#005885' }
+                  }}
+                >
+                  {verificationLoading ? <CircularProgress size={20} color="inherit" /> : 'Connect LinkedIn'}
+                </Button>
+              </>
+            )}
+          </Box>
+        </Grid>
+
+        {/* GitHub */}
+        <Grid item xs={12} md={6}>
+          <Box sx={{ 
+            p: 3, 
+            borderRadius: 2, 
+            border: '1px solid',
+            borderColor: verification?.github?.verified ? '#333' : SLATE_200,
+            bgcolor: verification?.github?.verified ? alpha('#333', 0.03) : '#fff',
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <GitHub sx={{ fontSize: 32, color: '#333' }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  GitHub
+                </Typography>
+                {verification?.github?.verified ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <CheckCircle sx={{ fontSize: 16, color: '#16a34a' }} />
+                    <Typography variant="body2" sx={{ color: '#16a34a' }}>
+                      Connected
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                    Not connected
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {verification?.github?.verified ? (
+              <>
+                <Box sx={{ mb: 2, p: 2, bgcolor: alpha(SLATE_400, 0.05), borderRadius: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                    @{verification.github.login}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                    {verification.github.public_repos !== undefined && (
+                      <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                        {verification.github.public_repos} repos
+                      </Typography>
+                    )}
+                    {verification.github.followers !== undefined && (
+                      <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                        {verification.github.followers} followers
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleGitHubDisconnect}
+                  disabled={verificationLoading}
+                  sx={{ 
+                    borderColor: '#ef4444', 
+                    color: '#ef4444', 
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    '&:hover': { borderColor: '#dc2626', bgcolor: alpha('#ef4444', 0.05) }
+                  }}
+                >
+                  {verificationLoading ? <CircularProgress size={20} /> : 'Disconnect'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+                  Show your technical credibility by connecting your GitHub profile.
+                </Typography>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  startIcon={<GitHub />}
+                  onClick={handleGitHubConnect}
+                  disabled={verificationLoading}
+                  sx={{
+                    bgcolor: '#333',
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: '#1a1a1a' }
+                  }}
+                >
+                  {verificationLoading ? <CircularProgress size={20} color="inherit" /> : 'Connect GitHub'}
+                </Button>
+              </>
+            )}
+          </Box>
+        </Grid>
+      </Grid>
+
+      {/* Benefits */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: SLATE_900 }}>
+          Why Verify?
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ p: 2, bgcolor: alpha(TEAL, 0.05), borderRadius: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: TEAL, mb: 0.5 }}>
+                Build Trust
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                Verified profiles are trusted 3x more by potential co-founders
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ p: 2, bgcolor: alpha(NAVY, 0.05), borderRadius: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: NAVY, mb: 0.5 }}>
+                Stand Out
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                Get a verification badge visible on your profile
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ p: 2, bgcolor: alpha('#16a34a', 0.05), borderRadius: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#16a34a', mb: 0.5 }}>
+                Better Matches
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                Project owners prefer verified founders
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+    </Box>
+  );
+
   const renderLinks = () => (
     <Box sx={{ p: 3 }}>
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: SLATE_900 }}>
@@ -649,6 +1033,7 @@ const ProfilePage = () => {
       case 3: return renderPastProjects();
       case 4: return renderPreferences();
       case 5: return renderLinks();
+      case 6: return renderVerification();
       default: return renderBasicInfo();
     }
   };
