@@ -518,6 +518,238 @@ const StatCard = ({ icon: Icon, value, label, color }) => (
   </Paper>
 );
 
+// =============================================================================
+// SubscriptionCard
+// Renders the advisor's Pro Advisor billing state: free / trial / past_due /
+// active / cancelled. Has CTAs for monthly + yearly subscription via Dodo.
+// =============================================================================
+const SubscriptionCard = ({ billingProfile, userId, onChange }) => {
+  const [subscribing, setSubscribing] = useState(null); // 'monthly' | 'yearly' | null
+  const [cancelling, setCancelling] = useState(false);
+
+  if (!billingProfile) return null;
+
+  const status = billingProfile.effective_status || billingProfile.subscription_status || 'free';
+  const pricing = billingProfile.subscription_pricing || {};
+  const trialEndsAt = billingProfile.trial_ends_at;
+  const periodEnd = billingProfile.subscription_current_period_end;
+
+  const formatDate = (iso) => {
+    if (!iso) return '';
+    try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch { return iso; }
+  };
+
+  const daysUntil = (iso) => {
+    if (!iso) return null;
+    try {
+      const ms = new Date(iso).getTime() - Date.now();
+      return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+    } catch { return null; }
+  };
+
+  const subscribe = async (cycle) => {
+    setSubscribing(cycle);
+    try {
+      const res = await fetch(`${API_BASE}/billing/advisor/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Clerk-User-Id': userId },
+        body: JSON.stringify({ billing_cycle: cycle }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to start checkout');
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+      setSubscribing(null);
+    }
+  };
+
+  const cancel = async () => {
+    if (!window.confirm('Cancel your Pro Advisor subscription? You will keep access until the end of your current billing period, then lose the ability to accept new bookings until you resubscribe.')) {
+      return;
+    }
+    setCancelling(true);
+    try {
+      const res = await fetch(`${API_BASE}/billing/advisor/cancel-subscription`, {
+        method: 'POST',
+        headers: { 'X-Clerk-User-Id': userId },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to cancel');
+      onChange?.();
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const SubscribeButtons = () => (
+    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: 2 }}>
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={subscribing === 'monthly' ? <CircularProgress size={14} color="inherit" /> : null}
+        disabled={!!subscribing}
+        onClick={() => subscribe('monthly')}
+        sx={{ textTransform: 'none', fontWeight: 600 }}
+      >
+        Subscribe — ${pricing.monthly_usd}/mo
+      </Button>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={subscribing === 'yearly' ? <CircularProgress size={14} color="inherit" /> : null}
+        disabled={!!subscribing}
+        onClick={() => subscribe('yearly')}
+        sx={{ textTransform: 'none', fontWeight: 600 }}
+      >
+        Yearly — ${pricing.yearly_usd}/yr (save ${(pricing.monthly_usd * 12) - pricing.yearly_usd})
+      </Button>
+    </Box>
+  );
+
+  // FREE: no first booking yet
+  if (status === 'free') {
+    return (
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, borderColor: 'divider' }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ p: 1.25, bgcolor: alpha('#0d9488', 0.08), borderRadius: 1.5, color: '#0d9488' }}>
+              <Payment fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Pro Advisor — Free until your first booking
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                You can list, accept requests, and run consultations <strong>for free</strong>.
+                Your {pricing.trial_days}-day Pro Advisor trial begins after your first confirmed booking.
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // TRIAL: in active trial period
+  if (status === 'trial') {
+    const days = daysUntil(trialEndsAt);
+    return (
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, borderColor: alpha('#0ea5e9', 0.3), bgcolor: alpha('#0ea5e9', 0.04) }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ p: 1.25, bgcolor: alpha('#0ea5e9', 0.12), borderRadius: 1.5, color: '#0ea5e9' }}>
+              <AccessTime fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Pro Advisor trial · {days != null ? `${days} day${days === 1 ? '' : 's'} left` : 'active'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Trial ends {formatDate(trialEndsAt)}. Subscribe now to keep accepting new bookings after that.
+              </Typography>
+              <SubscribeButtons />
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // PAST_DUE: trial expired or active subscription lapsed
+  if (status === 'past_due') {
+    return (
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, borderColor: alpha('#f59e0b', 0.5), bgcolor: alpha('#f59e0b', 0.06) }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ p: 1.25, bgcolor: alpha('#f59e0b', 0.15), borderRadius: 1.5, color: '#f59e0b' }}>
+              <Cancel fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Subscription required to accept new bookings
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {billingProfile.subscription_status === 'trial'
+                  ? 'Your Pro Advisor trial has ended. Subscribe to keep accepting new bookings.'
+                  : 'Your subscription is past due or has lapsed. Resubscribe to start accepting new bookings again.'}
+                You remain listed in the marketplace, but new bookings are paused.
+              </Typography>
+              <SubscribeButtons />
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ACTIVE: subscribed
+  if (status === 'active') {
+    return (
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, borderColor: alpha('#10b981', 0.4), bgcolor: alpha('#10b981', 0.04) }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ p: 1.25, bgcolor: alpha('#10b981', 0.15), borderRadius: 1.5, color: '#10b981' }}>
+              <CheckCircle fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Pro Advisor — Active
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {periodEnd
+                  ? `Your subscription renews on ${formatDate(periodEnd)}.`
+                  : 'Your subscription is active.'}
+              </Typography>
+              <Box sx={{ mt: 1.5 }}>
+                <Button
+                  variant="text"
+                  size="small"
+                  color="error"
+                  disabled={cancelling}
+                  onClick={cancel}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {cancelling ? 'Cancelling…' : 'Cancel subscription'}
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // CANCELLED: previously paid, now cancelled
+  if (status === 'cancelled') {
+    return (
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 3, borderColor: 'divider' }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+            <Box sx={{ p: 1.25, bgcolor: alpha('#64748b', 0.1), borderRadius: 1.5, color: '#64748b' }}>
+              <Cancel fontSize="small" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                Pro Advisor — Cancelled
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                You've cancelled your Pro Advisor subscription. New bookings are paused until you resubscribe.
+              </Typography>
+              <SubscribeButtons />
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return null;
+};
+
 const AdvisorDashboard = () => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -534,8 +766,6 @@ const AdvisorDashboard = () => {
   const [workspaceNotificationsDialogOpen, setWorkspaceNotificationsDialogOpen] = useState(false);
   const [selectedWorkspaceForNotifications, setSelectedWorkspaceForNotifications] = useState(null);
   const [billingProfile, setBillingProfile] = useState(null);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [pendingAcceptRequestId, setPendingAcceptRequestId] = useState(null);
   
   // LinkedIn verification
   const [linkedinStatus, setLinkedinStatus] = useState({
@@ -721,33 +951,19 @@ const AdvisorDashboard = () => {
     completeCallback();
   }, [searchParams, user?.id]);
 
-  // Handle payment success callback - auto-accept the project
+  // Handle "?advisor_subscription=success" return from Dodo checkout
   useEffect(() => {
-    const paymentSuccess = searchParams.get('payment');
-    const requestId = searchParams.get('request_id');
-    if (paymentSuccess !== 'success' || !requestId || !user?.id) return;
-
-    const acceptAfterPayment = async () => {
-      try {
-        const r = await fetch(`${API_BASE}/advisors/requests/${requestId}/respond`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Clerk-User-Id': user.id,
-          },
-          body: JSON.stringify({ response: 'accept', payment_verified: true }),
-        });
-        if (r.ok) {
-          fetchDashboardData();
-        }
-        // Clear URL params
-        window.history.replaceState({}, '', window.location.pathname);
-      } catch (err) {
-        console.error('Failed to accept after payment:', err);
-      }
-    };
-    acceptAfterPayment();
-  }, [searchParams, user?.id, fetchDashboardData]);
+    const flag = searchParams.get('advisor_subscription');
+    if (flag !== 'success' || !user?.id) return;
+    // Webhook usually arrives within 1-3s; refetch a couple of times
+    const refetchTimes = [500, 2500, 5000];
+    const timers = refetchTimes.map((delay) =>
+      setTimeout(() => fetchBillingProfile(), delay)
+    );
+    // Clear the URL params
+    window.history.replaceState({}, '', window.location.pathname);
+    return () => timers.forEach(clearTimeout);
+  }, [searchParams, user?.id, fetchBillingProfile]);
 
   // Redirect to onboarding if no profile
   useEffect(() => {
@@ -814,32 +1030,9 @@ const AdvisorDashboard = () => {
     };
   }, [founderId, user?.id]);
 
-  const handlePayToAccept = async () => {
-    if (!user?.id || !pendingAcceptRequestId) return;
-    try {
-      const r = await fetch(`${API_BASE}/billing/advisor/accept-project`, {
-        method: 'POST',
-        headers: { 
-          'X-Clerk-User-Id': user.id,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ request_id: pendingAcceptRequestId }),
-      });
-      if (!r.ok) throw new Error((await r.json()).error || 'Failed');
-      window.location.href = (await r.json()).checkout_url;
-    } catch (e) {
-      alert(`Error: ${e.message}`);
-    }
-  };
-
   const handleRespondToRequest = async (requestId, response) => {
-    // For accepts, always require payment (per-project fee)
-    if (response === 'accept') {
-      setPendingAcceptRequestId(requestId);
-      setPaymentDialogOpen(true);
-      return;
-    }
-
+    // Acceptance is now free for advisors. Platform monetizes via subscription
+    // after the advisor's first booking is completed.
     try {
       const r = await fetch(`${API_BASE}/advisors/requests/${requestId}/respond`, {
         method: 'POST',
@@ -1151,6 +1344,13 @@ const AdvisorDashboard = () => {
               )}
             </Paper>
 
+            {/* Pro Advisor subscription card */}
+            <SubscriptionCard
+              billingProfile={billingProfile}
+              userId={user?.id}
+              onChange={fetchBillingProfile}
+            />
+
             {/* Stats Grid */}
             <Grid container spacing={2} sx={{ mb: 4 }}>
               <Grid item xs={6} md={3}>
@@ -1365,66 +1565,6 @@ const AdvisorDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Dialog */}
-      <Dialog
-        open={paymentDialogOpen}
-        onClose={() => setPaymentDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
-      >
-        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>Payment Required</Typography>
-            <IconButton onClick={() => setPaymentDialogOpen(false)} size="small">
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
-          <Box sx={{ 
-            width: 80, 
-            height: 80, 
-            borderRadius: '50%', 
-            bgcolor: alpha('#14b8a6', 0.1), 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 3,
-          }}>
-            <Payment sx={{ fontSize: 40, color: '#14b8a6' }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Accept This Project
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Pay $69 to accept this project and start advising.
-          </Typography>
-          <Paper elevation={0} sx={{ bgcolor: '#f8fafc', p: 2.5, borderRadius: 2, textAlign: 'left' }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>What you get:</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {['Full access to this project workspace', 'Direct communication with founders', 'Equity stake as agreed'].map((item, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
-                  <Typography variant="body2" color="text.secondary">{item}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={() => { setPaymentDialogOpen(false); setPendingAcceptRequestId(null); }} sx={{ color: 'text.secondary' }}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handlePayToAccept}
-            startIcon={<Payment />}
-            sx={{ bgcolor: '#14b8a6', '&:hover': { bgcolor: '#0d9488' }, borderRadius: 2 }}
-          >
-            Pay $69 & Accept
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import {
@@ -14,7 +14,6 @@ import {
   Business,
   Handshake,
   ArrowForward,
-  Lock,
   LockOpen,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
@@ -23,37 +22,9 @@ import OnboardingDialog from './OnboardingDialog';
 const UserFlowSelector = ({ onFounderVerified }) => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const [partnerPaid, setPartnerPaid] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
-
-  useEffect(() => {
-    const checkPartnerBilling = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_BASE}/billing/partner/profile`, {
-          headers: {
-            'X-Clerk-User-Id': user.id,
-          },
-        });
-
-        if (response.ok) {
-          const billing = await response.json();
-          setPartnerPaid(billing?.onboarding_paid || false);
-        }
-      } catch (error) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkPartnerBilling();
-  }, [user]);
+  // Advisor onboarding is free; no billing gate.
 
   const handleSelectFounder = async () => {
     if (!user?.id) {
@@ -177,19 +148,10 @@ const UserFlowSelector = ({ onFounderVerified }) => {
             onClick={handleSelectPartner}
           >
             <CardContent sx={{ p: 4, textAlign: 'center', position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-                {loading ? (
-                  <CircularProgress size={24} />
-                ) : partnerPaid ? (
-                  <LockOpen sx={{ fontSize: 24, color: '#0d9488' }} />
-                ) : (
-                  <Lock sx={{ fontSize: 24, color: '#64748b' }} />
-                )}
-              </Box>
               <Handshake 
                 sx={{ 
                   fontSize: 64, 
-                  color: partnerPaid ? '#0d9488' : '#64748b',
+                  color: '#0d9488',
                   mb: 3,
                 }} 
               />
@@ -199,7 +161,7 @@ const UserFlowSelector = ({ onFounderVerified }) => {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                 Help founders stay accountable and succeed. Join workspaces, provide guidance, and build your advisory network.
               </Typography>
-              <ArrowForward sx={{ fontSize: 28, color: partnerPaid ? '#0d9488' : '#64748b' }} />
+              <ArrowForward sx={{ fontSize: 28, color: '#0d9488' }} />
             </CardContent>
           </Card>
         </Grid>

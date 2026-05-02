@@ -32,6 +32,7 @@ import FAQ from './Components/FAQ';
 import AdminAdvisors from './Components/AdminAdvisors';
 import ProfilePage from './Components/ProfilePage';
 import FounderDatePage from './Components/FounderDatePage';
+import ConsultationsPage from './Components/ConsultationsPage';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -539,15 +540,16 @@ function NavigationTabs() {
     if (path.startsWith('/access-requests')) return 2;
     if (path.startsWith('/projects')) return 3;
     if (path.startsWith('/workspaces')) return 4;
-    if (path.startsWith('/payments')) return 5;
-    if (path.startsWith('/feedback') || path.startsWith('/my-feedback')) return 6;
+    if (path.startsWith('/consultations')) return 5;
+    if (path.startsWith('/payments')) return 6;
+    if (path.startsWith('/feedback') || path.startsWith('/my-feedback')) return 7;
     return 0;
   };
 
   const navigate = useNavigate();
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['/discover', '/interested', '/access-requests', '/projects', '/workspaces', '/payments', '/my-feedback'];
+    const routes = ['/discover', '/interested', '/access-requests', '/projects', '/workspaces', '/consultations', '/payments', '/my-feedback'];
     navigate(routes[newValue]);
   };
 
@@ -677,6 +679,7 @@ function NavigationTabs() {
             </Box>
           }
         />
+        <Tab label="Consultations" />
         <Tab label="Payments" />
         <Tab label="Feedback" />
       </Tabs>
@@ -1204,6 +1207,32 @@ function AppContent() {
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <WorkspacePage />
+          </RouteWrapper>
+        } />
+        <Route path="/consultations" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+              <NavigationTabs />
+              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+                <ConsultationsPage />
+              </Box>
+            </Box>
           </RouteWrapper>
         } />
         <Route path="/payments" element={

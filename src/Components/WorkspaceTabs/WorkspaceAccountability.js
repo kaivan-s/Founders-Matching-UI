@@ -44,7 +44,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   const [quarterlyReview, setQuarterlyReview] = useState({ quarter: 1, value_rating: 0, continue_next_quarter: true });
   const [savingReview, setSavingReview] = useState(false);
   const [workspacePlan, setWorkspacePlan] = useState(null);
-  const [canUseMarketplace, setCanUseMarketplace] = useState(false);
+  const [canBookAdvisor, setCanBookAdvisor] = useState(false);
 
   useEffect(() => {
     if (workspaceId) {
@@ -57,9 +57,9 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   const fetchWorkspacePlan = async () => {
     if (!user?.id || !workspaceId) return;
     try {
-      // Check workspace plan for marketplace access (based on highest plan among participants)
+      // Booking advisors requires Pro+ on at least one workspace participant
       const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/check-feature?feature=accountability.canUseMarketplace`,
+        `${API_BASE}/workspaces/${workspaceId}/check-feature?feature=accountability.canBookAdvisor`,
         {
           headers: {
             'X-Clerk-User-Id': user.id,
@@ -69,7 +69,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
       if (response.ok) {
         const data = await response.json();
         setWorkspacePlan(data.workspace_plan || 'FREE');
-        setCanUseMarketplace(data.has_access || false);
+        setCanBookAdvisor(data.has_access || false);
       }
     } catch (err) {
       // Error fetching workspace plan
@@ -187,29 +187,22 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         <Button
           variant="contained"
           startIcon={<Add />}
-          onClick={() => {
-            if (!canUseMarketplace) {
-              alert('Marketplace access requires Pro or Pro+ plan. Upgrade to access advisors.');
-              return;
-            }
-            setMarketplaceOpen(true);
-          }}
-          disabled={!canUseMarketplace}
+          onClick={() => setMarketplaceOpen(true)}
         >
-          Find Advisor in Marketplace
+          Browse Advisor Marketplace
         </Button>
       </Box>
 
-      {!canUseMarketplace && workspacePlan && (
+      {!canBookAdvisor && workspacePlan && (
         <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
           <Typography variant="body2">
-            <strong>Marketplace access requires Pro or Pro+ plan.</strong> Upgrade to browse and connect with advisors from our marketplace. 
+            <strong>You can browse advisors freely.</strong> Booking a consultation requires a Pro+ subscription.
             <Button 
               size="small" 
               onClick={() => window.location.href = '/pricing'}
               sx={{ ml: 1, textTransform: 'none' }}
             >
-              View Pricing Plans
+              Upgrade to Pro+
             </Button>
           </Typography>
         </Alert>

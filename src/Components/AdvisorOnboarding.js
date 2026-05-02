@@ -79,6 +79,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
     preferred_cadence: 'weekly',
     availability_hours_per_week: '', // Structured hours selection
     
+    // Pay-per-consultation pricing (optional — advisor can set later)
+    // Founders pay you DIRECTLY via the methods below; the platform doesn't process payment.
+    consultation_rate_30min_usd: '',
+    consultation_rate_60min_usd: '',
+    payment_methods: {
+      upi_id: '',
+      paypal_url: '',
+      razorpay_link: '',
+      bank_details: '',
+    },
+    
     // Contact
     contact_email: user?.emailAddresses?.[0]?.emailAddress || '',
     contact_note: '',
@@ -135,6 +146,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
               max_active_workspaces: profileData.max_active_workspaces ?? prev.max_active_workspaces,
               preferred_cadence: profileData.preferred_cadence || prev.preferred_cadence,
               availability_hours_per_week: profileData.availability_hours_per_week || prev.availability_hours_per_week,
+              consultation_rate_30min_usd: profileData.consultation_rate_30min_usd ?? prev.consultation_rate_30min_usd,
+              consultation_rate_60min_usd: profileData.consultation_rate_60min_usd ?? prev.consultation_rate_60min_usd,
+              payment_methods: { ...prev.payment_methods, ...(profileData.payment_methods || {}) },
               contact_email: profileData.contact_email || prev.contact_email,
               contact_note: profileData.contact_note || prev.contact_note,
               linkedin_url: profileData.linkedin_url || prev.linkedin_url,
@@ -569,6 +583,86 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 How often would you like to meet with founders?
               </Typography>
             </FormControl>
+
+            {/* Divider */}
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 3 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
+                Pay-Per-Consultation Pricing
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                Set your rates for one-off consultations. Founders pay you <strong>directly</strong> via the methods you add below — Guild Space does not process this payment. You can leave these blank for now and update later in your profile.
+              </Typography>
+
+              {/* Rates */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <TextField
+                  label="30-min consultation rate"
+                  type="number"
+                  fullWidth
+                  size="small"
+                  value={formData.consultation_rate_30min_usd}
+                  onChange={(e) => handleChange('consultation_rate_30min_usd', e.target.value)}
+                  inputProps={{ min: 0, step: 5 }}
+                  InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>$</Typography> }}
+                  helperText="USD. Leave blank if you don't offer 30-min calls."
+                />
+                <TextField
+                  label="60-min consultation rate"
+                  type="number"
+                  fullWidth
+                  size="small"
+                  value={formData.consultation_rate_60min_usd}
+                  onChange={(e) => handleChange('consultation_rate_60min_usd', e.target.value)}
+                  inputProps={{ min: 0, step: 5 }}
+                  InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>$</Typography> }}
+                  helperText="USD. Leave blank if you don't offer 60-min calls."
+                />
+              </Box>
+
+              {/* Payment Methods */}
+              <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 2, mb: 1 }}>
+                Where should founders pay you?
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                Add at least one method. Founders will see these on the booking screen and pay you directly.
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <TextField
+                  label="UPI ID (recommended for India)"
+                  size="small"
+                  fullWidth
+                  value={formData.payment_methods.upi_id}
+                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, upi_id: e.target.value })}
+                  placeholder="name@bank"
+                />
+                <TextField
+                  label="PayPal link"
+                  size="small"
+                  fullWidth
+                  value={formData.payment_methods.paypal_url}
+                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, paypal_url: e.target.value })}
+                  placeholder="https://paypal.me/yourname"
+                />
+                <TextField
+                  label="Razorpay payment link"
+                  size="small"
+                  fullWidth
+                  value={formData.payment_methods.razorpay_link}
+                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, razorpay_link: e.target.value })}
+                  placeholder="https://razorpay.me/@yourname"
+                />
+                <TextField
+                  label="Bank account (account no. + IFSC)"
+                  size="small"
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  value={formData.payment_methods.bank_details}
+                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, bank_details: e.target.value })}
+                  placeholder="Account: 1234567890&#10;IFSC: HDFC0001234&#10;Name: Your Full Name"
+                />
+              </Box>
+            </Box>
           </Box>
         );
 
