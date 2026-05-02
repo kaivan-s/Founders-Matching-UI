@@ -49,6 +49,13 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
 
+  // Compute a sensible "min" datetime-local value (now + 1 hour)
+  const minDatetime = useMemo(() => {
+    const now = new Date(Date.now() + 60 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }, []);
+
   // Reset state when dialog opens for a new advisor
   useEffect(() => {
     if (open) {
@@ -63,6 +70,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
     }
   }, [open, advisor]);
 
+  // Early return AFTER all hooks
   if (!advisor) return null;
 
   const advisorName = advisor.user?.name || 'Advisor';
@@ -71,14 +79,6 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
   const has30 = rate30 != null && rate30 !== '';
   const has60 = rate60 != null && rate60 !== '';
   const selectedRate = duration === 30 ? rate30 : rate60;
-
-  // Compute a sensible "min" datetime-local value (now + 1 hour)
-  const minDatetime = useMemo(() => {
-    const now = new Date(Date.now() + 60 * 60 * 1000);
-    // Convert to local YYYY-MM-DDTHH:MM
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  }, []);
 
   const handleSubmit = async () => {
     setError(null);
