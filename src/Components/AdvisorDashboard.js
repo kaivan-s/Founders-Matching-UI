@@ -26,6 +26,14 @@ import {
   Badge,
   alpha,
   LinearProgress,
+  TextField,
+  InputAdornment,
+  Divider,
+  Slider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import {
@@ -52,6 +60,9 @@ import {
   TaskAlt,
   AccessTime,
   LinkedIn,
+  AttachMoney,
+  Settings,
+  Save,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
@@ -775,6 +786,12 @@ const AdvisorDashboard = () => {
   });
   const [linkedinLoading, setLinkedinLoading] = useState(false);
 
+  // Edit profile dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
+
   const fetchLinkedinStatus = useCallback(async () => {
     if (!user?.id) return;
     try {
@@ -805,6 +822,72 @@ const AdvisorDashboard = () => {
       setError('Failed to connect to LinkedIn');
     } finally {
       setLinkedinLoading(false);
+    }
+  };
+
+  // Edit profile handlers
+  const handleOpenEditDialog = () => {
+    if (!profile) return;
+    setEditFormData({
+      headline: profile.headline || '',
+      bio: profile.bio || '',
+      max_active_workspaces: profile.max_active_workspaces || 3,
+      preferred_cadence: profile.preferred_cadence || 'weekly',
+      consultation_rate_30min_usd: profile.consultation_rate_30min_usd ?? '',
+      consultation_rate_60min_usd: profile.consultation_rate_60min_usd ?? '',
+      payment_methods: {
+        upi_id: profile.payment_methods?.upi_id || '',
+        paypal_url: profile.payment_methods?.paypal_url || '',
+        razorpay_link: profile.payment_methods?.razorpay_link || '',
+        bank_details: profile.payment_methods?.bank_details || '',
+      },
+    });
+    setEditError(null);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    if (field.startsWith('payment_methods.')) {
+      const paymentField = field.split('.')[1];
+      setEditFormData(prev => ({
+        ...prev,
+        payment_methods: {
+          ...prev.payment_methods,
+          [paymentField]: value,
+        },
+      }));
+    } else {
+      setEditFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user?.id || !editFormData) return;
+    setEditSaving(true);
+    setEditError(null);
+
+    try {
+      const response = await fetch(`${API_BASE}/advisors/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify(editFormData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save profile');
+      }
+
+      const updatedProfile = await response.json();
+      setProfile(prev => ({ ...prev, ...updatedProfile }));
+      setEditDialogOpen(false);
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -1260,27 +1343,43 @@ const AdvisorDashboard = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
         {/* Header */}
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
-                  Welcome back, {profile?.user?.name?.split(' ')[0] || 'Advisor'}
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                    Welcome back, {profile?.user?.name?.split(' ')[0] || 'Advisor'}
+                  </Typography>
+                  {profile?.is_discoverable && (
+                    <Chip 
+                      label="Discoverable" 
+                      size="small"
+                      sx={{ 
+                        bgcolor: alpha('#10b981', 0.1), 
+                        color: '#10b981',
+                        fontWeight: 500,
+                        fontSize: '0.7rem',
+                      }}
+                    />
+                  )}
+                </Box>
+                <Typography variant="body2" color="text.secondary">
+                  {profile?.headline || 'Advisor Dashboard'}
                 </Typography>
-                {profile?.is_discoverable && (
-                  <Chip 
-                    label="Discoverable" 
-                    size="small"
-                    sx={{ 
-                      bgcolor: alpha('#10b981', 0.1), 
-                      color: '#10b981',
-                      fontWeight: 500,
-                      fontSize: '0.7rem',
-                    }}
-                  />
-                )}
               </Box>
-              <Typography variant="body2" color="text.secondary">
-                {profile?.headline || 'Advisor Dashboard'}
-              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<Settings />}
+                onClick={handleOpenEditDialog}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
+                  '&:hover': { borderColor: '#0d9488', color: '#0d9488', bgcolor: alpha('#0d9488', 0.04) },
+                }}
+              >
+                Edit Profile
+              </Button>
             </Box>
 
             {/* LinkedIn Verification */}
@@ -1563,6 +1662,206 @@ const AdvisorDashboard = () => {
             ));
           })()}
         </DialogContent>
+      </Dialog>
+
+      {/* Edit Profile Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={editSaving ? undefined : () => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Settings sx={{ color: '#0d9488' }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>Edit Profile</Typography>
+            </Box>
+            <IconButton size="small" onClick={() => setEditDialogOpen(false)} disabled={editSaving}>
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {editFormData && (
+            <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {editError && (
+                <Alert severity="error" sx={{ borderRadius: 2 }}>{editError}</Alert>
+              )}
+
+              {/* Basic Info */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#64748b' }}>
+                  Basic Info
+                </Typography>
+                <TextField
+                  fullWidth
+                  label="Headline"
+                  value={editFormData.headline}
+                  onChange={(e) => handleEditFormChange('headline', e.target.value)}
+                  placeholder="e.g., Serial Entrepreneur & Startup Advisor"
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="Bio"
+                  value={editFormData.bio}
+                  onChange={(e) => handleEditFormChange('bio', e.target.value)}
+                  multiline
+                  rows={3}
+                  placeholder="Tell founders about your experience..."
+                />
+              </Box>
+
+              <Divider />
+
+              {/* Consultation Rates */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#64748b' }}>
+                  Consultation Rates
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                  Founders pay you directly via your payment methods below
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="30-min rate"
+                      type="number"
+                      value={editFormData.consultation_rate_30min_usd}
+                      onChange={(e) => handleEditFormChange('consultation_rate_30min_usd', e.target.value)}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                      }}
+                      placeholder="e.g., 50"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="60-min rate"
+                      type="number"
+                      value={editFormData.consultation_rate_60min_usd}
+                      onChange={(e) => handleEditFormChange('consultation_rate_60min_usd', e.target.value)}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                      }}
+                      placeholder="e.g., 90"
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Divider />
+
+              {/* Payment Methods */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#64748b' }}>
+                  Payment Methods
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                  Add at least one way for founders to pay you directly
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    fullWidth
+                    label="UPI ID"
+                    value={editFormData.payment_methods.upi_id}
+                    onChange={(e) => handleEditFormChange('payment_methods.upi_id', e.target.value)}
+                    placeholder="e.g., yourname@upi"
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label="PayPal URL"
+                    value={editFormData.payment_methods.paypal_url}
+                    onChange={(e) => handleEditFormChange('payment_methods.paypal_url', e.target.value)}
+                    placeholder="e.g., https://paypal.me/yourname"
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Razorpay Link"
+                    value={editFormData.payment_methods.razorpay_link}
+                    onChange={(e) => handleEditFormChange('payment_methods.razorpay_link', e.target.value)}
+                    placeholder="e.g., https://rzp.io/..."
+                    size="small"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Bank Details"
+                    value={editFormData.payment_methods.bank_details}
+                    onChange={(e) => handleEditFormChange('payment_methods.bank_details', e.target.value)}
+                    placeholder="Account number, IFSC, etc."
+                    size="small"
+                    multiline
+                    rows={2}
+                  />
+                </Box>
+              </Box>
+
+              <Divider />
+
+              {/* Capacity */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#64748b' }}>
+                  Capacity & Preferences
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    Max active workspaces: <strong>{editFormData.max_active_workspaces}</strong>
+                  </Typography>
+                  <Slider
+                    value={editFormData.max_active_workspaces}
+                    onChange={(_, value) => handleEditFormChange('max_active_workspaces', value)}
+                    min={1}
+                    max={10}
+                    marks
+                    valueLabelDisplay="auto"
+                    sx={{ color: '#0d9488' }}
+                  />
+                </Box>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Preferred Cadence</InputLabel>
+                  <Select
+                    value={editFormData.preferred_cadence}
+                    onChange={(e) => handleEditFormChange('preferred_cadence', e.target.value)}
+                    label="Preferred Cadence"
+                  >
+                    <MenuItem value="weekly">Weekly</MenuItem>
+                    <MenuItem value="biweekly">Bi-weekly</MenuItem>
+                    <MenuItem value="monthly">Monthly</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            disabled={editSaving}
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveProfile}
+            disabled={editSaving}
+            startIcon={editSaving ? <CircularProgress size={16} color="inherit" /> : <Save />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              bgcolor: '#0d9488',
+              '&:hover': { bgcolor: '#0f766e' },
+            }}
+          >
+            {editSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
     </Box>
