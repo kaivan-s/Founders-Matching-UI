@@ -57,10 +57,10 @@ const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
 
 const schedulingUrlFromCall = (c) =>
-  (c?.cal_booking_url || c?.daily_room_url || '').trim() || null;
+  (c?.cal_booking_url || '').trim() || null;
 
 const schedulingUrlFromNextAction = (a) =>
-  (a?.scheduling_url || a?.room_url || a?.daily_room_url || '').trim() || null;
+  (a?.scheduling_url || a?.room_url || '').trim() || null;
 
 const FounderDatePage = () => {
   const { user } = useUser();
