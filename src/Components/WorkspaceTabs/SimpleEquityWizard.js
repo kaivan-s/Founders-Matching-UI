@@ -135,14 +135,18 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
       });
       
       if (scenariosRes.ok) {
-        const scenarios = await scenariosRes.json();
-        const approvedScenario = scenarios.find(s => 
+        const data = await scenariosRes.json();
+        const scenariosList = data.scenarios || [];
+        
+        // Check for fully approved scenario (both founders approved)
+        const approvedScenario = scenariosList.find(s => 
           s.approved_by_founder_a_at && s.approved_by_founder_b_at
         );
         
         if (approvedScenario) {
           setCreatedScenario(approvedScenario);
           setStep(3);
+          setApprovalStatus({ a: true, b: true });
           
           // Check for existing document
           const docsRes = await fetch(`${API_BASE}/workspaces/${workspaceId}/equity/documents`, {
@@ -155,15 +159,26 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
               setGeneratedDocument(approvedDoc);
             }
           }
-        } else if (scenarios.length > 0) {
-          // There's a pending scenario
-          const pendingScenario = scenarios[0];
+        } else if (scenariosList.length > 0) {
+          // There's a pending scenario (not yet fully approved)
+          // Use the most recent one (first in list since ordered by created_at desc)
+          const pendingScenario = scenariosList[0];
           setCreatedScenario(pendingScenario);
           setApprovalStatus({
             a: !!pendingScenario.approved_by_founder_a_at,
             b: !!pendingScenario.approved_by_founder_b_at,
           });
+          // Go to step 3 to show approval status
           setStep(3);
+          
+          // Also restore the split data for display
+          if (pendingScenario.founder_a_percent && pendingScenario.founder_b_percent) {
+            setCustomSplit({
+              a: pendingScenario.founder_a_percent,
+              b: pendingScenario.founder_b_percent,
+            });
+            setSelectedTemplate('custom');
+          }
         }
       }
       
