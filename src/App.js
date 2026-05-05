@@ -19,7 +19,7 @@ import AccessRequests from './Components/AccessRequests';
 import OnboardingDialog from './Components/OnboardingDialog';
 import AdvisorOnboarding from './Components/AdvisorOnboarding';
 import AdvisorDashboard from './Components/AdvisorDashboard';
-import AdvisorWorkspaceView from './Components/AdvisorWorkspaceView';
+// AdvisorWorkspaceView removed - advisors no longer join workspaces
 import UserFlowSelector from './Components/UserFlowSelector';
 import NewProjectDialog from './Components/NewProjectDialog';
 import PricingPage from './Components/PricingPage';
@@ -1047,17 +1047,7 @@ function AppContent() {
             <AdvisorDashboard />
           )
         } />
-        <Route path="/advisor/workspaces/:workspaceId" element={
-          loading || !advisorChecked ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-              <CircularProgress />
-            </Box>
-          ) : isAdvisor ? (
-            <AdvisorWorkspaceView />
-          ) : (
-            <Navigate to="/discover" replace />
-          )
-        } />
+        {/* AdvisorWorkspaceView route removed - advisors no longer join workspaces */}
         <Route path="/advisor/onboarding" element={
           <AdvisorOnboarding onComplete={handleAdvisorOnboardingComplete} />
         } />

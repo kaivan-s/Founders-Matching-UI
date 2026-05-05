@@ -1409,7 +1409,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           
           <Box sx={{ mb: 3, pl: 2 }}>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
-              • Delete this workspace and all its data (chat, tasks, documents, decisions, KPIs)
+              • Delete this workspace and all its data (chat, documents, check-ins, equity scenarios)
             </Typography>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
               • Remove the match between co-founders
