@@ -152,7 +152,7 @@ const LandingPage = () => {
 
   const problems = [
     { num: '01', title: 'IP Theft Risk', desc: 'Share your idea with strangers, get rejected, and watch them build it without you.' },
-    { num: '02', title: 'Ghosting & Flakiness', desc: 'Founders match, exchange a few messages, then vanish.' },
+    { num: '02', title: 'Ghosting & Flakiness', desc: 'People connect, exchange a few messages, then vanish without commitment.' },
     { num: '03', title: 'Misaligned Expectations', desc: 'Work styles, commitment levels, and goals don\'t align until it\'s too late.' },
     { num: '04', title: 'Zero Structure', desc: 'No equity clarity, no accountability, no partnership framework.' },
   ];
@@ -160,9 +160,9 @@ const LandingPage = () => {
   const features = [
     { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and compatibility scores.' },
     { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing details.' },
-    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential co-founders know who you really are.' },
+    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential collaborators know who you really are.' },
     { icon: <BarChart />, title: 'Personal Intros', desc: 'Add video or voice introductions to stand out. Show your personality beyond just text.' },
-    { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Founders\' Agreement template ready for legal review.' },
+    { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Partnership Agreement template ready for legal review.' },
     { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Browse advisors on any plan. With Pro+, book 30- or 60-minute paid consultations, pay your advisor directly (UPI, PayPal, bank transfer, and more), then schedule on their Cal.com link.' },
   ];
 
@@ -217,7 +217,7 @@ const LandingPage = () => {
 
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2, textAlign: 'center', pt: { xs: 6, md: 10 } }}>
           <Chip
-            label="For Founders Who Ship"
+            label="Where Partnerships Begin"
             size="small"
             sx={{
               mb: 3, fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em',
@@ -230,10 +230,10 @@ const LandingPage = () => {
             fontSize: { xs: '2.75rem', sm: '3.75rem', md: '4.5rem' },
             lineHeight: 1.08, color: SLATE_900, letterSpacing: '-0.04em',
           }}>
-            Match. Build. Scale.
+            Build Together
             <br />
             <Box component="span" sx={{ color: TEAL }}>
-              All in one workspace.
+              From Day One.
             </Box>
           </Typography>
 
@@ -241,7 +241,7 @@ const LandingPage = () => {
             color: SLATE_500, fontWeight: 400, maxWidth: 560, mx: 'auto', mb: 5,
             fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.65,
           }}>
-            Discover committed co-founders, agree on equity, run your partnership in one workspace—and book paid advisor sessions when you need expert help.
+            Find collaborators who believe in your idea, agree on equity, and run your partnership in one workspace—plus book paid advisor sessions when you need expert guidance.
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
@@ -281,7 +281,7 @@ const LandingPage = () => {
             fontWeight: 700, mt: 1.5, color: SLATE_900,
             fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
           }}>
-            Co-founder matching is broken
+            The partnership gap
           </Typography>
         </Box>
 
@@ -322,7 +322,7 @@ const LandingPage = () => {
               Everything you need to build together
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 520, mx: 'auto' }}>
-              From first swipe to signed agreement—and paid advisor sessions when you need them—Guild Space keeps your partnership on track.
+              From first connection to signed agreement—and paid advisor sessions when you need them—Guild Space keeps your partnership on track.
             </Typography>
           </Box>
 
@@ -392,7 +392,7 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Browse project profiles in a carousel. Match scores show compatibility at a glance.
+              Browse project profiles in a carousel. Compatibility scores help you find the right collaborators.
             </Typography>
             {/* Mini filter bar */}
             <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
@@ -681,11 +681,11 @@ const LandingPage = () => {
                 <People sx={{ fontSize: 20 }} />
               </Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                Rich Founder Profiles
+                Rich Builder Profiles
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Showcase your experience. Let co-founders know who you really are.
+              Showcase your experience. Let potential collaborators know who you really are.
             </Typography>
 
             {/* Profile mockup */}
@@ -754,7 +754,7 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Go beyond text. Add video or voice intros to stand out from other applicants.
+              Go beyond text. Add video or voice intros to stand out and show who you are.
             </Typography>
 
             {/* Video/Voice mockup */}
@@ -1017,7 +1017,7 @@ const LandingPage = () => {
                   {[
                     { name: 'Alex Chen', role: 'CEO / Product', areas: ['Product Strategy', 'Fundraising', 'Hiring'], equity: '52%' },
                     { name: 'Sarah Kim', role: 'CTO', areas: ['Engineering', 'Architecture', 'DevOps'], equity: '45%' },
-                  ].map((founder, i) => (
+                  ].map((collaborator, i) => (
                     <Box key={i} sx={{
                       p: 2, borderRadius: 2, bgcolor: BG,
                       border: '1px solid', borderColor: SLATE_200,
@@ -1029,24 +1029,24 @@ const LandingPage = () => {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: i === 0 ? TEAL : SKY, fontWeight: 700, fontSize: '0.7rem',
                         }}>
-                          {founder.name.split(' ').map(n => n[0]).join('')}
+                          {collaborator.name.split(' ').map(n => n[0]).join('')}
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_900, display: 'block', fontSize: '0.75rem' }}>
-                            {founder.name}
+                            {collaborator.name}
                           </Typography>
                           <Typography variant="caption" sx={{ color: SLATE_400, fontSize: '0.65rem' }}>
-                            {founder.role}
+                            {collaborator.role}
                           </Typography>
                         </Box>
                         <Box sx={{
                           px: 1, py: 0.25, borderRadius: 1,
                           bgcolor: alpha(TEAL, 0.08), color: TEAL,
                           fontSize: '0.65rem', fontWeight: 700,
-                        }}>{founder.equity}</Box>
+                        }}>{collaborator.equity}</Box>
                       </Box>
                       <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                        {founder.areas.map((area, j) => (
+                        {collaborator.areas.map((area, j) => (
                           <Box key={j} sx={{
                             px: 1, py: 0.35, borderRadius: 1,
                             bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200,
@@ -1082,9 +1082,9 @@ const LandingPage = () => {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
-            { step: '1', title: 'Discover & Apply', desc: 'Browse project profiles. Answer screening questions to show you\'re serious. Project owners review your profile and responses.' },
+            { step: '1', title: 'Discover & Apply', desc: 'Browse project profiles. Answer screening questions to show you\'re committed. Project creators review your profile and responses.' },
             { step: '2', title: 'Connect & Agree', desc: 'Once accepted, share full project details. Use equity templates to set clear ownership from day one.' },
-            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and upgrade to Pro+ when you want to book paid advisor consultations—all from your partnership workspace.' },
+            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and upgrade to Pro+ when you need paid advisor consultations—all from your partnership workspace.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
@@ -1146,7 +1146,7 @@ const LandingPage = () => {
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {['Auto-create private channels for your partnership', 'Real-time notifications for matches & check-ins', 'Invite both co-founders automatically'].map((item, i) => (
+                  {['Auto-create private channels for your partnership', 'Real-time notifications for connections & check-ins', 'Invite all collaborators automatically'].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />
                       <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.75rem' }}>{item}</Typography>
@@ -1176,7 +1176,7 @@ const LandingPage = () => {
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {['Sync tasks, decisions & KPIs from Notion', 'Summary dashboard shows everything at a glance', 'Get notified when teammates make changes'].map((item, i) => (
+                  {['Sync project docs and notes from Notion', 'Summary dashboard shows everything at a glance', 'Get notified when collaborators make changes'].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CheckCircle sx={{ fontSize: 14, color: '#10b981' }} />
                       <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.75rem' }}>{item}</Typography>
@@ -1247,7 +1247,7 @@ const LandingPage = () => {
         </Grid>
 
         <Typography variant="body2" sx={{ color: SLATE_400, textAlign: 'center', maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-          Founder plans cover platform access. Whatever you agree to pay an advisor for a session goes to them directly—not through Guild Space checkout.
+          Plans cover platform access. Whatever you agree to pay an advisor for a session goes to them directly—not through Guild Space checkout.
         </Typography>
       </Container>
 
@@ -1265,7 +1265,7 @@ const LandingPage = () => {
               Paid consultations
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 600, mx: 'auto' }}>
-              List for free, set your own 30- and 60-minute rates, and add your Cal.com scheduling link. Founders on Pro+ book you; they pay you directly and you meet on your calendar.
+              List for free, set your own 30- and 60-minute rates, and add your Cal.com scheduling link. Pro+ members book you; they pay you directly and you meet on your calendar.
             </Typography>
           </Box>
 
@@ -1290,8 +1290,8 @@ const LandingPage = () => {
                   {[
                     'Build your advisor profile and set separate rates for 30- and 60-minute sessions',
                     'Paste your Cal.com booking URL so founders schedule on your terms',
-                    'Accept or decline consultation requests from Pro+ founders',
-                    'Founders pay you directly. Guild Space records confirmations for a clear paper trail',
+                    'Accept or decline consultation requests from Pro+ members',
+                    'Members pay you directly. Guild Space records confirmations for a clear paper trail',
                     'After your first confirmed consultation, enjoy a 30-day Pro Advisor trial—then stay bookable with a small subscription',
                   ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
@@ -1345,7 +1345,7 @@ const LandingPage = () => {
                       Choose your own USD rates for 30- and 60-minute consultations (within platform limits).
                     </Typography>
                     <Typography variant="caption" sx={{ color: SLATE_400, display: 'block', mt: 0.5 }}>
-                      Founders on Pro+ submit bookings; you collect payment outside Guild Space using whatever method you agree on.
+                      Pro+ members submit bookings; you collect payment outside Guild Space using whatever method you agree on.
                     </Typography>
                   </Box>
 
@@ -1377,7 +1377,7 @@ const LandingPage = () => {
                     Cal.com scheduling
                   </Typography>
                   <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.6 }}>
-                    Paste your full Cal.com booking link so founders pick a time.
+                    Paste your full Cal.com booking link so members can pick a time.
                   </Typography>
                 </Box>
               </Box>
@@ -1416,10 +1416,10 @@ const LandingPage = () => {
       {/* ─── CTA ─── */}
       <Container maxWidth="sm" sx={{ py: { xs: 8, md: 12 }, textAlign: 'center' }}>
         <Typography variant="h4" sx={{ fontWeight: 700, color: SLATE_900, mb: 2, fontSize: { xs: '1.5rem', md: '2rem' }, letterSpacing: '-0.02em' }}>
-          Ready to find your co-founder?
+          Ready to find your people?
         </Typography>
         <Typography variant="body1" sx={{ color: SLATE_500, mb: 4, maxWidth: 400, mx: 'auto' }}>
-          Join Guild Space and start building a partnership that lasts.
+          Join Guild Space and start building with collaborators who share your vision.
         </Typography>
         {isSignedIn ? (
           <Button variant="contained" endIcon={<ArrowForward />} onClick={() => navigate('/home')} sx={{
