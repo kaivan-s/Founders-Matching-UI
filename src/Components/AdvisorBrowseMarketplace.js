@@ -35,6 +35,11 @@ import {
   CalendarMonth,
   Star,
   StarHalf,
+  VerifiedUser,
+  WorkHistory,
+  EmojiEvents,
+  Link as LinkIcon,
+  PhotoCamera,
 } from '@mui/icons-material';
 import Rating from '@mui/material/Rating';
 import { useUser } from '@clerk/clerk-react';
@@ -110,6 +115,60 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
 
   const advisorBookable = (partner) => {
     return formatRate(partner.consultation_rate_30min_usd) || formatRate(partner.consultation_rate_60min_usd);
+  };
+
+  const BADGE_CONFIG = {
+    linkedin: { label: 'LinkedIn', icon: LinkedIn, color: '#0A66C2' },
+    veteran: { label: 'Veteran', icon: EmojiEvents, color: '#f59e0b' },
+    experienced: { label: 'Experienced', icon: WorkHistory, color: '#8b5cf6' },
+    portfolio: { label: 'Portfolio', icon: LinkIcon, color: '#10b981' },
+    profile_complete: { label: 'Complete Profile', icon: CheckCircle, color: '#3b82f6' },
+    identity_verified: { label: 'ID Verified', icon: VerifiedUser, color: '#10b981' },
+    top_rated: { label: 'Top Rated', icon: Star, color: '#f59e0b' },
+    photo: { label: 'Photo', icon: PhotoCamera, color: '#6366f1' },
+  };
+
+  const renderBadges = (badges) => {
+    if (!badges || !Array.isArray(badges) || badges.length === 0) return null;
+    return (
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+        {badges.slice(0, 4).map((badgeId) => {
+          const config = BADGE_CONFIG[badgeId];
+          if (!config) return null;
+          const IconComponent = config.icon;
+          return (
+            <Chip
+              key={badgeId}
+              icon={<IconComponent sx={{ fontSize: 12 }} />}
+              label={config.label}
+              size="small"
+              sx={{
+                height: 20,
+                fontSize: '0.65rem',
+                fontWeight: 500,
+                bgcolor: alpha(config.color, 0.1),
+                color: config.color,
+                '& .MuiChip-icon': { color: config.color },
+                '& .MuiChip-label': { px: 0.75 },
+              }}
+            />
+          );
+        })}
+      </Box>
+    );
+  };
+
+  const getExperienceLabel = (yearsExp) => {
+    if (!yearsExp) return null;
+    const mapping = {
+      '1-3': '1-3 yrs exp',
+      '3-5': '3-5 yrs exp',
+      '5-10': '5-10 yrs exp',
+      '10-15': '10-15 yrs exp',
+      '15-20': '15-20 yrs exp',
+      '20+': '20+ yrs exp',
+    };
+    return mapping[yearsExp] || yearsExp;
   };
 
   return (
@@ -238,6 +297,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                     <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                       <Box sx={{ display: 'flex', gap: 2 }}>
                         <Avatar 
+                          src={partner.profile_image_url}
                           sx={{ 
                             width: 64, 
                             height: 64,
@@ -298,6 +358,35 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                                   {partner.headline}
                                 </Typography>
                               )}
+                              
+                              {/* Professional credentials */}
+                              {(partner.professional_background?.years_experience || 
+                                partner.professional_background?.startups_advised_count ||
+                                partner.professional_background?.current_role?.company) && (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 0.5 }}>
+                                  {partner.professional_background?.years_experience && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <WorkHistory sx={{ fontSize: 12 }} />
+                                      {getExperienceLabel(partner.professional_background.years_experience)}
+                                    </Typography>
+                                  )}
+                                  {partner.professional_background?.startups_advised_count && 
+                                   partner.professional_background.startups_advised_count !== '0' && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Business sx={{ fontSize: 12 }} />
+                                      {partner.professional_background.startups_advised_count} startups advised
+                                    </Typography>
+                                  )}
+                                  {partner.professional_background?.current_role?.company && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      @ {partner.professional_background.current_role.company}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              )}
+                              
+                              {/* Verification badges */}
+                              {renderBadges(partner.verification_badges)}
                             </Box>
                             
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>

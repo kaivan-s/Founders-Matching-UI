@@ -949,9 +949,10 @@ function AppContent() {
         return;
       }
       
-      // For founder routes (like /discover), check founder status first, not partner
+      // For founder routes, check founder status first, not partner
       // This prevents founders from being incorrectly identified as partners
-      if (location.pathname === '/discover' || location.pathname.startsWith('/workspace') || location.pathname.startsWith('/projects')) {
+      const founderRoutePrefixes = ['/discover', '/workspace', '/projects', '/interested', '/access-requests', '/consultations', '/payments', '/pricing', '/my-feedback', '/feedback'];
+      if (founderRoutePrefixes.some(prefix => location.pathname.startsWith(prefix))) {
         // Set loading to true to prevent RouteWrapper from redirecting before check completes
         setLoading(true);
         // Check founder status first for founder routes

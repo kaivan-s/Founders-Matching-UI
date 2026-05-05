@@ -14,6 +14,10 @@ import {
   DialogContent,
   DialogActions,
   Divider,
+  Avatar,
+  Link,
+  LinearProgress,
+  Tooltip,
 } from '@mui/material';
 import {
   People,
@@ -22,6 +26,20 @@ import {
   Visibility,
   Close,
   ArrowBack,
+  LinkedIn,
+  Twitter,
+  Language,
+  Work,
+  WorkHistory,
+  EmojiEvents,
+  Link as LinkIcon,
+  VerifiedUser,
+  PhotoCamera,
+  Star,
+  OpenInNew,
+  Email,
+  Schedule,
+  AttachMoney,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config/api';
@@ -46,6 +64,7 @@ const AdminAdvisors = () => {
   const [selected, setSelected] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailProfile, setDetailProfile] = useState(null);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
 
   const fetchPending = async () => {
     if (!user?.id) return;
@@ -273,84 +292,393 @@ const AdminAdvisors = () => {
         )}
       </Box>
 
-      {/* Detail Dialog */}
+      {/* Detail Dialog - Enhanced */}
       <Dialog
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, border: '1px solid', borderColor: SLATE_200 } }}
+        PaperProps={{ sx: { borderRadius: 3, border: '1px solid', borderColor: SLATE_200, maxHeight: '90vh' } }}
       >
-        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200, display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900 }}>
-            Advisor Profile
+            Advisor Application Review
           </Typography>
           <IconButton size="small" onClick={() => setDetailOpen(false)} sx={{ color: SLATE_400 }}>
             <Close />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
+        <DialogContent sx={{ p: 0 }}>
           {profile ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box>
-                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Headline</Typography>
-                <Typography variant="body1" sx={{ color: SLATE_900, mt: 0.5 }}>{profile.headline || 'Not set'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Name & Email</Typography>
-                <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.5 }}>{profile.user?.name}</Typography>
-                <Typography variant="body2" sx={{ color: SLATE_500 }}>{profile.user?.email}</Typography>
-              </Box>
-              {profile.bio && (
-                <Box>
-                  <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Bio</Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.5, lineHeight: 1.7 }}>{profile.bio}</Typography>
-                </Box>
-              )}
-              {(profile.expertise_stages?.length > 0 || profile.domains?.length > 0) && (
-                <Box>
-                  <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Expertise</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-                    {(profile.expertise_stages || []).map((s, i) => (
-                      <Chip key={i} label={s} size="small" sx={{ fontSize: '0.75rem', bgcolor: alpha(SKY, 0.1), color: SKY }} />
-                    ))}
-                    {(profile.domains || []).map((d, i) => (
-                      <Chip key={i} label={d} size="small" sx={{ fontSize: '0.75rem', bgcolor: alpha(TEAL, 0.1), color: TEAL }} />
-                    ))}
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Header with Avatar and Basic Info */}
+              <Box sx={{ p: 3, bgcolor: '#f8fafc', borderBottom: '1px solid', borderColor: SLATE_200 }}>
+                <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+                  <Avatar
+                    src={profile.profile_image_url}
+                    onClick={() => profile.profile_image_url && setImagePreviewOpen(true)}
+                    sx={{ 
+                      width: 80, 
+                      height: 80, 
+                      bgcolor: NAVY, 
+                      fontSize: '2rem', 
+                      border: '3px solid white', 
+                      boxShadow: 1,
+                      cursor: profile.profile_image_url ? 'pointer' : 'default',
+                      transition: 'transform 0.2s',
+                      '&:hover': profile.profile_image_url ? { transform: 'scale(1.05)' } : {},
+                    }}
+                  >
+                    {profile.user?.name?.[0]?.toUpperCase() || 'A'}
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
+                      {profile.user?.name || 'Unknown'}
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: SLATE_500, mb: 1 }}>
+                      {profile.headline || 'No headline'}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                      <Chip
+                        icon={<Email sx={{ fontSize: 14 }} />}
+                        label={profile.user?.email || profile.contact_email}
+                        size="small"
+                        sx={{ bgcolor: 'white', border: '1px solid', borderColor: SLATE_200 }}
+                      />
+                      {profile.timezone && (
+                        <Chip
+                          icon={<Schedule sx={{ fontSize: 14 }} />}
+                          label={profile.timezone}
+                          size="small"
+                          sx={{ bgcolor: 'white', border: '1px solid', borderColor: SLATE_200 }}
+                        />
+                      )}
+                    </Box>
+                    
+                    {/* Verification Status */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {profile.linkedin_verified ? (
+                        <Chip
+                          icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                          label="LinkedIn Verified"
+                          size="small"
+                          sx={{ bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 600, '& .MuiChip-icon': { color: '#10b981' } }}
+                        />
+                      ) : (
+                        <Chip
+                          icon={<Cancel sx={{ fontSize: 14 }} />}
+                          label="LinkedIn Not Verified"
+                          size="small"
+                          sx={{ bgcolor: '#fef2f2', color: '#ef4444', fontWeight: 600, '& .MuiChip-icon': { color: '#ef4444' } }}
+                        />
+                      )}
+                    </Box>
                   </Box>
                 </Box>
-              )}
-              {(profile.contact_email || profile.meeting_link) && (
-                <>
-                  <Divider sx={{ borderColor: SLATE_200 }} />
+                
+                {/* Verification Badges */}
+                {profile.verification_badges?.length > 0 && (
+                  <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+                    <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                      Badges Earned
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {profile.verification_badges.map((badge) => {
+                        const badgeConfig = {
+                          linkedin: { label: 'LinkedIn', icon: <LinkedIn sx={{ fontSize: 14 }} />, color: '#0077b5' },
+                          veteran: { label: 'Veteran (10+ yrs)', icon: <EmojiEvents sx={{ fontSize: 14 }} />, color: '#f59e0b' },
+                          experienced: { label: 'Experienced', icon: <WorkHistory sx={{ fontSize: 14 }} />, color: '#8b5cf6' },
+                          portfolio: { label: 'Portfolio', icon: <LinkIcon sx={{ fontSize: 14 }} />, color: '#10b981' },
+                          profile_complete: { label: 'Complete Profile', icon: <CheckCircle sx={{ fontSize: 14 }} />, color: '#3b82f6' },
+                          photo: { label: 'Photo', icon: <PhotoCamera sx={{ fontSize: 14 }} />, color: '#6366f1' },
+                        };
+                        const config = badgeConfig[badge];
+                        if (!config) return null;
+                        return (
+                          <Chip
+                            key={badge}
+                            icon={config.icon}
+                            label={config.label}
+                            size="small"
+                            sx={{ bgcolor: alpha(config.color, 0.1), color: config.color, fontWeight: 500, '& .MuiChip-icon': { color: config.color } }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Main Content Grid */}
+              <Box sx={{ p: 3, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                {/* Left Column */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  {/* Bio */}
+                  {profile.bio && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Bio</Typography>
+                      <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.5, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{profile.bio}</Typography>
+                    </Box>
+                  )}
+
+                  {/* Professional Background */}
+                  {profile.professional_background && Object.keys(profile.professional_background).length > 0 && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Professional Background
+                      </Typography>
+                      <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+                        {profile.professional_background.years_experience && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <WorkHistory sx={{ fontSize: 16, color: TEAL }} />
+                            <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                              <strong>{profile.professional_background.years_experience}</strong> years experience
+                            </Typography>
+                          </Box>
+                        )}
+                        {profile.professional_background.startups_advised_count && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <Star sx={{ fontSize: 16, color: '#f59e0b' }} />
+                            <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                              <strong>{profile.professional_background.startups_advised_count}</strong> startups advised
+                            </Typography>
+                          </Box>
+                        )}
+                        {profile.professional_background.current_role?.title && (
+                          <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: SLATE_200 }}>
+                            <Typography variant="caption" sx={{ color: SLATE_500 }}>Current Role</Typography>
+                            <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600 }}>
+                              {profile.professional_background.current_role.title}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                              @ {profile.professional_background.current_role.company}
+                              {profile.professional_background.current_role.start_year && ` (${profile.professional_background.current_role.start_year} - Present)`}
+                            </Typography>
+                          </Box>
+                        )}
+                        {profile.professional_background.previous_roles?.length > 0 && (
+                          <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: SLATE_200 }}>
+                            <Typography variant="caption" sx={{ color: SLATE_500 }}>Previous Roles</Typography>
+                            {profile.professional_background.previous_roles.map((role, i) => (
+                              <Box key={i} sx={{ mt: 0.5 }}>
+                                <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                                  {role.title} @ {role.company}
+                                  {role.start_year && ` (${role.start_year}${role.end_year ? ` - ${role.end_year}` : ''})`}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                        {profile.professional_background.notable_achievements && (
+                          <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: SLATE_200 }}>
+                            <Typography variant="caption" sx={{ color: SLATE_500 }}>Notable Achievements</Typography>
+                            <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.5 }}>
+                              {profile.professional_background.notable_achievements}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Questionnaire Answers */}
+                  {profile.questionnaire_data && Object.keys(profile.questionnaire_data).length > 0 && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Questionnaire Answers
+                      </Typography>
+                      <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+                        {Object.entries(profile.questionnaire_data).map(([key, value]) => {
+                          if (!value) return null;
+                          const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                          return (
+                            <Box key={key} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
+                              <Typography variant="caption" sx={{ color: SLATE_500 }}>{label}</Typography>
+                              <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.25 }}>{value}</Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Right Column */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  {/* Expertise & Domains */}
+                  {(profile.advisory_types?.length > 0 || profile.preferred_stages?.length > 0 || profile.domains?.length > 0) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Expertise
+                      </Typography>
+                      {profile.advisory_types?.length > 0 && (
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography variant="caption" sx={{ color: SLATE_500 }}>Advisory Types</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {profile.advisory_types.map((t, i) => (
+                              <Chip key={i} label={t} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha(NAVY, 0.1), color: NAVY }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                      {profile.preferred_stages?.length > 0 && (
+                        <Box sx={{ mb: 1.5 }}>
+                          <Typography variant="caption" sx={{ color: SLATE_500 }}>Preferred Stages</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {profile.preferred_stages.map((s, i) => (
+                              <Chip key={i} label={s} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha(SKY, 0.1), color: SKY }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                      {profile.domains?.length > 0 && (
+                        <Box>
+                          <Typography variant="caption" sx={{ color: SLATE_500 }}>Domains</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {profile.domains.map((d, i) => (
+                              <Chip key={i} label={d} size="small" sx={{ fontSize: '0.7rem', bgcolor: alpha(TEAL, 0.1), color: TEAL }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Social Links */}
                   <Box>
-                    <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Contact</Typography>
-                    {profile.contact_email && <Typography variant="body2" sx={{ color: SLATE_900, mt: 0.5 }}>{profile.contact_email}</Typography>}
-                    {profile.meeting_link && <Typography variant="body2" sx={{ color: SKY, mt: 0.5 }}>{profile.meeting_link}</Typography>}
+                    <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                      Social & Links
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {profile.linkedin_url && (
+                        <Link href={profile.linkedin_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#0077b5', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                          <LinkedIn sx={{ fontSize: 18 }} />
+                          <Typography variant="body2">LinkedIn</Typography>
+                          <OpenInNew sx={{ fontSize: 14 }} />
+                          {profile.linkedin_verified && <Chip label="Verified" size="small" sx={{ height: 18, fontSize: '0.65rem', bgcolor: '#ecfdf5', color: '#10b981' }} />}
+                        </Link>
+                      )}
+                      {profile.twitter_url && (
+                        <Link href={profile.twitter_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#1da1f2', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                          <Twitter sx={{ fontSize: 18 }} />
+                          <Typography variant="body2">Twitter/X</Typography>
+                          <OpenInNew sx={{ fontSize: 14 }} />
+                        </Link>
+                      )}
+                      {!profile.linkedin_url && !profile.twitter_url && (
+                        <Typography variant="body2" sx={{ color: SLATE_400, fontStyle: 'italic' }}>No social links provided</Typography>
+                      )}
+                    </Box>
                   </Box>
-                </>
-              )}
+
+                  {/* Portfolio Links */}
+                  {profile.portfolio && Object.keys(profile.portfolio).some(k => profile.portfolio[k] && (typeof profile.portfolio[k] === 'string' ? profile.portfolio[k].trim() : profile.portfolio[k].length > 0)) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Portfolio
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {profile.portfolio.personal_website && (
+                          <Link href={profile.portfolio.personal_website} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: TEAL, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            <Language sx={{ fontSize: 18 }} />
+                            <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.portfolio.personal_website}</Typography>
+                            <OpenInNew sx={{ fontSize: 14 }} />
+                          </Link>
+                        )}
+                        {profile.portfolio.crunchbase_url && (
+                          <Link href={profile.portfolio.crunchbase_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#0288d1', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            <Work sx={{ fontSize: 18 }} />
+                            <Typography variant="body2">Crunchbase</Typography>
+                            <OpenInNew sx={{ fontSize: 14 }} />
+                          </Link>
+                        )}
+                        {profile.portfolio.angellist_url && (
+                          <Link href={profile.portfolio.angellist_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: SLATE_900, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            <Work sx={{ fontSize: 18 }} />
+                            <Typography variant="body2">AngelList</Typography>
+                            <OpenInNew sx={{ fontSize: 14 }} />
+                          </Link>
+                        )}
+                        {profile.portfolio.medium_url && (
+                          <Link href={profile.portfolio.medium_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: SLATE_900, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            <LinkIcon sx={{ fontSize: 18 }} />
+                            <Typography variant="body2">Medium/Blog</Typography>
+                            <OpenInNew sx={{ fontSize: 14 }} />
+                          </Link>
+                        )}
+                        {profile.portfolio.youtube_url && (
+                          <Link href={profile.portfolio.youtube_url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#ff0000', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            <LinkIcon sx={{ fontSize: 18 }} />
+                            <Typography variant="body2">YouTube</Typography>
+                            <OpenInNew sx={{ fontSize: 14 }} />
+                          </Link>
+                        )}
+                        {profile.portfolio.other_links?.length > 0 && profile.portfolio.other_links.map((link, i) => (
+                          link.url && (
+                            <Link key={i} href={link.url} target="_blank" rel="noopener" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: SLATE_500, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                              <LinkIcon sx={{ fontSize: 18 }} />
+                              <Typography variant="body2">{link.label || 'Link'}</Typography>
+                              <OpenInNew sx={{ fontSize: 14 }} />
+                            </Link>
+                          )
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Consultation Rates */}
+                  {(profile.consultation_rate_30min_usd || profile.consultation_rate_60min_usd) && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Consultation Rates
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        {profile.consultation_rate_30min_usd && (
+                          <Chip icon={<AttachMoney sx={{ fontSize: 14 }} />} label={`$${profile.consultation_rate_30min_usd} / 30 min`} sx={{ bgcolor: alpha(TEAL, 0.1), color: TEAL, fontWeight: 600 }} />
+                        )}
+                        {profile.consultation_rate_60min_usd && (
+                          <Chip icon={<AttachMoney sx={{ fontSize: 14 }} />} label={`$${profile.consultation_rate_60min_usd} / 60 min`} sx={{ bgcolor: alpha(TEAL, 0.1), color: TEAL, fontWeight: 600 }} />
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Availability */}
+                  {profile.availability_hours_per_week && (
+                    <Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
+                        Availability
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                        {profile.availability_hours_per_week} hours/week
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
               <CircularProgress sx={{ color: TEAL }} size={32} />
             </Box>
           )}
         </DialogContent>
         {profile && (
-          <DialogActions sx={{ p: 3, borderTop: '1px solid', borderColor: SLATE_200, gap: 1 }}>
+          <DialogActions sx={{ p: 3, borderTop: '1px solid', borderColor: SLATE_200, gap: 1, bgcolor: '#f8fafc' }}>
             <Button
               onClick={() => handleReject(profile.id)}
               disabled={!!actioning}
               startIcon={actioning === profile.id ? <CircularProgress size={14} /> : <Cancel />}
+              variant="outlined"
               sx={{
                 textTransform: 'none',
                 fontWeight: 600,
+                borderColor: '#ef4444',
                 color: '#ef4444',
-                '&:hover': { bgcolor: alpha('#ef4444', 0.04) },
+                '&:hover': { bgcolor: alpha('#ef4444', 0.04), borderColor: '#dc2626' },
               }}
             >
-              Reject
+              Reject Application
             </Button>
             <Button
               variant="contained"
@@ -361,13 +689,58 @@ const AdminAdvisors = () => {
                 textTransform: 'none',
                 fontWeight: 600,
                 bgcolor: TEAL,
+                px: 4,
                 '&:hover': { bgcolor: TEAL_LIGHT },
               }}
             >
-              Approve
+              Approve Advisor
             </Button>
           </DialogActions>
         )}
+      </Dialog>
+
+      {/* Image Preview Dialog */}
+      <Dialog
+        open={imagePreviewOpen}
+        onClose={() => setImagePreviewOpen(false)}
+        maxWidth="md"
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 2, 
+            bgcolor: 'transparent', 
+            boxShadow: 'none',
+            overflow: 'visible',
+          } 
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => setImagePreviewOpen(false)}
+            sx={{
+              position: 'absolute',
+              top: -40,
+              right: 0,
+              color: 'white',
+              bgcolor: 'rgba(0,0,0,0.5)',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' },
+            }}
+          >
+            <Close />
+          </IconButton>
+          {detailProfile?.profile_image_url && (
+            <Box
+              component="img"
+              src={detailProfile.profile_image_url}
+              alt={detailProfile?.user?.name || 'Profile'}
+              sx={{
+                maxWidth: '80vw',
+                maxHeight: '80vh',
+                borderRadius: 2,
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </Box>
       </Dialog>
     </Box>
   );

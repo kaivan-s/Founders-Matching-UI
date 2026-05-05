@@ -29,11 +29,6 @@ import {
   TextField,
   InputAdornment,
   Divider,
-  Slider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import {
@@ -63,436 +58,12 @@ import {
   AttachMoney,
   Settings,
   Save,
+  PhotoCamera,
+  OpenInNew,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../config/supabase';
-
-// Clean, minimal request details dialog
-const RequestDetailsDialog = ({ open, onClose, request, onRespond }) => {
-  const [tabValue, setTabValue] = useState(0);
-  const workspace = request?.workspace || {};
-  const details = request?.workspace_details || {};
-  const kpis = details.kpis || {};
-  const decisions = details.decisions || {};
-  const participants = details.participants || {};
-  const projects = details.projects || [];
-  const advisorEquityPercent = details?.advisor_equity_percent;
-
-  return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          height: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          border: '1px solid',
-          borderColor: 'divider',
-        },
-      }}
-    >
-      <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar sx={{ 
-              width: 48, 
-              height: 48, 
-              bgcolor: alpha('#0ea5e9', 0.1),
-              color: '#0ea5e9',
-              fontWeight: 600,
-            }}>
-              {workspace.title?.[0] || 'W'}
-            </Avatar>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                {workspace.title || 'Workspace Details'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Requested by {request?.founder?.name || 'Founder'}
-              </Typography>
-              {advisorEquityPercent !== undefined && advisorEquityPercent !== null && (
-                <Chip
-                  icon={<TrendingUp sx={{ fontSize: 16 }} />}
-                  label={`${advisorEquityPercent}% equity offered`}
-                  size="small"
-                  sx={{
-                    mt: 1,
-                    alignSelf: 'flex-start',
-                    bgcolor: alpha('#14b8a6', 0.12),
-                    color: '#0d9488',
-                    fontWeight: 600,
-                    fontSize: '0.8rem',
-                  }}
-                />
-              )}
-            </Box>
-          </Box>
-          <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}>
-            <Close />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={(e, v) => setTabValue(v)}
-          sx={{
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              minHeight: 48,
-            },
-          }}
-        >
-          <Tab label={`Projects (${projects.length || 0})`} />
-          <Tab label={`KPIs (${kpis.total || 0})`} />
-          <Tab label={`Decisions (${decisions.total || 0})`} />
-          <Tab label={`Founders (${participants.total || 0})`} />
-        </Tabs>
-      </Box>
-
-      <DialogContent sx={{ flex: 1, overflow: 'auto', p: 3 }}>
-        {/* Projects Tab */}
-        {tabValue === 0 && (
-          <Box>
-            {projects.length > 0 ? (
-              projects.map((project, idx) => (
-                <Paper key={idx} elevation={0} sx={{ 
-                  p: 2.5, 
-                  mb: 2, 
-                  border: '1px solid', 
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                    <Business sx={{ color: '#0ea5e9', fontSize: 20 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                      {project.title || 'Untitled Project'}
-                    </Typography>
-                    {project.stage && (
-                      <Chip 
-                        label={project.stage} 
-                        size="small" 
-                        sx={{ 
-                          ml: 'auto',
-                          bgcolor: alpha('#0ea5e9', 0.1),
-                          color: '#0ea5e9',
-                          fontWeight: 500,
-                          fontSize: '0.75rem',
-                        }}
-                      />
-                    )}
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                    {project.description || 'No description provided'}
-                  </Typography>
-                </Paper>
-              ))
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
-                <Business sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
-                <Typography variant="body2">No project information available</Typography>
-              </Box>
-            )}
-          </Box>
-        )}
-
-        {/* KPIs Tab */}
-        {tabValue === 1 && (
-          <Box>
-            {kpis.total > 0 ? (
-              <>
-                <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                  {kpis.done > 0 && (
-                    <Chip 
-                      label={`${kpis.done} Done`} 
-                      size="small" 
-                      sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981', fontWeight: 500 }}
-                    />
-                  )}
-                  {kpis.in_progress > 0 && (
-                    <Chip 
-                      label={`${kpis.in_progress} In Progress`} 
-                      size="small"
-                      sx={{ bgcolor: alpha('#0ea5e9', 0.1), color: '#0ea5e9', fontWeight: 500 }}
-                    />
-                  )}
-                  {kpis.not_started > 0 && (
-                    <Chip 
-                      label={`${kpis.not_started} Not Started`} 
-                      size="small"
-                      sx={{ bgcolor: alpha('#64748b', 0.1), color: '#64748b', fontWeight: 500 }}
-                    />
-                  )}
-                </Box>
-                {kpis.all?.map((kpi, idx) => (
-                  <Paper key={idx} elevation={0} sx={{ 
-                    p: 2, 
-                    mb: 1.5, 
-                    border: '1px solid', 
-                    borderColor: 'divider',
-                    borderRadius: 2,
-                  }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>{kpi.label}</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip 
-                        label={kpi.status.replace('_', ' ')} 
-                        size="small"
-                        sx={{ 
-                          fontSize: '0.7rem',
-                          bgcolor: kpi.status === 'done' ? alpha('#10b981', 0.1) : 
-                                   kpi.status === 'in_progress' ? alpha('#0ea5e9', 0.1) : alpha('#64748b', 0.1),
-                          color: kpi.status === 'done' ? '#10b981' : 
-                                 kpi.status === 'in_progress' ? '#0ea5e9' : '#64748b',
-                        }}
-                      />
-                      {kpi.target_date && (
-                        <Typography variant="caption" color="text.secondary">
-                          Due: {new Date(kpi.target_date).toLocaleDateString()}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Paper>
-                ))}
-              </>
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
-                <TrendingUp sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
-                <Typography variant="body2">No KPIs defined yet</Typography>
-              </Box>
-            )}
-          </Box>
-        )}
-
-        {/* Decisions Tab */}
-        {tabValue === 2 && (
-          <Box>
-            {decisions.total > 0 ? (
-              decisions.all?.map((decision, idx) => (
-                <Paper key={idx} elevation={0} sx={{ 
-                  p: 2, 
-                  mb: 1.5, 
-                  border: '1px solid', 
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}>
-                  <Typography variant="body2" sx={{ mb: 1 }}>{decision.content}</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {decision.tag && (
-                      <Chip label={decision.tag} size="small" sx={{ fontSize: '0.7rem' }} />
-                    )}
-                    {decision.created_at && (
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(decision.created_at).toLocaleDateString()}
-                      </Typography>
-                    )}
-                  </Box>
-                </Paper>
-              ))
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
-                <Assignment sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
-                <Typography variant="body2">No decisions recorded yet</Typography>
-              </Box>
-            )}
-          </Box>
-        )}
-
-        {/* Founders Tab */}
-        {tabValue === 3 && (
-          <Box>
-            {participants.total > 0 ? (
-              participants.founders?.map((founder, idx) => (
-                <Paper key={idx} elevation={0} sx={{ 
-                  p: 2, 
-                  mb: 1.5, 
-                  border: '1px solid', 
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                }}>
-                  <Avatar sx={{ bgcolor: alpha('#14b8a6', 0.1), color: '#14b8a6' }}>
-                    {founder.name?.[0] || 'F'}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{founder.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">Founder</Typography>
-                  </Box>
-                </Paper>
-              ))
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
-                <People sx={{ fontSize: 48, opacity: 0.3, mb: 2 }} />
-                <Typography variant="body2">No founders listed</Typography>
-              </Box>
-            )}
-          </Box>
-        )}
-      </DialogContent>
-
-      <DialogActions sx={{ p: 3, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}>
-        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>
-          Close
-        </Button>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={() => { onRespond(request.id, 'decline'); onClose(); }}
-          sx={{ borderRadius: 2 }}
-        >
-          Decline
-        </Button>
-        <Button
-          variant="contained"
-          onClick={() => { onRespond(request.id, 'accept'); onClose(); }}
-          sx={{
-            borderRadius: 2,
-            bgcolor: '#14b8a6',
-            '&:hover': { bgcolor: '#0d9488' },
-          }}
-        >
-          Accept Request
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-// Minimal request card
-const RequestCard = ({ request, onRespond }) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const workspace = request.workspace || {};
-  const details = request.workspace_details || {};
-
-  return (
-    <>
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: 2.5,
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 2,
-          mb: 2,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            borderColor: '#0ea5e9',
-            boxShadow: `0 4px 12px ${alpha('#0ea5e9', 0.1)}`,
-          },
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ 
-            width: 52, 
-            height: 52, 
-            bgcolor: alpha('#0ea5e9', 0.1),
-            color: '#0ea5e9',
-            fontWeight: 600,
-          }}>
-            {workspace.title?.[0] || 'W'}
-          </Avatar>
-          
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
-              {workspace.title || 'Workspace'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              From {request.founder?.name || 'Founder'}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {workspace.stage && (
-                <Chip 
-                  label={workspace.stage} 
-                  size="small"
-                  sx={{ 
-                    fontSize: '0.7rem',
-                    height: 24,
-                    bgcolor: alpha('#64748b', 0.1),
-                    color: '#64748b',
-                  }}
-                />
-              )}
-              {details.kpis?.total > 0 && (
-                <Chip 
-                  label={`${details.kpis.total} KPIs`}
-                  size="small"
-                  sx={{ 
-                    fontSize: '0.7rem',
-                    height: 24,
-                    bgcolor: alpha('#0ea5e9', 0.1),
-                    color: '#0ea5e9',
-                  }}
-                />
-              )}
-              {details.participants?.total > 0 && (
-                <Chip 
-                  label={`${details.participants.total} Founders`}
-                  size="small"
-                  sx={{ 
-                    fontSize: '0.7rem',
-                    height: 24,
-                    bgcolor: alpha('#14b8a6', 0.1),
-                    color: '#14b8a6',
-                  }}
-                />
-              )}
-            </Box>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            <Button
-              size="small"
-              variant="text"
-              onClick={() => setDialogOpen(true)}
-              sx={{ color: 'text.secondary', minWidth: 'auto' }}
-            >
-              <Visibility sx={{ fontSize: 18 }} />
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={() => onRespond(request.id, 'decline')}
-              sx={{ borderRadius: 1.5, textTransform: 'none', minWidth: 70 }}
-            >
-              Decline
-            </Button>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => onRespond(request.id, 'accept')}
-              sx={{ 
-                borderRadius: 1.5, 
-                textTransform: 'none',
-                bgcolor: '#14b8a6',
-                '&:hover': { bgcolor: '#0d9488' },
-                minWidth: 70,
-              }}
-            >
-              Accept
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-
-      <RequestDetailsDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        request={request}
-        onRespond={onRespond}
-      />
-    </>
-  );
-};
 
 // Stat card component
 const StatCard = ({ icon: Icon, value, label, color }) => (
@@ -767,15 +338,11 @@ const AdvisorDashboard = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState(null);
-  const [workspaces, setWorkspaces] = useState([]);
-  const [workspaceScorecards, setWorkspaceScorecards] = useState({});
-  const [requests, setRequests] = useState([]);
+  const [consultations, setConsultations] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [founderId, setFounderId] = useState(null);
-  const [workspaceNotificationsDialogOpen, setWorkspaceNotificationsDialogOpen] = useState(false);
-  const [selectedWorkspaceForNotifications, setSelectedWorkspaceForNotifications] = useState(null);
   const [billingProfile, setBillingProfile] = useState(null);
   
   // LinkedIn verification
@@ -786,11 +353,15 @@ const AdvisorDashboard = () => {
   });
   const [linkedinLoading, setLinkedinLoading] = useState(false);
 
-  // Edit profile dialog
+  // Cal.com — paste booking link (no OAuth required)
+  const [calBookingDraft, setCalBookingDraft] = useState('');
+  const [calLinkSaving, setCalLinkSaving] = useState(false);
+  const [calcomBanner, setCalcomBanner] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState(null);
+  const [editProfileImage, setEditProfileImage] = useState(null); // { preview: dataURL, file: File }
 
   const fetchLinkedinStatus = useCallback(async () => {
     if (!user?.id) return;
@@ -806,6 +377,55 @@ const AdvisorDashboard = () => {
       // Verification is optional
     }
   }, [user?.id]);
+
+  const saveCalBookingLinkToServer = async (urlRaw) => {
+    if (!user?.id) return false;
+    const trimmed = (urlRaw || '').trim();
+    setCalLinkSaving(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE}/advisors/cal-booking-link`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({
+          calcom_booking_url: trimmed || null,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Could not save scheduling link');
+      }
+      setProfile(data);
+      setCalBookingDraft((data.calcom_booking_url || '').trim());
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to save scheduling link');
+      return false;
+    } finally {
+      setCalLinkSaving(false);
+    }
+  };
+
+  const handleSaveCalBookingLink = async () => {
+    const ok = await saveCalBookingLinkToServer(calBookingDraft);
+    if (ok) {
+      setCalcomBanner({
+        severity: 'success',
+        text: 'Scheduling link saved. Founders will see it when they book consultations.',
+      });
+    }
+  };
+
+  const handleClearCalBookingLink = async () => {
+    const ok = await saveCalBookingLinkToServer('');
+    if (ok) {
+      setCalBookingDraft('');
+      setCalcomBanner({ severity: 'info', text: 'Scheduling link removed.' });
+    }
+  };
 
   const handleLinkedInConnect = async () => {
     if (!user?.id) return;
@@ -831,8 +451,6 @@ const AdvisorDashboard = () => {
     setEditFormData({
       headline: profile.headline || '',
       bio: profile.bio || '',
-      max_active_workspaces: profile.max_active_workspaces || 3,
-      preferred_cadence: profile.preferred_cadence || 'weekly',
       consultation_rate_30min_usd: profile.consultation_rate_30min_usd ?? '',
       consultation_rate_60min_usd: profile.consultation_rate_60min_usd ?? '',
       payment_methods: {
@@ -843,6 +461,7 @@ const AdvisorDashboard = () => {
       },
     });
     setEditError(null);
+    setEditProfileImage(null);
     setEditDialogOpen(true);
   };
 
@@ -861,12 +480,40 @@ const AdvisorDashboard = () => {
     }
   };
 
+  const handleEditImageSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      setEditError('Please select a valid image (JPEG, PNG, WebP, or GIF)');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setEditError('Image must be less than 5MB');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setEditProfileImage({
+        preview: e.target.result,
+        file: file,
+        contentType: file.type,
+      });
+      setEditError(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveProfile = async () => {
     if (!user?.id || !editFormData) return;
     setEditSaving(true);
     setEditError(null);
 
     try {
+      // Save profile data
       const response = await fetch(`${API_BASE}/advisors/profile`, {
         method: 'PUT',
         headers: {
@@ -882,8 +529,34 @@ const AdvisorDashboard = () => {
       }
 
       const updatedProfile = await response.json();
+
+      // Upload image if a new one was selected
+      if (editProfileImage?.file) {
+        try {
+          const imageResponse = await fetch(`${API_BASE}/advisors/profile/image`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Clerk-User-Id': user.id,
+            },
+            body: JSON.stringify({
+              image: editProfileImage.preview,
+              content_type: editProfileImage.contentType,
+            }),
+          });
+          
+          if (imageResponse.ok) {
+            const imgData = await imageResponse.json();
+            updatedProfile.profile_image_url = imgData.public_url;
+          }
+        } catch (imgErr) {
+          console.error('Image upload error:', imgErr);
+        }
+      }
+
       setProfile(prev => ({ ...prev, ...updatedProfile }));
       setEditDialogOpen(false);
+      setEditProfileImage(null);
     } catch (err) {
       setEditError(err.message);
     } finally {
@@ -931,30 +604,13 @@ const AdvisorDashboard = () => {
           setProfile(profileData);
           setLoading(false);
           
-          // Fetch additional data in background
+          // Fetch consultations in background
           Promise.all([
-            fetch(`${API_BASE}/advisors/requests`, {
+            fetch(`${API_BASE}/consultations?role=advisor&limit=50`, {
               headers: { 'X-Clerk-User-Id': user.id },
-            }).then(r => r.ok ? r.json() : []).then(setRequests).catch(() => {}),
-            
-            fetch(`${API_BASE}/advisors/workspaces`, {
-              headers: { 'X-Clerk-User-Id': user.id },
-            }).then(r => r.ok ? r.json() : []).then(async (workspacesData) => {
-              setWorkspaces(workspacesData || []);
-              const scorecardsMap = {};
-              await Promise.allSettled((workspacesData || []).map(async (ws) => {
-                try {
-                  const r = await fetch(`${API_BASE}/workspaces/${ws.id}/partner-impact-scorecard`, {
-                    headers: { 'X-Clerk-User-Id': user.id },
-                  });
-                  if (r.ok) {
-                    const data = await r.json();
-                    if (data.has_partner) scorecardsMap[ws.id] = data;
-                  }
-                } catch {}
-              }));
-              setWorkspaceScorecards(scorecardsMap);
-            }).catch(() => {}),
+            }).then(r => r.ok ? r.json() : { consultations: [] })
+              .then(data => setConsultations(data.consultations || []))
+              .catch(() => {}),
             
             fetch(`${API_BASE}/advisors/notifications`, {
               headers: { 'X-Clerk-User-Id': user.id },
@@ -1048,6 +704,13 @@ const AdvisorDashboard = () => {
     return () => timers.forEach(clearTimeout);
   }, [searchParams, user?.id, fetchBillingProfile]);
 
+  useEffect(() => {
+    const url = profile?.calcom_booking_url;
+    if (url !== undefined && url !== null) {
+      setCalBookingDraft(String(url).trim());
+    }
+  }, [profile?.calcom_booking_url]);
+
   // Redirect to onboarding if no profile
   useEffect(() => {
     if (hasFetchedOnceRef.current && !loading && !profile && !error && !hasRedirectedRef.current && location.pathname !== '/advisor/onboarding') {
@@ -1112,25 +775,6 @@ const AdvisorDashboard = () => {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [founderId, user?.id]);
-
-  const handleRespondToRequest = async (requestId, response) => {
-    // Acceptance is now free for advisors. Platform monetizes via subscription
-    // after the advisor's first booking is completed.
-    try {
-      const r = await fetch(`${API_BASE}/advisors/requests/${requestId}/respond`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Clerk-User-Id': user.id,
-        },
-        body: JSON.stringify({ response }),
-      });
-      if (r.ok) fetchDashboardData();
-      else alert((await r.json()).error || 'Failed to respond');
-    } catch {
-      alert('Failed to respond to request');
-    }
-  };
 
   const handleMarkAsRead = async (notificationId) => {
     try {
@@ -1336,9 +980,6 @@ const AdvisorDashboard = () => {
   }
 
   // Approved - Full Dashboard
-  const pendingRequests = requests.filter(r => r.status === 'PENDING');
-  const availableSlots = (profile?.max_active_workspaces || 0) - (profile?.current_active_workspaces || 0);
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
@@ -1443,6 +1084,126 @@ const AdvisorDashboard = () => {
               )}
             </Paper>
 
+            {calcomBanner && (
+              <Alert
+                severity={calcomBanner.severity}
+                sx={{ mb: 2, borderRadius: 2 }}
+                onClose={() => setCalcomBanner(null)}
+              >
+                {calcomBanner.text}
+              </Alert>
+            )}
+
+            {/* Cal.com scheduling — paste booking link */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 4,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor:
+                  profile?.calcom_booking_url && String(profile.calcom_booking_url).trim()
+                    ? 'success.main'
+                    : 'divider',
+                bgcolor:
+                  profile?.calcom_booking_url && String(profile.calcom_booking_url).trim()
+                    ? alpha('#10b981', 0.04)
+                    : 'background.paper',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 1,
+                    bgcolor: '#292929',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  cal
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    Cal.com scheduling link
+                    {profile?.calcom_booking_url && String(profile.calcom_booking_url).trim() ? (
+                      <Chip
+                        icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                        label="Saved"
+                        size="small"
+                        color="success"
+                        sx={{ ml: 1, height: 22, fontSize: '0.7rem' }}
+                      />
+                    ) : null}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Paste your public booking URL (for example https://cal.com/you/intro). Founders see this link for
+                    consultations—no OAuth required.
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    value={calBookingDraft}
+                    onChange={(e) => setCalBookingDraft(e.target.value)}
+                    placeholder="https://cal.com/your-handle/..."
+                    disabled={calLinkSaving}
+                    sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: 1.5 } }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LinkIcon sx={{ color: '#64748b', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleSaveCalBookingLink}
+                      disabled={calLinkSaving}
+                      startIcon={calLinkSaving ? <CircularProgress size={14} color="inherit" /> : <Save />}
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                      Save link
+                    </Button>
+                    {profile?.calcom_booking_url && String(profile.calcom_booking_url).trim() ? (
+                      <>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          component="a"
+                          href={profile.calcom_booking_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          startIcon={<OpenInNew />}
+                          sx={{ textTransform: 'none', fontWeight: 500 }}
+                        >
+                          Preview
+                        </Button>
+                        <Button
+                          variant="text"
+                          size="small"
+                          color="error"
+                          onClick={handleClearCalBookingLink}
+                          disabled={calLinkSaving}
+                          sx={{ textTransform: 'none', fontWeight: 500 }}
+                        >
+                          Remove
+                        </Button>
+                      </>
+                    ) : null}
+                  </Box>
+                </Box>
+              </Box>
+            </Paper>
+
             {/* Pro Advisor subscription card */}
             <SubscriptionCard
               billingProfile={billingProfile}
@@ -1450,219 +1211,210 @@ const AdvisorDashboard = () => {
               onChange={fetchBillingProfile}
             />
 
-            {/* Stats Grid */}
-            <Grid container spacing={2} sx={{ mb: 4 }}>
-              <Grid item xs={6} md={3}>
-                <StatCard 
-                  icon={WorkspacesOutlined}
-                  value={profile?.current_active_workspaces || 0}
-                  label="Active Workspaces"
-                  color="#0ea5e9"
-                />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <StatCard 
-                  icon={Message}
-                  value={pendingRequests.length}
-                  label="Pending Requests"
-                  color="#8b5cf6"
-                />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <StatCard 
-                  icon={TaskAlt}
-                  value={requests.filter(r => r.status === 'ACCEPTED').length}
-                  label="Accepted"
-                  color="#10b981"
-                />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <StatCard 
-                  icon={AccessTime}
-                  value={availableSlots}
-                  label="Available Slots"
-                  color="#f59e0b"
-                />
-              </Grid>
-            </Grid>
-
-            {/* Pending Requests */}
-            {pendingRequests.length > 0 && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Badge badgeContent={pendingRequests.length} color="primary" sx={{ '& .MuiBadge-badge': { bgcolor: '#8b5cf6' } }}>
-                    <Message sx={{ color: '#8b5cf6' }} />
-                  </Badge>
-                  <span style={{ marginLeft: 8 }}>Pending Requests</span>
-                </Typography>
-                {pendingRequests.map((request) => (
-                  <RequestCard 
-                    key={request.id} 
-                    request={request} 
-                    onRespond={handleRespondToRequest}
-                  />
-                ))}
-              </Box>
-            )}
-
-            {/* Active Workspaces */}
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <WorkspacesOutlined sx={{ color: '#0ea5e9' }} />
-                Active Workspaces
-              </Typography>
+            {/* Consultation Stats Grid */}
+            {(() => {
+              const pendingConfirmations = consultations.filter(c => c.status === 'pending_advisor_confirmation');
+              const upcomingConsultations = consultations.filter(c => 
+                ['confirmed', 'payment_sent', 'payment_confirmed'].includes(c.status) &&
+                new Date(c.scheduled_at) > new Date()
+              );
+              const completedConsultations = consultations.filter(c => c.status === 'completed');
+              const totalEarnings = completedConsultations.reduce((sum, c) => sum + (c.amount_usd || 0), 0);
               
-              {workspaces.length === 0 ? (
-                <Paper elevation={0} sx={{ 
-                  p: 5, 
-                  border: '1px dashed', 
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  textAlign: 'center',
-                }}>
-                  <WorkspacesOutlined sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                    No active workspaces yet
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Founders can discover and request you from the marketplace
-                  </Typography>
-                </Paper>
-              ) : (
-                <Grid container spacing={2}>
-                  {workspaces.map((workspace) => {
-                    const wsNotifications = notifications.filter(n => 
-                      (n.workspace_id === workspace.id || n.workspace?.id === workspace.id) && !n.read_at
-                    );
-                    const scorecard = workspaceScorecards[workspace.id];
-                    
-                    return (
-                      <Grid item xs={12} md={6} key={workspace.id}>
+              return (
+                <>
+                  <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid item xs={6} md={3}>
+                      <StatCard 
+                        icon={Schedule}
+                        value={upcomingConsultations.length}
+                        label="Upcoming"
+                        color="#0ea5e9"
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <StatCard 
+                        icon={Message}
+                        value={pendingConfirmations.length}
+                        label="Pending Confirmation"
+                        color="#8b5cf6"
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <StatCard 
+                        icon={TaskAlt}
+                        value={completedConsultations.length}
+                        label="Completed"
+                        color="#10b981"
+                      />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <StatCard 
+                        icon={AttachMoney}
+                        value={`$${totalEarnings}`}
+                        label="Total Earnings"
+                        color="#f59e0b"
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {/* Pending Confirmations - Need Action */}
+                  {pendingConfirmations.length > 0 && (
+                    <Box sx={{ mb: 4 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Badge badgeContent={pendingConfirmations.length} color="primary" sx={{ '& .MuiBadge-badge': { bgcolor: '#8b5cf6' } }}>
+                          <Message sx={{ color: '#8b5cf6' }} />
+                        </Badge>
+                        <span style={{ marginLeft: 8 }}>Booking Requests</span>
+                      </Typography>
+                      {pendingConfirmations.slice(0, 3).map((consultation) => (
                         <Paper
+                          key={consultation.id}
                           elevation={0}
                           sx={{
                             p: 2.5,
+                            mb: 1.5,
                             border: '1px solid',
-                            borderColor: 'divider',
+                            borderColor: alpha('#8b5cf6', 0.3),
                             borderRadius: 2,
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              borderColor: '#0ea5e9',
-                              boxShadow: `0 4px 12px ${alpha('#0ea5e9', 0.1)}`,
-                            },
+                            bgcolor: alpha('#8b5cf6', 0.02),
                           }}
-                          onClick={() => navigate(`/advisor/workspaces/${workspace.id}`)}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                            <Avatar sx={{ 
-                              bgcolor: alpha('#0ea5e9', 0.1), 
-                              color: '#0ea5e9',
-                              fontWeight: 600,
-                            }}>
-                              {workspace.title?.[0] || 'W'}
-                            </Avatar>
-                            
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0f172a' }}>
-                                  {workspace.title || 'Workspace'}
-                                </Typography>
-                                {wsNotifications.length > 0 && (
-                                  <Badge 
-                                    badgeContent={wsNotifications.length} 
-                                    color="error"
-                                    sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16 } }}
-                                  >
-                                    <Notifications sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                  </Badge>
-                                )}
-                              </Box>
-                              
-                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                                Stage: {workspace.stage || 'N/A'}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
+                                {consultation.founder?.name || 'Founder'}
                               </Typography>
-                              
-                              {scorecard && (
-                                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                                  <Chip
-                                    label={`${scorecard.metrics.on_time_checkins.current_rate.toFixed(0)}% on-time`}
-                                    size="small"
-                                    sx={{ fontSize: '0.65rem', height: 20, bgcolor: alpha('#10b981', 0.1), color: '#10b981' }}
-                                  />
-                                  <Chip
-                                    label={`${scorecard.metrics.kpi_progress.average_progress_pct.toFixed(0)}% KPI progress`}
-                                    size="small"
-                                    sx={{ fontSize: '0.65rem', height: 20, bgcolor: alpha('#0ea5e9', 0.1), color: '#0ea5e9' }}
-                                  />
-                                </Box>
-                              )}
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                {consultation.duration_min} min · ${consultation.amount_usd} · {consultation.topic || 'General consultation'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Proposed: {new Date(consultation.scheduled_at).toLocaleString()}
+                              </Typography>
                             </Box>
-                            
-                            <ArrowForward sx={{ color: 'text.disabled', fontSize: 18 }} />
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => navigate('/consultations')}
+                              sx={{
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                bgcolor: '#8b5cf6',
+                                '&:hover': { bgcolor: '#7c3aed' },
+                              }}
+                            >
+                              Review
+                            </Button>
                           </Box>
                         </Paper>
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              )}
-            </Box>
-      </Box>
+                      ))}
+                      {pendingConfirmations.length > 3 && (
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() => navigate('/consultations')}
+                          sx={{ textTransform: 'none', color: '#8b5cf6' }}
+                        >
+                          View all {pendingConfirmations.length} requests →
+                        </Button>
+                      )}
+                    </Box>
+                  )}
 
-      {/* Workspace Notifications Dialog */}
-      <Dialog
-        open={workspaceNotificationsDialogOpen}
-        onClose={() => { setWorkspaceNotificationsDialogOpen(false); setSelectedWorkspaceForNotifications(null); }}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
-      >
-        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {selectedWorkspaceForNotifications?.title || 'Workspace'} Updates
-            </Typography>
-            <IconButton size="small" onClick={() => { setWorkspaceNotificationsDialogOpen(false); setSelectedWorkspaceForNotifications(null); }}>
-              <Close />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ p: 2 }}>
-          {(() => {
-            const wsNotifs = notifications.filter(n => 
-              (n.workspace_id === selectedWorkspaceForNotifications?.id || n.workspace?.id === selectedWorkspaceForNotifications?.id) && !n.read_at
-            );
-            
-            if (wsNotifs.length === 0) {
-              return (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body2" color="text.secondary">No unread notifications</Typography>
-                </Box>
-              );
-            }
-
-            return wsNotifs.map((n) => (
-              <Paper key={n.id} elevation={0} sx={{ p: 2, mb: 1, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                  <Circle sx={{ fontSize: 8, color: '#0ea5e9', mt: 0.8 }} />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{n.title}</Typography>
-                    {n.created_at && (
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(n.created_at).toLocaleString()}
+                  {/* Upcoming Consultations */}
+                  <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Schedule sx={{ color: '#0ea5e9' }} />
+                        Upcoming Consultations
                       </Typography>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => navigate('/consultations')}
+                        sx={{ textTransform: 'none', color: '#0ea5e9' }}
+                      >
+                        View All
+                      </Button>
+                    </Box>
+                    
+                    {upcomingConsultations.length === 0 ? (
+                      <Paper elevation={0} sx={{ 
+                        p: 5, 
+                        border: '1px dashed', 
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        textAlign: 'center',
+                      }}>
+                        <Schedule sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                          No upcoming consultations
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Founders can book consultations with you from the advisor marketplace
+                        </Typography>
+                      </Paper>
+                    ) : (
+                      <Grid container spacing={2}>
+                        {upcomingConsultations.slice(0, 4).map((consultation) => (
+                          <Grid item xs={12} md={6} key={consultation.id}>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2.5,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  borderColor: '#0ea5e9',
+                                  boxShadow: `0 4px 12px ${alpha('#0ea5e9', 0.1)}`,
+                                },
+                              }}
+                              onClick={() => navigate('/consultations')}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                <Avatar sx={{ 
+                                  bgcolor: alpha('#0ea5e9', 0.1), 
+                                  color: '#0ea5e9',
+                                  fontWeight: 600,
+                                }}>
+                                  {consultation.founder?.name?.[0] || 'F'}
+                                </Avatar>
+                                
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
+                                    {consultation.founder?.name || 'Founder'}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                    {consultation.duration_min} min · ${consultation.amount_usd}
+                                  </Typography>
+                                  <Chip
+                                    icon={<Schedule sx={{ fontSize: 14 }} />}
+                                    label={new Date(consultation.scheduled_at).toLocaleString(undefined, {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                    size="small"
+                                    sx={{ fontSize: '0.7rem', height: 24, bgcolor: alpha('#0ea5e9', 0.1), color: '#0ea5e9' }}
+                                  />
+                                </Box>
+                                
+                                <ArrowForward sx={{ color: 'text.disabled', fontSize: 18 }} />
+                              </Box>
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
                     )}
                   </Box>
-                  <IconButton size="small" onClick={() => handleMarkAsRead(n.id)}>
-                    <CheckCircleOutline fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Paper>
-            ));
-          })()}
-        </DialogContent>
-      </Dialog>
+                </>
+              );
+            })()}
+      </Box>
 
       {/* Edit Profile Dialog */}
       <Dialog
@@ -1689,6 +1441,52 @@ const AdvisorDashboard = () => {
               {editError && (
                 <Alert severity="error" sx={{ borderRadius: 2 }}>{editError}</Alert>
               )}
+
+              {/* Profile Picture */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ position: 'relative' }}>
+                  <Avatar
+                    src={editProfileImage?.preview || profile?.profile_image_url}
+                    sx={{ width: 80, height: 80, border: '3px solid white', boxShadow: 1 }}
+                  >
+                    {profile?.user?.name?.[0]?.toUpperCase() || 'A'}
+                  </Avatar>
+                  <input
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    style={{ display: 'none' }}
+                    id="edit-profile-image-upload"
+                    type="file"
+                    onChange={handleEditImageSelect}
+                  />
+                  <label htmlFor="edit-profile-image-upload">
+                    <IconButton
+                      component="span"
+                      sx={{
+                        position: 'absolute',
+                        bottom: -4,
+                        right: -4,
+                        bgcolor: '#0d9488',
+                        color: 'white',
+                        '&:hover': { bgcolor: '#0f766e' },
+                        width: 28,
+                        height: 28,
+                      }}
+                    >
+                      <PhotoCamera sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </label>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#334155' }}>
+                    Profile Picture
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Click the camera icon to update your photo
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider />
 
               {/* Basic Info */}
               <Box>
@@ -1802,40 +1600,6 @@ const AdvisorDashboard = () => {
                 </Box>
               </Box>
 
-              <Divider />
-
-              {/* Capacity */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#64748b' }}>
-                  Capacity & Preferences
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    Max active workspaces: <strong>{editFormData.max_active_workspaces}</strong>
-                  </Typography>
-                  <Slider
-                    value={editFormData.max_active_workspaces}
-                    onChange={(_, value) => handleEditFormChange('max_active_workspaces', value)}
-                    min={1}
-                    max={10}
-                    marks
-                    valueLabelDisplay="auto"
-                    sx={{ color: '#0d9488' }}
-                  />
-                </Box>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Preferred Cadence</InputLabel>
-                  <Select
-                    value={editFormData.preferred_cadence}
-                    onChange={(e) => handleEditFormChange('preferred_cadence', e.target.value)}
-                    label="Preferred Cadence"
-                  >
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                    <MenuItem value="biweekly">Bi-weekly</MenuItem>
-                    <MenuItem value="monthly">Monthly</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
             </Box>
           )}
         </DialogContent>

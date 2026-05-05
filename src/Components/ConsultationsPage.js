@@ -30,7 +30,7 @@ import {
   Cancel,
   Payment,
   HourglassEmpty,
-  VideoCall,
+  OpenInNew,
   ContentCopy,
   Close,
   Refresh,
@@ -38,6 +38,7 @@ import {
   AttachMoney,
   CalendarMonth,
   ChatBubbleOutline,
+  Event,
   Star,
   StarBorder,
   StarOutline,
@@ -57,6 +58,11 @@ const STATUS_META = {
   declined: { label: 'Declined', color: 'error', icon: Cancel },
   no_show: { label: 'No show', color: 'error', icon: Cancel },
   refund_requested: { label: 'Refund requested', color: 'warning', icon: HourglassEmpty },
+};
+
+const consultationCalUrl = (c) => {
+  const u = (c?.advisor_cal_booking_url || c?.advisor?.calcom_booking_url || '').trim();
+  return u || '';
 };
 
 const formatDateTime = (iso) => {
@@ -265,6 +271,12 @@ const ConsultationCard = ({
   const counterparty = role === 'founder' ? consultation.advisor : consultation.founder;
   const counterpartyName = counterparty?.name || (role === 'founder' ? 'Advisor' : 'Founder');
 
+  const calUrl = consultationCalUrl(consultation);
+  const calSchedulingStatuses = ['pending_payment', 'pending_payment_confirmation', 'confirmed'];
+  const showCalBlock = !!(calUrl && calSchedulingStatuses.includes(consultation.status));
+  const founderMissingCal =
+    role === 'founder' && !calUrl && calSchedulingStatuses.includes(consultation.status);
+
   // Action button matrix per (status, role)
   const renderActions = () => {
     const s = consultation.status;
@@ -328,18 +340,19 @@ const ConsultationCard = ({
     if (s === 'confirmed') {
       return (
         <>
-          {consultation.video_room_url && (
+          {calUrl && (
             <Button
               variant="contained"
               size="small"
               color="success"
-              startIcon={<VideoCall />}
-              href={consultation.video_room_url}
+              component="a"
+              startIcon={<OpenInNew />}
+              href={calUrl}
               target="_blank"
               rel="noopener noreferrer"
               sx={{ textTransform: 'none' }}
             >
-              Join call
+              Schedule on Cal.com
             </Button>
           )}
           <Button variant="outlined" size="small" onClick={onComplete} sx={{ textTransform: 'none' }}>
@@ -418,6 +431,37 @@ const ConsultationCard = ({
               )}
             </Box>
 
+            {showCalBlock && (
+              <Alert
+                severity="success"
+                icon={<Event />}
+                sx={{ mb: 1.5, borderRadius: 1 }}
+                action={(
+                  <Button
+                    color="inherit"
+                    size="small"
+                    startIcon={<OpenInNew />}
+                    href={calUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Open
+                  </Button>
+                )}
+              >
+                {role === 'founder'
+                  ? 'Book a time on this advisor\'s Cal.com page. The session happens outside Guild Space.'
+                  : 'Founders open this Cal.com link to schedule with you.'}
+              </Alert>
+            )}
+
+            {founderMissingCal && (
+              <Alert severity="warning" sx={{ mb: 1.5, borderRadius: 1 }}>
+                This advisor has not added a Cal.com scheduling link yet — message them to share one, or coordinate another way.
+              </Alert>
+            )}
+
             {consultation.topic && (
               <Box sx={{ mb: 1.5, p: 1.25, bgcolor: 'background.default', borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.5 }}>
@@ -484,6 +528,7 @@ const PaymentSentModal = ({ consultation, onClose, onSubmitted }) => {
 
   // Show advisor payment methods (loaded with consultation if backend joined them)
   const advisorPayMethods = consultation.advisor?.payment_methods || {};
+  const calModalUrl = consultationCalUrl(consultation);
 
   const copy = (val) => {
     if (!val) return;
@@ -512,6 +557,25 @@ const PaymentSentModal = ({ consultation, onClose, onSubmitted }) => {
           Send <strong>${Number(consultation.amount_usd).toFixed(0)}</strong> to the advisor using one of the methods below,
           then mark it as sent. The advisor will confirm receipt to lock in the call.
         </Alert>
+
+        {calModalUrl && (
+          <Alert severity="success" icon={<Event />} sx={{ mb: 2, borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ mb: 1.5 }}>
+              Book your session on the advisor&apos;s Cal.com page (meetings happen outside Guild Space).
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<OpenInNew />}
+              href={calModalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ textTransform: 'none' }}
+            >
+              Open Cal.com
+            </Button>
+          </Alert>
+        )}
 
         {/* Advisor payment options */}
         <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Advisor's payment methods</Typography>

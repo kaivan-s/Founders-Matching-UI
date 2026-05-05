@@ -47,7 +47,7 @@ import {
   SentimentSatisfied,
   SentimentVerySatisfied,
   Create,
-  VideoCall,
+  Event,
   PlayArrow,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
@@ -658,7 +658,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                  <VideoCall sx={{ fontSize: 24, color: '#6366f1' }} />
+                  <Event sx={{ fontSize: 24, color: '#6366f1' }} />
                 </Box>
                 <Box>
                   {activeFounderDate ? (
@@ -676,7 +676,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                         Founder Date
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                        Evaluate co-founder fit through structured calls
+                        Evaluate fit with structured milestones — schedule on Cal.com
                       </Typography>
                     </>
                   )}
@@ -701,7 +701,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                 <Button
                   variant="outlined"
                   size="small"
-                  startIcon={startingFounderDate ? <CircularProgress size={16} /> : <VideoCall />}
+                  startIcon={startingFounderDate ? <CircularProgress size={16} /> : <Event />}
                   onClick={handleStartFounderDate}
                   disabled={startingFounderDate}
                   sx={{

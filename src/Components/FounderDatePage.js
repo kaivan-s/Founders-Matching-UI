@@ -30,7 +30,6 @@ import {
   LinearProgress,
 } from '@mui/material';
 import {
-  VideoCall,
   Schedule,
   CheckCircle,
   Cancel,
@@ -45,6 +44,8 @@ import {
   TrendingUp,
   Close,
   AccessTime,
+  Event as EventIcon,
+  OpenInNew,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../config/api';
@@ -54,6 +55,12 @@ const SLATE_500 = '#64748b';
 const SLATE_200 = '#e2e8f0';
 const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
+
+const schedulingUrlFromCall = (c) =>
+  (c?.cal_booking_url || c?.daily_room_url || '').trim() || null;
+
+const schedulingUrlFromNextAction = (a) =>
+  (a?.scheduling_url || a?.room_url || a?.daily_room_url || '').trim() || null;
 
 const FounderDatePage = () => {
   const { user } = useUser();
@@ -128,26 +135,33 @@ const FounderDatePage = () => {
   }, [fetchStages, fetchFounderDate]);
 
   const handleScheduleCall = async () => {
-    if (!scheduleForm.scheduled_at) return;
-    
     setActionLoading(true);
     try {
+      const payload = {};
+      if (scheduleForm.scheduled_at) {
+        payload.scheduled_at = new Date(scheduleForm.scheduled_at).toISOString();
+      }
+
       const res = await fetch(`${API_BASE}/founder-dates/${founderDateId}/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Clerk-User-Id': user.id,
         },
-        body: JSON.stringify({
-          scheduled_at: new Date(scheduleForm.scheduled_at).toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
       
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || 'Failed to schedule call');
       }
-      
+
+      const created = await res.json();
+      const booking = schedulingUrlFromCall(created);
+      if (booking) {
+        window.open(booking, '_blank', 'noopener,noreferrer');
+      }
+
       setScheduleDialogOpen(false);
       setScheduleForm({ scheduled_at: '' });
       fetchFounderDate();
@@ -486,9 +500,9 @@ const FounderDatePage = () => {
                     }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <VideoCall sx={{ fontSize: 18, color: TEAL }} />
+                          <Schedule sx={{ fontSize: 18, color: TEAL }} />
                           <Typography variant="body2" fontWeight={500}>
-                            Call
+                            Session (Cal.com)
                           </Typography>
                         </Box>
                         {getCallStatusChip(stageCall.status)}
@@ -503,31 +517,44 @@ const FounderDatePage = () => {
                       
                       <Box sx={{ mt: 1.5, display: 'flex', gap: 1 }}>
                         {stageCall.status === 'SCHEDULED' && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<PlayArrow />}
-                            onClick={() => handleStartCall(stageCall.id)}
-                            disabled={actionLoading}
-                            sx={{ textTransform: 'none', bgcolor: TEAL }}
-                          >
-                            Start Call
-                          </Button>
+                          <>
+                            {schedulingUrlFromCall(stageCall) && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<OpenInNew />}
+                                onClick={() =>
+                                  window.open(schedulingUrlFromCall(stageCall), '_blank', 'noopener,noreferrer')
+                                }
+                                disabled={actionLoading}
+                                sx={{ textTransform: 'none' }}
+                              >
+                                Open Cal.com
+                              </Button>
+                            )}
+                            <Button
+                              size="small"
+                              variant="contained"
+                              startIcon={<PlayArrow />}
+                              onClick={() => handleStartCall(stageCall.id)}
+                              disabled={actionLoading}
+                              sx={{ textTransform: 'none', bgcolor: TEAL }}
+                            >
+                              Start session
+                            </Button>
+                          </>
                         )}
                         {stageCall.status === 'IN_PROGRESS' && (
                           <>
-                            {stageCall.daily_room_url && (
+                            {schedulingUrlFromCall(stageCall) && (
                               <Button
                                 size="small"
                                 variant="contained"
-                                startIcon={<VideoCall />}
-                                onClick={() => {
-                                  setActiveCall(stageCall);
-                                  setCallDialogOpen(true);
-                                }}
+                                startIcon={<OpenInNew />}
+                                onClick={() => window.open(schedulingUrlFromCall(stageCall), '_blank', 'noopener,noreferrer')}
                                 sx={{ textTransform: 'none', bgcolor: '#10b981' }}
                               >
-                                Join Call
+                                Cal.com link
                               </Button>
                             )}
                             <Button
@@ -538,7 +565,7 @@ const FounderDatePage = () => {
                               disabled={actionLoading}
                               sx={{ textTransform: 'none' }}
                             >
-                              End Call
+                              Finish & evaluate
                             </Button>
                           </>
                         )}
@@ -597,15 +624,30 @@ const FounderDatePage = () => {
           )}
           
           {nextAction.action === 'JOIN_CALL' && (
-            <Button
-              variant="contained"
-              startIcon={<PlayArrow />}
-              onClick={() => nextAction.call_id && handleStartCall(nextAction.call_id)}
-              disabled={actionLoading}
-              sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
-            >
-              {nextAction.daily_room_url ? 'Join Call' : 'Start Call'}
-            </Button>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {schedulingUrlFromNextAction(nextAction) && (
+                <Button
+                  variant="outlined"
+                  startIcon={<OpenInNew />}
+                  onClick={() =>
+                    window.open(schedulingUrlFromNextAction(nextAction), '_blank', 'noopener,noreferrer')
+                  }
+                  disabled={actionLoading}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Open Cal.com
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                startIcon={<PlayArrow />}
+                onClick={() => nextAction.call_id && handleStartCall(nextAction.call_id)}
+                disabled={actionLoading}
+                sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
+              >
+                Start session
+              </Button>
+            </Box>
           )}
           
           {nextAction.action === 'EVALUATE_CALL' && (
@@ -666,18 +708,21 @@ const FounderDatePage = () => {
 
       {/* Schedule Dialog */}
       <Dialog open={scheduleDialogOpen} onClose={() => setScheduleDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Schedule Stage {founderDate?.current_stage} Call</DialogTitle>
+        <DialogTitle>Schedule stage {founderDate?.current_stage}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {currentStage?.name}: {currentStage?.goal}
           </Typography>
-          <Typography variant="body2" sx={{ mb: 3 }}>
-            Duration: {currentStage?.duration_minutes} minutes
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Typical length: {currentStage?.duration_minutes} minutes. We save a Cal.com link for this milestone—open it to book with your partner; the call happens on Cal (or whatever tool the link uses).
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Add your full Cal.com booking URL under Profile → Social &amp; links so we can attach the right page. If only one of you has a link, that page is used.
           </Typography>
           <TextField
             fullWidth
             type="datetime-local"
-            label="Date & Time"
+            label="Optional target time"
             value={scheduleForm.scheduled_at}
             onChange={(e) => setScheduleForm({ ...scheduleForm, scheduled_at: e.target.value })}
             InputLabelProps={{ shrink: true }}
@@ -689,10 +734,10 @@ const FounderDatePage = () => {
           <Button
             variant="contained"
             onClick={handleScheduleCall}
-            disabled={!scheduleForm.scheduled_at || actionLoading}
+            disabled={actionLoading}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
-            Schedule
+            Save & get Cal link
           </Button>
         </DialogActions>
       </Dialog>
@@ -702,8 +747,8 @@ const FounderDatePage = () => {
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <VideoCall sx={{ color: TEAL }} />
-              Stage {activeCall?.stage} Call
+              <EventIcon sx={{ color: TEAL }} />
+              Stage {activeCall?.stage} session
             </Box>
             <IconButton onClick={() => setCallDialogOpen(false)}>
               <Close />
@@ -711,26 +756,27 @@ const FounderDatePage = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          {activeCall?.daily_room_url ? (
+          {schedulingUrlFromCall(activeCall) ? (
             <Box sx={{ height: 200, bgcolor: alpha(TEAL, 0.05), borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid', borderColor: alpha(TEAL, 0.2) }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <VideoCall sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.7 }} />
+              <Box sx={{ textAlign: 'center', px: 2 }}>
+                <EventIcon sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.7 }} />
                 <Typography variant="body1" sx={{ color: SLATE_900, mb: 2 }}>
-                  Click to join video call in new tab
+                  Open your Cal.com booking (or the meeting link from your calendar invite) in another tab.
                 </Typography>
                 <Button
                   variant="contained"
-                  startIcon={<VideoCall />}
-                  onClick={() => window.open(activeCall.daily_room_url, '_blank')}
+                  startIcon={<OpenInNew />}
+                  onClick={() => window.open(schedulingUrlFromCall(activeCall), '_blank', 'noopener,noreferrer')}
                   sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
                 >
-                  Join Video Call
+                  Open scheduling link
                 </Button>
               </Box>
             </Box>
           ) : (
-            <Alert severity="warning">
-              Video room could not be created. You can still conduct your call via another platform and return here to complete the evaluation.
+            <Alert severity="info">
+              No Cal.com link was saved for this session. Use whatever link you already agreed on (email, Cal.com, etc.),
+              then finish here to submit your evaluation.
             </Alert>
           )}
           
@@ -767,7 +813,7 @@ const FounderDatePage = () => {
             onClick={() => activeCall && handleCompleteCall(activeCall.id)}
             disabled={actionLoading}
           >
-            End Call & Evaluate
+            End session & evaluate
           </Button>
         </DialogActions>
       </Dialog>

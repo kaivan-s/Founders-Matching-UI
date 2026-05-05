@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material';
 import {
-  VideoCall,
+  Event,
   ArrowForward,
   Add,
   CheckCircle,
@@ -112,7 +112,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
           '&:hover': { bgcolor: alpha(TEAL, 0.12) },
         }}
       >
-        <VideoCall sx={{ color: TEAL, fontSize: 20 }} />
+        <Event sx={{ color: TEAL, fontSize: 20 }} />
         <Box sx={{ flex: 1 }}>
           <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Founder Date with {activeDate.other_founder?.name?.split(' ')[0]}
@@ -130,7 +130,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <VideoCall sx={{ color: TEAL }} />
+          <Event sx={{ color: TEAL }} />
           <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
             Founder Dates
           </Typography>
@@ -151,7 +151,7 @@ const FounderDatesList = ({ compact = false, onStartNew }) => {
 
       {founderDates.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center', bgcolor: '#fff', borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
-          <VideoCall sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.5 }} />
+          <Event sx={{ fontSize: 48, color: TEAL, mb: 2, opacity: 0.5 }} />
           <Typography variant="body1" sx={{ color: SLATE_900 }} gutterBottom>
             No Founder Dates yet
           </Typography>

@@ -46,6 +46,8 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
   const [topic, setTopic] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [calcomStatus, setCalcomStatus] = useState({ has_calcom: false, booking_url: null });
+  const [loadingCalcom, setLoadingCalcom] = useState(false);
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
 
@@ -56,9 +58,9 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }, []);
 
-  // Reset state when dialog opens for a new advisor
+  // Reset state and check cal.com when dialog opens
   useEffect(() => {
-    if (open) {
+    if (open && advisor?.user_id) {
       setError(null);
       setSubmitting(false);
       setTopic('');
@@ -67,6 +69,14 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
       const has30 = advisor?.consultation_rate_30min_usd != null && advisor?.consultation_rate_30min_usd !== '';
       const has60 = advisor?.consultation_rate_60min_usd != null && advisor?.consultation_rate_60min_usd !== '';
       setDuration(has30 ? 30 : has60 ? 60 : 30);
+      
+      // Check if advisor has cal.com connected
+      setLoadingCalcom(true);
+      fetch(`${API_BASE}/advisors/${advisor.user_id}/booking-link`)
+        .then(r => r.ok ? r.json() : { has_calcom: false })
+        .then(data => setCalcomStatus(data))
+        .catch(() => setCalcomStatus({ has_calcom: false }))
+        .finally(() => setLoadingCalcom(false));
     }
   }, [open, advisor]);
 
@@ -174,84 +184,168 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
           </Box>
         </Paper>
 
-        {/* Duration selector */}
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-          Call length
-        </Typography>
-        <ToggleButtonGroup
-          exclusive
-          fullWidth
-          value={duration}
-          onChange={(_, val) => val && setDuration(val)}
-          sx={{ mb: 3 }}
-        >
-          <ToggleButton value={30} disabled={!has30} sx={{ textTransform: 'none', flex: 1, py: 1.5 }}>
-            <Box sx={{ textAlign: 'left' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>30 minutes</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {has30 ? `$${Number(rate30).toFixed(0)}` : 'Not offered'}
+        {/* Cal.com booking option */}
+        {loadingCalcom ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : calcomStatus.has_calcom && calcomStatus.booking_url ? (
+          <Box>
+            <Alert 
+              severity="success" 
+              sx={{ mb: 3, borderRadius: 2 }}
+              icon={
+                <Box sx={{ 
+                  width: 20, 
+                  height: 20, 
+                  borderRadius: 0.5, 
+                  bgcolor: '#292929', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                }}>
+                  cal
+                </Box>
+              }
+            >
+              <Typography variant="body2">
+                <strong>Calendar connected!</strong> Book directly into {advisorName}'s calendar with automatic availability.
               </Typography>
-            </Box>
-          </ToggleButton>
-          <ToggleButton value={60} disabled={!has60} sx={{ textTransform: 'none', flex: 1, py: 1.5 }}>
-            <Box sx={{ textAlign: 'left' }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>60 minutes</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {has60 ? `$${Number(rate60).toFixed(0)}` : 'Not offered'}
+            </Alert>
+
+            {/* Pricing info */}
+            <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>Consultation rates</Typography>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                {has30 && (
+                  <Chip 
+                    icon={<Schedule sx={{ fontSize: 16 }} />}
+                    label={`30 min · $${Number(rate30).toFixed(0)}`}
+                    sx={{ fontWeight: 500 }}
+                  />
+                )}
+                {has60 && (
+                  <Chip 
+                    icon={<Schedule sx={{ fontSize: 16 }} />}
+                    label={`60 min · $${Number(rate60).toFixed(0)}`}
+                    sx={{ fontWeight: 500 }}
+                  />
+                )}
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                Payment is handled directly between you and the advisor after booking.
               </Typography>
-            </Box>
-          </ToggleButton>
-        </ToggleButtonGroup>
+            </Paper>
 
-        {/* Proposed time */}
-        <TextField
-          fullWidth
-          type="datetime-local"
-          label="Proposed time (in your timezone)"
-          InputLabelProps={{ shrink: true }}
-          value={proposedTime}
-          onChange={(e) => setProposedTime(e.target.value)}
-          inputProps={{ min: minDatetime }}
-          helperText={`Your timezone: ${tz}. The advisor will confirm or suggest a different time.`}
-          sx={{ mb: 3 }}
-        />
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              href={calcomStatus.booking_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              startIcon={<CalendarMonth />}
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600, 
+                borderRadius: 2,
+                py: 1.5,
+                bgcolor: '#292929',
+                '&:hover': { bgcolor: '#000' },
+              }}
+            >
+              Book on cal.com
+            </Button>
 
-        {/* Topic */}
-        <TextField
-          fullWidth
-          multiline
-          minRows={3}
-          maxRows={6}
-          label="What do you want to discuss? (optional)"
-          placeholder="e.g. Should I raise on a SAFE or priced round? My target is $500K to extend runway 18 months."
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          inputProps={{ maxLength: 1000 }}
-          helperText={`${topic.length}/1000 — helps the advisor prepare`}
-          sx={{ mb: 3 }}
-        />
-
-        {/* Price summary */}
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachMoney fontSize="small" sx={{ color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary">
-                You'll pay the advisor
-              </Typography>
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              ${Number(selectedRate || 0).toFixed(0)}
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
+              You'll be redirected to cal.com to select a time slot
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-            <Info sx={{ fontSize: 14, color: 'text.secondary', mt: 0.4 }} />
-            <Typography variant="caption" color="text.secondary">
-              Payment is sent <strong>directly to the advisor</strong> via UPI, PayPal, or Razorpay link
-              after they accept your request. Guild Space does not process this payment.
+        ) : (
+          <>
+            {/* Duration selector */}
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+              Call length
             </Typography>
-          </Box>
-        </Paper>
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              value={duration}
+              onChange={(_, val) => val && setDuration(val)}
+              sx={{ mb: 3 }}
+            >
+              <ToggleButton value={30} disabled={!has30} sx={{ textTransform: 'none', flex: 1, py: 1.5 }}>
+                <Box sx={{ textAlign: 'left' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>30 minutes</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {has30 ? `$${Number(rate30).toFixed(0)}` : 'Not offered'}
+                  </Typography>
+                </Box>
+              </ToggleButton>
+              <ToggleButton value={60} disabled={!has60} sx={{ textTransform: 'none', flex: 1, py: 1.5 }}>
+                <Box sx={{ textAlign: 'left' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>60 minutes</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {has60 ? `$${Number(rate60).toFixed(0)}` : 'Not offered'}
+                  </Typography>
+                </Box>
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* Proposed time */}
+            <TextField
+              fullWidth
+              type="datetime-local"
+              label="Proposed time (in your timezone)"
+              InputLabelProps={{ shrink: true }}
+              value={proposedTime}
+              onChange={(e) => setProposedTime(e.target.value)}
+              inputProps={{ min: minDatetime }}
+              helperText={`Your timezone: ${tz}. The advisor will confirm or suggest a different time.`}
+              sx={{ mb: 3 }}
+            />
+
+            {/* Topic */}
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              maxRows={6}
+              label="What do you want to discuss? (optional)"
+              placeholder="e.g. Should I raise on a SAFE or priced round? My target is $500K to extend runway 18 months."
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              inputProps={{ maxLength: 1000 }}
+              helperText={`${topic.length}/1000 — helps the advisor prepare`}
+              sx={{ mb: 3 }}
+            />
+
+            {/* Price summary */}
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AttachMoney fontSize="small" sx={{ color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary">
+                    You'll pay the advisor
+                  </Typography>
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  ${Number(selectedRate || 0).toFixed(0)}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                <Info sx={{ fontSize: 14, color: 'text.secondary', mt: 0.4 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Payment is sent <strong>directly to the advisor</strong> via UPI, PayPal, or Razorpay link
+                  after they accept your request. Guild Space does not process this payment.
+                </Typography>
+              </Box>
+            </Paper>
+          </>
+        )}
 
         {error && (
           <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
@@ -264,15 +358,17 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
         <Button onClick={onClose} disabled={submitting} sx={{ textTransform: 'none' }}>
           Cancel
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={submitting || (!has30 && !has60)}
-          startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <CalendarMonth />}
-          sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
-        >
-          {submitting ? 'Sending request…' : 'Send booking request'}
-        </Button>
+        {(!calcomStatus.has_calcom || !calcomStatus.booking_url) && !loadingCalcom && (
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={submitting || (!has30 && !has60)}
+            startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <CalendarMonth />}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+          >
+            {submitting ? 'Sending request…' : 'Send booking request'}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

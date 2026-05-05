@@ -1061,6 +1061,20 @@ const ProfilePage = () => {
         Social Profiles & Links
       </Typography>
       <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <TextField
+            label="Cal.com scheduling link (co-founder meetings)"
+            fullWidth
+            value={profile.cal_booking_url || ''}
+            onChange={(e) => updateField('cal_booking_url', e.target.value)}
+            InputProps={{
+              startAdornment: <LinkIcon sx={{ color: TEAL, mr: 1 }} />,
+            }}
+            placeholder="https://cal.com/your-name/..."
+            helperText="Paste your public Cal.com booking URL. Your co-founder uses it to pick a time—we do not host the call here."
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+        </Grid>
         <Grid item xs={12} md={6}>
           <TextField
             label="LinkedIn URL"
