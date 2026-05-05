@@ -55,13 +55,11 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
   const [bookingAdvisor, setBookingAdvisor] = useState(null);  // selected advisor for booking dialog
   const [reviewsAdvisor, setReviewsAdvisor] = useState(null);  // selected advisor to view reviews
 
-  useEffect(() => {
-    if (open && workspaceId) {
-      fetchPartners();
-    }
-  }, [open, workspaceId]);
-
   const fetchPartners = async () => {
+    if (!workspaceId || !user?.id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -86,6 +84,12 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (open && workspaceId && user?.id) {
+      fetchPartners();
+    }
+  }, [open, workspaceId, user?.id]);
 
   const handleBookingSuccess = (consultation) => {
     setBookingAdvisor(null);

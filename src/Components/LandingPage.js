@@ -163,21 +163,21 @@ const LandingPage = () => {
     { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential co-founders know who you really are.' },
     { icon: <BarChart />, title: 'Personal Intros', desc: 'Add video or voice introductions to stand out. Show your personality beyond just text.' },
     { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Founders\' Agreement template ready for legal review.' },
-    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Get guidance from experienced advisors who invest in your success with equity-based partnerships.' },
+    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Browse advisors on any plan. With Pro+, book 30- or 60-minute paid consultations, pay your advisor directly (UPI, PayPal, bank transfer, and more), then schedule on their Cal.com link.' },
   ];
 
   const plans = [
     {
       name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['25 swipes / day', '2 projects', 'Join unlimited workspaces', 'Slack integration', 'Advisor marketplace', 'Weekly check-ins'],
+      features: ['25 swipes / day', '2 projects', 'Join unlimited workspaces', 'Slack integration', 'Browse advisor marketplace', 'Weekly check-ins'],
     },
     {
       name: 'Pro', price: '$12', period: '/month', popular: true,
-      features: ['Unlimited swipes', 'Up to 10 projects', 'Create 3 workspaces', 'Notion integration', 'Summary dashboard'],
+      features: ['Unlimited swipes', 'Up to 10 projects', 'Create 3 workspaces', 'Notion integration', 'Summary dashboard', 'Browse advisor marketplace'],
     },
     {
       name: 'Pro+', price: '$29', period: '/month', popular: false,
-      features: ['Everything in Pro', 'Equity calculator & agreement template', 'Unlimited projects', 'Unlimited workspaces'],
+      features: ['Everything in Pro', 'Equity calculator & agreement template', 'Book paid advisor consultations', 'Unlimited projects', 'Unlimited workspaces'],
     },
   ];
 
@@ -241,7 +241,7 @@ const LandingPage = () => {
             color: SLATE_500, fontWeight: 400, maxWidth: 560, mx: 'auto', mb: 5,
             fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.65,
           }}>
-            Discover committed co-founders, agree on equity, and run your early-stage partnership from one workspace.
+            Discover committed co-founders, agree on equity, run your partnership in one workspace—and book paid advisor sessions when you need expert help.
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
@@ -322,7 +322,7 @@ const LandingPage = () => {
               Everything you need to build together
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 520, mx: 'auto' }}>
-              From first swipe to signed agreement, Guild Space keeps your partnership on track.
+              From first swipe to signed agreement—and paid advisor sessions when you need them—Guild Space keeps your partnership on track.
             </Typography>
           </Box>
 
@@ -627,10 +627,9 @@ const LandingPage = () => {
               </Box>
               {[
                 { name: 'Founder A', pct: 52, color: TEAL },
-                { name: 'Founder B', pct: 45, color: SKY },
-                { name: 'Advisor', pct: 3, color: NAVY },
+                { name: 'Founder B', pct: 48, color: SKY },
               ].map((f, i) => (
-                <Box key={i} sx={{ mb: i < 2 ? 1.25 : 0 }}>
+                <Box key={i} sx={{ mb: i < 1 ? 1.25 : 0 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.35 }}>
                     <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.7rem' }}>{f.name}</Typography>
                     <Typography variant="caption" sx={{ color: SLATE_900, fontWeight: 700, fontSize: '0.7rem' }}>{f.pct}%</Typography>
@@ -834,14 +833,14 @@ const LandingPage = () => {
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Connect with experienced advisors who earn equity in your success.
+              Book paid 30- or 60-minute sessions. Pricing is per advisor; scheduling uses their Cal.com link after you lock in a booking.
             </Typography>
             {/* Advisor cards mockup */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {[
-                { name: 'Michael Chen', role: 'Ex-Stripe PM', expertise: ['Product', 'Fundraising'], rating: '4.9' },
-                { name: 'Sarah Johnson', role: 'Serial Entrepreneur', expertise: ['Growth', 'Sales'], rating: '5.0' },
-                { name: 'David Park', role: 'Tech Lead @ Google', expertise: ['Engineering', 'Architecture'], rating: '4.8' },
+                { name: 'Michael Chen', role: 'Ex-Stripe PM • 30m / 60m', tag: '$75 / $140', rating: '4.9' },
+                { name: 'Sarah Johnson', role: 'Serial founder • 30m / 60m', tag: '$90 / $160', rating: '5.0' },
+                { name: 'David Park', role: 'Staff eng • 30m / 60m', tag: '$120 / $220', rating: '4.8' },
               ].map((advisor, i) => (
                 <Box key={i} sx={{
                   p: 1.5, borderRadius: 2, bgcolor: BG,
@@ -864,9 +863,14 @@ const LandingPage = () => {
                       {advisor.role}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 700, fontSize: '0.7rem' }}>★</Typography>
-                    <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 600, fontSize: '0.65rem' }}>{advisor.rating}</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.25 }}>
+                    <Typography variant="caption" sx={{ color: TEAL, fontWeight: 700, fontSize: '0.65rem' }}>
+                      {advisor.tag}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 700, fontSize: '0.7rem' }}>★</Typography>
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 600, fontSize: '0.65rem' }}>{advisor.rating}</Typography>
+                    </Box>
                   </Box>
                 </Box>
               ))}
@@ -878,7 +882,7 @@ const LandingPage = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
             }}>
               <Typography variant="caption" sx={{ color: TEAL, fontWeight: 600, fontSize: '0.7rem' }}>
-                Browse 50+ advisors
+                Pro+ unlocks booking — browse anytime
               </Typography>
               <ArrowForward sx={{ fontSize: 12, color: TEAL }} />
             </Box>
@@ -1080,7 +1084,7 @@ const LandingPage = () => {
           {[
             { step: '1', title: 'Discover & Apply', desc: 'Browse project profiles. Answer screening questions to show you\'re serious. Project owners review your profile and responses.' },
             { step: '2', title: 'Connect & Agree', desc: 'Once accepted, share full project details. Use equity templates to set clear ownership from day one.' },
-            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and connect with advisors—all from your partnership workspace.' },
+            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and upgrade to Pro+ when you want to book paid advisor consultations—all from your partnership workspace.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
@@ -1242,6 +1246,9 @@ const LandingPage = () => {
           ))}
         </Grid>
 
+        <Typography variant="body2" sx={{ color: SLATE_400, textAlign: 'center', maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
+          Founder plans cover platform access. Whatever you agree to pay an advisor for a session goes to them directly—not through Guild Space checkout.
+        </Typography>
       </Container>
 
       {/* ─── For Advisors ─── */}
@@ -1255,10 +1262,10 @@ const LandingPage = () => {
               fontWeight: 700, mt: 1.5, color: SLATE_900,
               fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
             }}>
-              Guide founders. Earn equity.
+              Paid consultations
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 600, mx: 'auto' }}>
-              Join our marketplace and help early-stage founders build better partnerships. Get equity in the projects you guide.
+              List for free, set your own 30- and 60-minute rates, and add your Cal.com scheduling link. Founders on Pro+ book you; they pay you directly and you meet on your calendar.
             </Typography>
           </Box>
 
@@ -1281,11 +1288,11 @@ const LandingPage = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {[
-                    'Create your advisor profile with your expertise & background',
-                    'Get discovered by founders seeking guidance',
-                    'Review project requests and choose ones that match your skills',
-                    'Pay only when you accept a project — no monthly fees',
-                    'Earn equity in the projects you successfully guide',
+                    'Build your advisor profile and set separate rates for 30- and 60-minute sessions',
+                    'Paste your Cal.com booking URL so founders schedule on your terms',
+                    'Accept or decline consultation requests from Pro+ founders',
+                    'Founders pay you directly. Guild Space records confirmations for a clear paper trail',
+                    'After your first confirmed consultation, enjoy a 30-day Pro Advisor trial—then stay bookable with a small subscription',
                   ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                       <CheckCircle sx={{ fontSize: 16, color: '#10b981', flexShrink: 0, mt: 0.25 }} />
@@ -1307,7 +1314,7 @@ const LandingPage = () => {
                 '&:hover': { boxShadow: `0 8px 24px ${alpha(TEAL, 0.12)}` },
               }}>
                 <Chip
-                  label="Pay Per Project"
+                  label="Your rates"
                   size="small"
                   sx={{
                     position: 'absolute', top: 12, right: 12,
@@ -1321,24 +1328,24 @@ const LandingPage = () => {
                   <TrendingUp sx={{ fontSize: 24 }} />
                 </Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 2.5, fontSize: '1.05rem' }}>
-                  Simple Fee Structure
+                  How you get paid
                 </Typography>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 800, color: SLATE_900 }}>
-                        $69
+                        You set
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_400, fontSize: '0.85rem' }}>
-                        per project
+                        session prices
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.9rem' }}>
-                      Pay only when you accept a project
+                      Choose your own USD rates for 30- and 60-minute consultations (within platform limits).
                     </Typography>
                     <Typography variant="caption" sx={{ color: SLATE_400, display: 'block', mt: 0.5 }}>
-                      No subscription fees. No monthly costs. You decide which projects to take.
+                      Founders on Pro+ submit bookings; you collect payment outside Guild Space using whatever method you agree on.
                     </Typography>
                   </Box>
 
@@ -1347,17 +1354,17 @@ const LandingPage = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 800, color: SLATE_900 }}>
-                        $0
+                        $19
                       </Typography>
                       <Typography variant="body2" sx={{ color: SLATE_400, fontSize: '0.85rem' }}>
-                        to get started
+                        / mo Pro Advisor
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500, fontSize: '0.9rem' }}>
-                      Free onboarding & profile setup
+                      30-day trial after your first confirmed consultation, then stay bookable.
                     </Typography>
                     <Typography variant="caption" sx={{ color: SLATE_400, display: 'block', mt: 0.5 }}>
-                      Create your profile, get listed, and start receiving project requests — all free
+                      Or $99/yr if you prefer annual billing. Listing your profile stays free.
                     </Typography>
                   </Box>
                 </Box>
@@ -1367,11 +1374,10 @@ const LandingPage = () => {
                   bgcolor: alpha(TEAL, 0.05), border: '1px solid', borderColor: alpha(TEAL, 0.2),
                 }}>
                   <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600, mb: 0.5, fontSize: '0.9rem' }}>
-                    💰 Earn Equity in Projects You Guide
+                    Cal.com scheduling
                   </Typography>
                   <Typography variant="caption" sx={{ color: SLATE_500, lineHeight: 1.6 }}>
-                    Receive equity allocations in the startups you advise, typically 1-3% based on your contribution. 
-                    Terms are set per project with full transparency.
+                    Paste your full Cal.com booking link so founders pick a time.
                   </Typography>
                 </Box>
               </Box>

@@ -520,7 +520,7 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         open={marketplaceOpen}
         onClose={() => setMarketplaceOpen(false)}
         workspaceId={workspaceId}
-        onRequestAdvisor={() => {
+        onBookingCreated={() => {
           setMarketplaceOpen(false);
           fetchPartners();
         }}

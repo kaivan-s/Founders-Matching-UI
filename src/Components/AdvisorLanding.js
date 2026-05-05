@@ -58,8 +58,8 @@ const AdvisorLanding = () => {
     },
     {
       icon: <TrendingUp sx={{ fontSize: 40 }} />,
-      title: 'Build Your Network',
-      description: 'Connect with ambitious founders and expand your network in the startup ecosystem.',
+      title: 'Earn per session',
+      description: 'Set your own consultation rates; founders on Pro+ pay you directly for booked time. Cal.com keeps scheduling simple.',
     },
     {
       icon: <Schedule sx={{ fontSize: 40 }} />,
@@ -197,14 +197,14 @@ const AdvisorLanding = () => {
             sx={{
               color: 'text.secondary',
               mb: 4,
-              maxWidth: '700px',
+              maxWidth: '720px',
               mx: 'auto',
               fontWeight: 400,
               lineHeight: 1.6,
             }}
           >
-            Help founders stay accountable, make better decisions, and achieve their goals. 
-            Join a curated community of experienced partners supporting early-stage startups.
+            Help founders with paid 30- and 60-minute consultations. They discover you in the marketplace,
+            you confirm the booking, they pay you directly, and you meet using your Cal.com link.
           </Typography>
           {isSignedIn ? (
             <Button
@@ -350,7 +350,7 @@ const AdvisorLanding = () => {
                   Apply
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Fill out your profile with your experience, expertise, and availability.
+                  Share your experience and set your consultation rates. Add your Cal.com booking link when you&apos;re ready to take sessions.
                 </Typography>
               </Box>
             </Grid>
@@ -401,10 +401,10 @@ const AdvisorLanding = () => {
                   </Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  Start Partnering
+                  Get booked
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Founders discover you in the marketplace and request your partnership.
+                  Pro+ founders request consultations. Accept or decline; after payment is confirmed, they schedule on your Cal.com page.
                 </Typography>
               </Box>
             </Grid>
@@ -425,8 +425,8 @@ const AdvisorLanding = () => {
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
             Ready to Help Founders Succeed?
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '600px', mx: 'auto' }}>
-            Join our community of advisors and make a real impact on early-stage startups.
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '620px', mx: 'auto' }}>
+            After your first confirmed consultation you get a <strong>30-day Pro Advisor trial</strong>, then <strong>$19/mo</strong> or <strong>$99/yr</strong> to stay bookable—listing your profile stays free.
           </Typography>
           {isSignedIn ? (
             <Button
