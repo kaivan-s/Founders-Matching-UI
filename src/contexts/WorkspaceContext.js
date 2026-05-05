@@ -17,15 +17,13 @@ const WorkspaceContext = createContext(null);
  *   </WorkspaceProvider>
  * 
  * In child components:
- *   const { participants, kpis, decisions, ... } = useWorkspaceContext();
+ *   const { participants, roles, checkins, equity, ... } = useWorkspaceContext();
  */
 export const WorkspaceProvider = ({ workspaceId, children }) => {
   const { user } = useUser();
   const [contextData, setContextData] = useState({
     workspace: null,
     participants: [],
-    kpis: [],
-    decisions: [],
     roles: [],
     checkins: [],
     equity: { scenarios: [], current: null },
@@ -58,8 +56,6 @@ export const WorkspaceProvider = ({ workspaceId, children }) => {
       setContextData({
         workspace: data.workspace,
         participants: data.participants || [],
-        kpis: data.kpis || [],
-        decisions: data.decisions || [],
         roles: data.roles || [],
         checkins: data.checkins || [],
         equity: data.equity || { scenarios: [], current: null },
@@ -82,20 +78,6 @@ export const WorkspaceProvider = ({ workspaceId, children }) => {
     setContextData(prev => ({
       ...prev,
       participants: typeof updater === 'function' ? updater(prev.participants) : updater,
-    }));
-  }, []);
-
-  const updateKpis = useCallback((updater) => {
-    setContextData(prev => ({
-      ...prev,
-      kpis: typeof updater === 'function' ? updater(prev.kpis) : updater,
-    }));
-  }, []);
-
-  const updateDecisions = useCallback((updater) => {
-    setContextData(prev => ({
-      ...prev,
-      decisions: typeof updater === 'function' ? updater(prev.decisions) : updater,
     }));
   }, []);
 
@@ -138,8 +120,6 @@ export const WorkspaceProvider = ({ workspaceId, children }) => {
     
     // Update helpers for optimistic updates
     updateParticipants,
-    updateKpis,
-    updateDecisions,
     updateRoles,
     updateCheckins,
     updateEquity,

@@ -36,7 +36,6 @@ import {
 } from '@mui/material';
 import {
   ArrowBack,
-  TrendingUp,
   Send,
   CalendarMonth,
   Close,
@@ -52,7 +51,6 @@ const AdvisorWorkspaceView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [workspace, setWorkspace] = useState(null);
-  const [kpis, setKpis] = useState([]);
   const [participants, setParticipants] = useState([]);
   
   // Activity feed state
@@ -99,14 +97,6 @@ const AdvisorWorkspaceView = () => {
 
       const workspaceData = await workspaceResponse.json();
       setWorkspace(workspaceData);
-
-      // Fetch KPIs
-      const kpisResponse = await fetch(`${API_BASE}/workspaces/${workspaceId}/kpis`, {
-        headers: { 'X-Clerk-User-Id': user.id },
-      });
-      if (kpisResponse.ok) {
-        setKpis(await kpisResponse.json() || []);
-      }
 
       // Fetch participants with roles
       const participantsResponse = await fetch(`${API_BASE}/workspaces/${workspaceId}/participants-with-roles`, {
@@ -341,7 +331,6 @@ const AdvisorWorkspaceView = () => {
             }}
           >
             <Tab icon={<Message sx={{ fontSize: 18 }} />} iconPosition="start" label="Activity" />
-            <Tab icon={<TrendingUp sx={{ fontSize: 18 }} />} iconPosition="start" label={`KPIs (${kpis.length})`} />
             <Tab icon={<Group sx={{ fontSize: 18 }} />} iconPosition="start" label="Team" />
           </Tabs>
         </Paper>
@@ -458,55 +447,8 @@ const AdvisorWorkspaceView = () => {
           </Box>
         )}
 
-        {/* KPIs Tab */}
-        {tabValue === 1 && (
-          <Box>
-            {kpis.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {kpis.map((kpi) => (
-                  <Paper key={kpi.id} sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                          {kpi.label}
-                        </Typography>
-                        {kpi.target_value && (
-                          <Typography variant="body2" color="text.secondary">
-                            Target: {kpi.target_value}
-                          </Typography>
-                        )}
-                        {kpi.owner?.name && (
-                          <Typography variant="caption" color="text.secondary">
-                            Owner: {kpi.owner.name}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Chip
-                          label={kpi.status?.replace('_', ' ') || 'pending'}
-                          size="small"
-                          color={kpi.status === 'done' ? 'success' : kpi.status === 'in_progress' ? 'primary' : 'default'}
-                        />
-                        {kpi.target_date && (
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Due: {new Date(kpi.target_date).toLocaleDateString()}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography color="text.secondary">No KPIs defined yet.</Typography>
-              </Paper>
-            )}
-          </Box>
-        )}
-
         {/* Team Tab */}
-        {tabValue === 2 && (
+        {tabValue === 1 && (
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Team Members</Typography>
             <List>
