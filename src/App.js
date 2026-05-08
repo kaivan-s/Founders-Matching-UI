@@ -1,31 +1,28 @@
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
-import { SignedIn, SignedOut, SignIn, SignInButton, UserButton, useUser } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/clerk-react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
-import { Typography, CircularProgress, Tabs, Tab, Button, Chip, Badge, Box as MuiBox } from '@mui/material';
-import { AccountBalanceWallet, AddCircleOutline, Feedback, Business, Handshake, SwapHoriz, AdminPanelSettings, Person } from '@mui/icons-material';
-import SwipeInterface from './Components/SwipeInterface';
-import InterestedPage from './Components/InterestedPage';
+import { CircularProgress } from '@mui/material';
+import SeekerDiscovery from './Components/SeekerDiscovery';
+import OwnerApplications from './Components/OwnerApplications';
+import MyApplications from './Components/MyApplications';
 import LandingPage from './Components/LandingPage';
 import PaymentHistory from './Components/PaymentHistory';
 import WorkspacePage from './Components/WorkspacePage';
 import WorkspacesList from './Components/WorkspacesList';
 import MyProjects from './Components/MyProjects';
-import AccessRequests from './Components/AccessRequests';
 import OnboardingDialog from './Components/OnboardingDialog';
 import AdvisorOnboarding from './Components/AdvisorOnboarding';
 import AdvisorDashboard from './Components/AdvisorDashboard';
 // AdvisorWorkspaceView removed - advisors no longer join workspaces
 import UserFlowSelector from './Components/UserFlowSelector';
-import NewProjectDialog from './Components/NewProjectDialog';
 import PricingPage from './Components/PricingPage';
 import AdvisorLanding from './Components/AdvisorLanding';
 import FeedbackHistory from './Components/FeedbackHistory';
-import FeedbackDialog from './Components/FeedbackDialog';
 import PrivacyPolicy from './Components/PrivacyPolicy';
 import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
@@ -33,6 +30,7 @@ import AdminAdvisors from './Components/AdminAdvisors';
 import ProfilePage from './Components/ProfilePage';
 import FounderDatePage from './Components/FounderDatePage';
 import ConsultationsPage from './Components/ConsultationsPage';
+import AppLayout from './Components/AppLayout';
 import { API_BASE } from './config/api';
 import './App.css';
 
@@ -132,561 +130,6 @@ if (!clerkPubKey) {
   );
 }
 
-function Header() {
-  const { user } = useUser();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [plan, setPlan] = useState(null);
-  const [planLoading, setPlanLoading] = useState(true);
-  const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
-  const [isAdvisorMode, setIsAdvisorMode] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  
-  // Detect if we're in advisor mode based on route
-  useEffect(() => {
-    setIsAdvisorMode(location.pathname.startsWith('/advisor/'));
-  }, [location.pathname]);
-
-  const isHomePage = location.pathname === '/home';
-
-  const fetchAdminCheck = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const res = await fetch(`${API_BASE}/admin/check`, { headers: { 'X-Clerk-User-Id': user.id } });
-      if (res.ok) {
-        const data = await res.json();
-        setIsAdmin(data.is_admin === true);
-      }
-    } catch {
-      setIsAdmin(false);
-    }
-  }, [user?.id]);
-
-  const fetchPlan = useCallback(async () => {
-    if (!user || !user.id) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/billing/my-plan`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setPlan(data);
-      }
-    } catch (err) {
-      // Error fetching plan
-    } finally {
-      setPlanLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchPlan();
-      fetchAdminCheck();
-    }
-  }, [user, fetchPlan, fetchAdminCheck]);
-
-  return (
-    <>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        px: { xs: 3, sm: 4, md: 5 },
-        py: 2.5,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        flexShrink: 0,
-        bgcolor: 'background.paper',
-      }}>
-        <Typography 
-          variant="h5" 
-          component="h1" 
-          onClick={() => navigate('/home')}
-          sx={{ 
-            color: '#1e3a8a',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            cursor: 'pointer',
-            fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            '&:hover': {
-              color: '#2563eb',
-            },
-          }}
-        >
-          Guild Space
-        </Typography>
-        <SignedIn>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {/* Simplified header for home page - only show profile icon */}
-            {isHomePage ? (
-              <UserButton />
-            ) : (
-              <>
-                {/* Mode Switcher */}
-                <Button
-                  variant="outlined"
-                  startIcon={isAdvisorMode ? <Business /> : <Handshake />}
-                  endIcon={<SwapHoriz />}
-                  onClick={() => {
-                    if (isAdvisorMode) {
-                      // Switch to founder mode - go to discover
-                      navigate('/discover');
-                    } else {
-                      // Switch to advisor mode - go to advisor dashboard
-                      navigate('/advisor/dashboard');
-                    }
-                  }}
-                  sx={{
-                    borderColor: '#e2e8f0',
-                    color: '#1e3a8a',
-                    px: 2,
-                    py: 0.75,
-                    height: 36,
-                    fontSize: '0.8125rem',
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': {
-                      borderColor: '#0d9488',
-                      bgcolor: 'rgba(13, 148, 136, 0.04)',
-                    },
-                  }}
-                >
-                  {isAdvisorMode ? 'Founder Mode' : 'Advisor Mode'}
-                </Button>
-
-                {/* Founder Mode Buttons */}
-                {!isAdvisorMode && (
-                  <>
-                    <Chip
-                      icon={<AccountBalanceWallet />}
-                      label={planLoading ? 'Loading...' : plan?.id === 'FREE' ? 'Free Plan' : plan?.id === 'PRO' ? 'Pro' : 'Pro+'}
-                      onClick={() => navigate('/pricing')}
-                      sx={{
-                        bgcolor: plan?.id === 'FREE' ? '#f1f5f9' : '#1e3a8a',
-                        color: plan?.id === 'FREE' ? '#475569' : '#ffffff',
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        height: 36,
-                        borderRadius: '10px',
-                        px: 1,
-                        cursor: 'pointer',
-                        border: '1px solid',
-                        borderColor: plan?.id === 'FREE' ? '#e2e8f0' : 'transparent',
-                        '& .MuiChip-icon': {
-                          color: plan?.id === 'FREE' ? '#64748b' : 'inherit',
-                        },
-                        '&:hover': {
-                          bgcolor: plan?.id === 'FREE' ? '#e2e8f0' : '#1e40af',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        },
-                        transition: 'all 0.2s ease',
-                      }}
-                    />
-                    <Button
-                      variant="contained"
-                      startIcon={<AddCircleOutline />}
-                      onClick={() => setNewProjectDialogOpen(true)}
-                      sx={{
-                        bgcolor: '#0d9488',
-                        px: 2,
-                        py: 0.75,
-                        height: 36,
-                        fontSize: '0.8125rem',
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        boxShadow: 'none',
-                        '&:hover': {
-                          bgcolor: '#14b8a6',
-                          boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                          transform: 'translateY(-1px)',
-                        },
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      New Project
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<Feedback />}
-                      onClick={() => setFeedbackDialogOpen(true)}
-                      sx={{
-                        borderColor: '#e2e8f0',
-                        color: '#1e3a8a',
-                        px: 2,
-                        py: 0.75,
-                        height: 36,
-                        fontSize: '0.8125rem',
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        '&:hover': {
-                          borderColor: '#0d9488',
-                          bgcolor: 'rgba(13, 148, 136, 0.04)',
-                        },
-                      }}
-                    >
-                      Feedback
-                    </Button>
-                  </>
-                )}
-
-                {isAdmin && (
-                  <Button
-                    variant="outlined"
-                    startIcon={<AdminPanelSettings />}
-                    onClick={() => navigate('/admin')}
-                    sx={{
-                      borderColor: '#e2e8f0',
-                      color: '#1e3a8a',
-                      px: 2,
-                      py: 0.75,
-                      height: 36,
-                      fontSize: '0.8125rem',
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&:hover': {
-                        borderColor: '#0d9488',
-                        bgcolor: 'rgba(13, 148, 136, 0.04)',
-                      },
-                    }}
-                  >
-                    Admin
-                  </Button>
-                )}
-
-                <Button
-                  variant="outlined"
-                  startIcon={<Person />}
-                  onClick={() => navigate('/profile')}
-                  sx={{
-                    borderColor: '#e2e8f0',
-                    color: '#1e3a8a',
-                    px: 2,
-                    py: 0.75,
-                    height: 36,
-                    fontSize: '0.8125rem',
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    '&:hover': {
-                      borderColor: '#0d9488',
-                      bgcolor: 'rgba(13, 148, 136, 0.04)',
-                    },
-                  }}
-                >
-                  Profile
-                </Button>
-
-                <UserButton />
-              </>
-            )}
-          </Box>
-        </SignedIn>
-        <SignedOut>
-          <SignInButton mode="modal">
-            <Button 
-              variant="contained"
-              sx={{ 
-                bgcolor: '#0d9488',
-                px: 3,
-                py: 1,
-                height: 40,
-                fontSize: '0.875rem',
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                color: 'white',
-                boxShadow: 'none',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  bgcolor: '#14b8a6',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                },
-              }}
-            >
-              Sign In
-            </Button>
-          </SignInButton>
-        </SignedOut>
-      </Box>
-      <NewProjectDialog
-        open={newProjectDialogOpen}
-        onClose={() => setNewProjectDialogOpen(false)}
-        onProjectCreated={(project) => {
-          setNewProjectDialogOpen(false);
-          // Could also trigger a refresh of the discovery feed if needed
-          window.dispatchEvent(new Event('projectCreated'));
-        }}
-      />
-      <FeedbackDialog
-        open={feedbackDialogOpen}
-        onClose={() => setFeedbackDialogOpen(false)}
-      />
-    </>
-  );
-}
-
-function NavigationTabs() {
-  const location = useLocation();
-  const { user } = useUser();
-  const [notificationCounts, setNotificationCounts] = useState({
-    interests: 0,
-    workspaces: 0,
-    accessRequests: 0,
-  });
-  const [loadingCounts, setLoadingCounts] = useState(true);
-
-  // Fetch notification counts
-  const fetchNotificationCounts = useCallback(async () => {
-    if (!user || !user.id) {
-      setLoadingCounts(false);
-      return;
-    }
-
-    try {
-      const [notifResponse, accessResponse] = await Promise.all([
-        fetch(`${API_BASE}/notifications/counts`, {
-          headers: { 'X-Clerk-User-Id': user.id },
-        }),
-        fetch(`${API_BASE}/access-requests/count`, {
-          headers: { 'X-Clerk-User-Id': user.id },
-        }).catch(() => null),
-      ]);
-      
-      let interests = 0, workspaces = 0, accessRequests = 0;
-      
-      if (notifResponse.ok) {
-        const data = await notifResponse.json();
-        interests = data.interests || 0;
-        workspaces = data.workspaces || 0;
-      }
-      
-      if (accessResponse && accessResponse.ok) {
-        const data = await accessResponse.json();
-        accessRequests = data.count || 0;
-      }
-      
-      setNotificationCounts({ interests, workspaces, accessRequests });
-    } catch (err) {
-      // Error fetching notification counts
-    } finally {
-      setLoadingCounts(false);
-    }
-  }, [user]);
-
-  // Fetch counts on mount and when user changes
-  useEffect(() => {
-    fetchNotificationCounts();
-  }, [fetchNotificationCounts]);
-
-  // Refresh counts when navigating to interested, workspaces, or access-requests tabs (mark as viewed)
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.startsWith('/interested') || path.startsWith('/workspaces') || path.startsWith('/access-requests')) {
-      // Refresh counts after a short delay to allow page to load
-      const timer = setTimeout(() => {
-        fetchNotificationCounts();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname, fetchNotificationCounts]);
-
-  // Listen for events that might change notification counts
-  useEffect(() => {
-    const handleInterestAccepted = () => {
-      setTimeout(() => fetchNotificationCounts(), 500);
-    };
-    const handleProjectCreated = () => {
-      setTimeout(() => fetchNotificationCounts(), 500);
-    };
-    const handleInterestsViewed = () => {
-      setTimeout(() => fetchNotificationCounts(), 500);
-    };
-    const handleAccessRequestResponded = () => {
-      setTimeout(() => fetchNotificationCounts(), 500);
-    };
-
-    window.addEventListener('interestAccepted', handleInterestAccepted);
-    window.addEventListener('projectCreated', handleProjectCreated);
-    window.addEventListener('interestsViewed', handleInterestsViewed);
-    window.addEventListener('accessRequestResponded', handleAccessRequestResponded);
-
-    return () => {
-      window.removeEventListener('interestAccepted', handleInterestAccepted);
-      window.removeEventListener('projectCreated', handleProjectCreated);
-      window.removeEventListener('interestsViewed', handleInterestsViewed);
-      window.removeEventListener('accessRequestResponded', handleAccessRequestResponded);
-    };
-  }, [fetchNotificationCounts]);
-
-  // Map routes to tab indices
-  const getTabValue = () => {
-    const path = location.pathname;
-    if (path.startsWith('/discover')) return 0;
-    if (path.startsWith('/interested')) return 1;
-    if (path.startsWith('/access-requests')) return 2;
-    if (path.startsWith('/projects')) return 3;
-    if (path.startsWith('/workspaces')) return 4;
-    if (path.startsWith('/consultations')) return 5;
-    if (path.startsWith('/payments')) return 6;
-    if (path.startsWith('/feedback') || path.startsWith('/my-feedback')) return 7;
-    return 0;
-  };
-
-  const navigate = useNavigate();
-
-  const handleTabChange = (event, newValue) => {
-    const routes = ['/discover', '/interested', '/access-requests', '/projects', '/workspaces', '/consultations', '/payments', '/my-feedback'];
-    navigate(routes[newValue]);
-  };
-
-  return (
-    <Box sx={{ 
-      flexShrink: 0,
-      bgcolor: 'background.paper',
-      borderBottom: '1px solid',
-      borderColor: 'divider',
-    }}>
-      <Tabs 
-        value={getTabValue()} 
-        onChange={handleTabChange} 
-        aria-label="navigation tabs"
-        sx={{
-          px: { xs: 2, sm: 4 },
-          minHeight: 56,
-          '& .MuiTab-root': {
-            minHeight: 56,
-            px: 3,
-          },
-          '& .MuiTabs-indicator': {
-            height: 3,
-            backgroundColor: '#0d9488',
-            borderRadius: '3px 3px 0 0',
-          },
-        }}
-      >
-        <Tab label="Discover" />
-        <Tab 
-          label={
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.75,
-              whiteSpace: 'nowrap',
-            }}>
-              <span>Interested</span>
-              {notificationCounts.interests > 0 && (
-                <Box
-                  sx={{
-                    backgroundColor: '#0d9488',
-                    color: '#ffffff',
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    minWidth: '18px',
-                    height: '18px',
-                    lineHeight: '18px',
-                    padding: '0 5px',
-                    borderRadius: '9px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {notificationCounts.interests}
-                </Box>
-              )}
-            </Box>
-          }
-        />
-        <Tab 
-          label={
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.75,
-              whiteSpace: 'nowrap',
-            }}>
-              <span>Access Requests</span>
-              {notificationCounts.accessRequests > 0 && (
-                <Box
-                  sx={{
-                    backgroundColor: '#f59e0b',
-                    color: '#ffffff',
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    minWidth: '18px',
-                    height: '18px',
-                    lineHeight: '18px',
-                    padding: '0 5px',
-                    borderRadius: '9px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {notificationCounts.accessRequests}
-                </Box>
-              )}
-            </Box>
-          }
-        />
-        <Tab label="My Projects" />
-        <Tab 
-          label={
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.75,
-              whiteSpace: 'nowrap',
-            }}>
-              <span>Workspaces</span>
-              {notificationCounts.workspaces > 0 && (
-                <Box
-                  sx={{
-                    backgroundColor: '#0d9488',
-                    color: '#ffffff',
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    minWidth: '18px',
-                    height: '18px',
-                    lineHeight: '18px',
-                    padding: '0 5px',
-                    borderRadius: '9px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {notificationCounts.workspaces}
-                </Box>
-              )}
-            </Box>
-          }
-        />
-        <Tab label="Consultations" />
-        <Tab label="Payments" />
-        <Tab label="Feedback" />
-      </Tabs>
-    </Box>
-  );
-}
-
 // Wrapper component to handle loading/onboarding states
 function RouteWrapper({ children, loading, advisorChecked, showAdvisorOnboarding, showOnboarding, onboardingChecked, isAdvisor, isFounder, onAdvisorOnboardingComplete, onOnboardingComplete, onSelectAdvisorFlow }) {
   if (loading || !advisorChecked) {
@@ -728,8 +171,8 @@ function RouteWrapper({ children, loading, advisorChecked, showAdvisorOnboarding
       return children;
     }
     // Allow access to founder routes even if user is an advisor (mode switching)
-    // Founder routes: /discover, /projects, /workspaces, /interested, /pricing, /my-feedback
-    const founderRoutes = ['/discover', '/projects', '/workspaces', '/interested', '/pricing', '/my-feedback'];
+    // Founder routes: /discover, /projects, /workspaces, /applications, /pricing, /my-feedback
+    const founderRoutes = ['/discover', '/find-project', '/applications', '/my-applications', '/projects', '/workspaces', '/pricing', '/my-feedback'];
     if (founderRoutes.some(route => currentPath.startsWith(route))) {
       return children;
     }
@@ -951,7 +394,7 @@ function AppContent() {
       
       // For founder routes, check founder status first, not partner
       // This prevents founders from being incorrectly identified as partners
-      const founderRoutePrefixes = ['/discover', '/workspace', '/projects', '/interested', '/access-requests', '/consultations', '/payments', '/pricing', '/my-feedback', '/feedback'];
+      const founderRoutePrefixes = ['/discover', '/find-project', '/applications', '/my-applications', '/workspace', '/projects', '/consultations', '/payments', '/pricing', '/my-feedback', '/feedback'];
       if (founderRoutePrefixes.some(prefix => location.pathname.startsWith(prefix))) {
         // Set loading to true to prevent RouteWrapper from redirecting before check completes
         setLoading(true);
@@ -1067,20 +510,14 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <SwipeInterface />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <SeekerDiscovery />
             </Box>
           </RouteWrapper>
         } />
-        <Route path="/interested" element={
+        {/* Legacy route redirect */}
+        <Route path="/find-project" element={<Navigate to="/discover" replace />} />
+        <Route path="/applications" element={
           <RouteWrapper
             loading={loading}
             advisorChecked={advisorChecked}
@@ -1093,20 +530,12 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <InterestedPage />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <OwnerApplications />
             </Box>
           </RouteWrapper>
         } />
-        <Route path="/access-requests" element={
+        <Route path="/my-applications" element={
           <RouteWrapper
             loading={loading}
             advisorChecked={advisorChecked}
@@ -1119,19 +548,14 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-                <AccessRequests />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <MyApplications />
             </Box>
           </RouteWrapper>
         } />
+        {/* Legacy route redirect */}
+        <Route path="/interested" element={<Navigate to="/applications" replace />} />
+        <Route path="/access-requests" element={<Navigate to="/applications" replace />} />
         <Route path="/projects" element={
           <RouteWrapper
             loading={loading}
@@ -1145,16 +569,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <MyProjects />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <MyProjects />
             </Box>
           </RouteWrapper>
         } />
@@ -1171,16 +587,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <WorkspacesList />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <WorkspacesList />
             </Box>
           </RouteWrapper>
         } />
@@ -1213,16 +621,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-                <ConsultationsPage />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <ConsultationsPage />
             </Box>
           </RouteWrapper>
         } />
@@ -1239,16 +639,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <PaymentHistory />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <PaymentHistory />
             </Box>
           </RouteWrapper>
         } />
@@ -1288,16 +680,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <FeedbackHistory />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <FeedbackHistory />
             </Box>
           </RouteWrapper>
         } />
@@ -1314,16 +698,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-                <FeedbackHistory />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <FeedbackHistory />
             </Box>
           </RouteWrapper>
         } />
@@ -1350,16 +726,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-                <ProfilePage />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <ProfilePage />
             </Box>
           </RouteWrapper>
         } />
@@ -1376,16 +744,8 @@ function AppContent() {
             onOnboardingComplete={handleOnboardingComplete}
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
-            <Box sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}>
-              <NavigationTabs />
-              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-                <FounderDatePage />
-              </Box>
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <FounderDatePage />
             </Box>
           </RouteWrapper>
         } />
@@ -1460,37 +820,31 @@ function App() {
 
 function AppWithHeader() {
   const location = useLocation();
-  
-  // Hide header only for public landing pages
-  const isAdvisorLandingRoute = location.pathname === '/advisor/landing';
-  const isHomeRoute = location.pathname === '/home';
-  const showHeader = !isAdvisorLandingRoute; // Show header on all pages except public landing
 
-  return (
-    <Box sx={{ 
-      height: '100vh', 
-      bgcolor: 'background.default',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
-    }}>
-      {/* Header - only show for non-partner routes */}
-      {showHeader && <Header />}
-      
+  // Full-width pages only: home chooser, advisor marketing/onboarding, legal. In-app advisor dashboard uses sidebar.
+  const noLayoutRoutes = ['/home', '/advisor/landing', '/advisor/onboarding', '/privacy-policy', '/terms-and-conditions', '/faq'];
+  const isNoLayoutRoute = noLayoutRoutes.includes(location.pathname);
+
+  // For routes without sidebar layout
+  if (isNoLayoutRoute) {
+    return (
       <Box sx={{ 
-        flex: 1, 
-        overflow: (isAdvisorLandingRoute || isHomeRoute || location.pathname.startsWith('/advisor/')) ? 'auto' : 'hidden',
+        height: '100vh', 
+        bgcolor: 'background.default',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative'
+        overflow: 'auto'
       }}>
-        {isAdvisorLandingRoute ? (
-          <AdvisorLanding />
-        ) : (
-          <AppContent />
-        )}
+        <AppContent />
       </Box>
-    </Box>
+    );
+  }
+
+  // For main app routes with sidebar layout
+  return (
+    <AppLayout>
+      <AppContent />
+    </AppLayout>
   );
 }
 
