@@ -271,25 +271,6 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
               }}
             />
           )}
-          {(!collapsed || isMobile) && item.badge > 0 && (
-            <Box
-              sx={{
-                bgcolor: TEAL,
-                color: '#fff',
-                fontSize: '0.65rem',
-                fontWeight: 600,
-                minWidth: 20,
-                height: 20,
-                borderRadius: 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                ml: 1,
-              }}
-            >
-              {item.badge}
-            </Box>
-          )}
         </ListItemButton>
       </ListItem>
     );
