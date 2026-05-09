@@ -24,6 +24,9 @@ import {
   Hub,
   MarkEmailUnread,
   Tune,
+  Event,
+  ChatBubbleOutline,
+  School,
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import FeedbackDialog from './FeedbackDialog';
@@ -168,14 +171,17 @@ const LandingPage = () => {
     { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences so founders know who they\'re approving.' },
     { icon: <BarChart />, title: 'Personal intros', desc: 'Add optional video or voice introductions to stand out during review.' },
     { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Partnership Agreement template ready for legal review.' },
-    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Pro/Pro+ users can browse advisors and book consultations. Pay advisors directly (UPI, PayPal, bank transfer), then schedule on their Cal.com link. No platform fees.' },
+    { icon: <Event />, title: 'Founder Date stages', desc: 'Structured intro milestones with Cal.com-friendly links so you and your match book the right calls at the right pace—not a single awkward “let’s jump on Zoom” thread.' },
+    { icon: <ChatBubbleOutline />, title: 'Workspace chat', desc: 'Real-time messaging inside each workspace with your co-founder—keep decisions and context in one place instead of scattered email.' },
+    { icon: <School />, title: 'First Match Coaching', desc: 'After your first acceptance, guided prompts help you agree on what to tackle first—roles, expectations, and next steps—so the partnership starts with clarity.' },
+    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Pro/Pro+ users can browse advisors and book consultations. Pay advisors directly (UPI, PayPal, bank transfer), then schedule on their Cal.com link. No platform fees on consultation payouts.' },
   ];
 
   const subscriptionPlans = [
     {
       name: 'Free', price: '$0', popular: false,
       features: [
-        'Unlimited browsing',
+        '3 curated projects per day',
         '1 application per day',
         '1 project',
         '1 workspace',
@@ -200,7 +206,7 @@ const LandingPage = () => {
         'Everything in Pro',
         'See all founders',
         '30-day post-match support',
-        'Human-moderated check-ins',
+        'Priority check-in support',
       ],
     },
   ];
@@ -354,7 +360,7 @@ const LandingPage = () => {
               Everything you need to build together
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
-              From first connection through equity clarity—plus curated discovery with optional daily email nudges while you search for the right team.
+              From first connection through equity clarity—curated discovery (3 projects per day on Free), optional email nudges, workspace chat, and Founder Date milestones while you find the right team.
             </Typography>
           </Box>
 
@@ -398,7 +404,7 @@ const LandingPage = () => {
             Home to match, workspace to build
           </Typography>
           <Typography variant="body2" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Preview the three-choice home experience, curated carousel, and the tools that kick in after you connect—equity workflows, check-ins, integrations, and advisors.
+            Preview home, curated discovery, Founder Date milestones, workspace chat, first-match coaching, and what opens after you connect—equity, check-ins, integrations, and advisors.
           </Typography>
         </Box>
 
@@ -1005,7 +1011,7 @@ const LandingPage = () => {
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
-                  Stay aligned with structured weekly updates. Track progress and partnership health.
+                  Stay aligned with structured weekly updates, track partnership health, and keep day-to-day decisions in workspace chat.
                 </Typography>
                 {/* Check-in cards mockup */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -1119,7 +1125,7 @@ const LandingPage = () => {
           {[
             { step: '1', title: 'Choose why you landed here', desc: 'Sign in, land on Home, and pick Join a Project, Create a Project, or Join as an Advisor—that choice routes you instantly while the sidebar keeps workspaces, payouts, advisors, and more one click away.' },
             { step: '2', title: 'Lock in curated discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Saving keeps your intent attached to your account so carousel rankings, compatibility detail, quick applies, and project deep-dives reflect what you said.' },
-            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out—and from there apply with context, negotiate equity with templates, coordinate in workspaces, and add paid advisor sessions when needed.' },
+            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out. Apply with context, use Founder Date milestones for intro calls, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{

@@ -292,7 +292,7 @@ const PricingPage = () => {
 
   const planFeatures = {
     FREE: [
-      { icon: <TrendingUp />, text: 'Unlimited browsing' },
+      { icon: <TrendingUp />, text: '3 curated projects per day' },
       { icon: <People />, text: '1 application per day' },
       { icon: <Rocket />, text: '1 project' },
       { icon: <Business />, text: '1 workspace' },
@@ -312,7 +312,7 @@ const PricingPage = () => {
     PRO_PLUS: [
       { icon: <Star />, text: 'See all projects (Free, Pro, Pro+)' },
       { icon: <Star />, text: 'Post-match support (30 days)' },
-      { icon: <Check />, text: 'Human-moderated check-ins' },
+      { icon: <Check />, text: 'Priority check-in support' },
       { icon: <Check />, text: 'Everything in Pro' },
     ],
   };
