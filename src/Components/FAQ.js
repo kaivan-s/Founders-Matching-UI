@@ -34,19 +34,19 @@ const FAQ = () => {
     },
     {
       question: 'How does the matching algorithm work?',
-      answer: 'Our matching system considers multiple factors including skills, project stage, location preferences, working style, commitment level, and funding approach. You can see your compatibility score with each potential co-founder. The algorithm prioritizes matches where both founders have expressed interest in each other\'s projects.',
+      answer: 'When you want to join a team, you complete a short intent questionnaire (role, stage, industries, work style, and optional priorities). We score projects against that profile and the project\'s compatibility answers—not random feeds. You see a curated set of projects in your daily batch; limits depend on your plan (for example, Free includes up to three curated projects per day and one outbound application per day). Compatibility scores and reasons help you decide where to invest your time before you apply.',
     },
     {
       question: 'Do I need to pay to find a co-founder?',
-      answer: 'No! Our Free tier allows you to create one workspace and swipe through 10 profiles per month. This is enough to get started and find potential matches. Pro and Pro+ plans offer unlimited discovery, advanced equity tools, and additional features for teams ready to scale.',
+      answer: 'No. The Free tier includes curated discovery (up to three new projects in your daily batch), one application per day, one project, one workspace, and core workspace tools. Pro adds unlimited applications, more projects and workspaces, visibility into Free and Pro founders\' projects, and access to book paid advisor consultations. Pro+ adds visibility into all founder tiers, 30-day post-match support, and priority check-in support. You only pay when you choose a paid founder plan or when you book a paid advisor session (those fees go to the advisor).',
     },
     {
       question: 'Can I use Guild Space if I already have a co-founder?',
       answer: 'Absolutely. Many teams use Guild Space to structure their existing partnership, formalize equity splits, track KPIs, and maintain accountability. You can skip the discovery phase and go straight to setting up your workspace.',
     },
     {
-      question: 'How do advisors earn equity?',
-      answer: 'Advisors join workspaces and provide guidance to founders. The equity allocation for advisors is typically 1-3% and is determined by the founders when setting up their equity structure. Advisors pay a small introduction fee ($29, refundable if no value in 30 days) and set their own monthly rates based on experience tier.',
+      question: 'How do advisors work on Guild Space?',
+      answer: 'There are two different ideas. Marketplace advisors list a profile, set their own rates for 30- and 60-minute consultations, and share a Cal.com (or similar) booking link. Pro and Pro+ founders can request a session; payment is agreed and sent directly to the advisor (for example UPI, PayPal, or bank transfer)—Guild Space does not take a cut on that payment. After an advisor\'s first confirmed consultation, they get a trial period and then a small Pro Advisor platform subscription so they can keep accepting new bookings. Separately, in a workspace, your equity setup may reserve an advisor equity slice for someone in an advisor role—that is between you and your co-founders and is unrelated to marketplace consultation fees.',
     },
     {
       question: 'What if I disagree with the calculated equity split?',
@@ -58,7 +58,7 @@ const FAQ = () => {
     },
     {
       question: 'What makes Guild Space different from other co-founder matching platforms?',
-      answer: 'Guild Space goes beyond matching—we provide a complete workspace OS for partnerships. After matching, you get tools for equity agreements, KPI tracking, task management, decision logging, and weekly check-ins. Everything you need to build and scale together is in one place, not scattered across different tools.',
+      answer: 'Guild Space combines curated discovery (intent-first scoring and paced daily batches) with a full workspace: equity workflows and templates, Founder Date milestones for intro calls, workspace chat, first-match coaching prompts, KPIs, decisions, weekly check-ins, and optional Slack and Notion. After you match, you are not dumped into email threads—your partnership has a dedicated home in the product.',
     },
     {
       question: 'Is there a mobile app?',
