@@ -384,16 +384,44 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
     
     const rolesDefined = roles && roles.length >= 2 && roles.every(r => r.role_title);
     
-    const completed = [equityAgreed, rolesDefined].filter(Boolean).length;
-    const progress = (completed / 2) * 100;
+    // Additional milestones
+    const firstCheckin = checkins && checkins.length > 0;
+    const weeklyCheckinStreak = recentCheckins && recentCheckins.length >= 2;
+    
+    // Calculate workspace age
+    const workspaceCreated = workspace?.created_at ? new Date(workspace.created_at) : null;
+    const now = new Date();
+    const daysOld = workspaceCreated ? Math.floor((now - workspaceCreated) / (1000 * 60 * 60 * 24)) : 0;
+    const weekOneComplete = daysOld >= 7;
+    const monthOneComplete = daysOld >= 30;
+    
+    // All milestones list
+    const allMilestones = [
+      { key: 'firstCheckin', label: 'First check-in', done: firstCheckin, icon: '✓' },
+      { key: 'equityAgreed', label: 'Equity agreed', done: equityAgreed, icon: '📊' },
+      { key: 'rolesDefined', label: 'Roles defined', done: rolesDefined, icon: '👥' },
+      { key: 'weekOne', label: 'Week 1 complete', done: weekOneComplete, icon: '🗓️' },
+      { key: 'checkinStreak', label: 'Check-in streak', done: weeklyCheckinStreak, icon: '🔥' },
+      { key: 'monthOne', label: '30 days together', done: monthOneComplete, icon: '🎉' },
+    ];
+    
+    const completed = allMilestones.filter(m => m.done).length;
+    const progress = (completed / allMilestones.length) * 100;
     
     return {
       equityAgreed,
       rolesDefined,
+      firstCheckin,
+      weeklyCheckinStreak,
+      weekOneComplete,
+      monthOneComplete,
+      allMilestones,
       completed,
+      total: allMilestones.length,
       progress,
+      daysOld,
     };
-  }, [equity, roles, equityScenarios]);
+  }, [equity, roles, equityScenarios, checkins, recentCheckins, workspace?.created_at]);
 
   const currentFocus = useMemo(() => {
     if (!milestones.equityAgreed) {
@@ -620,10 +648,10 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               </Box>
               <Box>
                 <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
-                  Setup
+                  Milestones
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                  {Math.round(milestones.progress)}% complete
+                  {milestones.completed}/{milestones.total}
                 </Typography>
               </Box>
             </Box>
@@ -757,15 +785,27 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               </Typography>
             </Box>
             
-            {/* 90-day Progress Bar */}
+            {/* Partnership Progress */}
             <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500 }}>
-                  90-day partnership progress
-                </Typography>
-                <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600 }}>
-                  {Math.round(milestones.progress)}%
-                </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                <Box>
+                  <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 500 }}>
+                    Partnership Progress
+                  </Typography>
+                  {milestones.daysOld > 0 && (
+                    <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                      Day {milestones.daysOld} of your journey
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600 }}>
+                    {milestones.completed}/{milestones.total} milestones
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: TEAL, fontWeight: 600 }}>
+                    {Math.round(milestones.progress)}% complete
+                  </Typography>
+                </Box>
               </Box>
               <LinearProgress 
                 variant="determinate" 
@@ -783,34 +823,43 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
             </Box>
 
             {/* Milestone Chips */}
-            <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
-              <Chip
-                icon={milestones.equityAgreed ? <CheckCircle sx={{ fontSize: 16 }} /> : <RadioButtonUnchecked sx={{ fontSize: 16 }} />}
-                label="Equity agreed"
-                sx={{
-                  bgcolor: milestones.equityAgreed ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.1),
-                  color: milestones.equityAgreed ? TEAL : SLATE_500,
-                  border: `1px solid ${milestones.equityAgreed ? alpha(TEAL, 0.3) : alpha(SLATE_400, 0.3)}`,
-                  fontWeight: 500,
-                  '& .MuiChip-icon': {
-                    color: milestones.equityAgreed ? TEAL : SLATE_400,
-                  }
-                }}
-              />
-              <Chip
-                icon={milestones.rolesDefined ? <CheckCircle sx={{ fontSize: 16 }} /> : <RadioButtonUnchecked sx={{ fontSize: 16 }} />}
-                label="Roles defined"
-                sx={{
-                  bgcolor: milestones.rolesDefined ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.1),
-                  color: milestones.rolesDefined ? TEAL : SLATE_500,
-                  border: `1px solid ${milestones.rolesDefined ? alpha(TEAL, 0.3) : alpha(SLATE_400, 0.3)}`,
-                  fontWeight: 500,
-                  '& .MuiChip-icon': {
-                    color: milestones.rolesDefined ? TEAL : SLATE_400,
-                  }
-                }}
-              />
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+              {milestones.allMilestones.map((m) => (
+                <Tooltip key={m.key} title={m.done ? `${m.label} ✓` : `Not yet: ${m.label}`}>
+                  <Chip
+                    icon={m.done ? <CheckCircle sx={{ fontSize: 14 }} /> : <RadioButtonUnchecked sx={{ fontSize: 14 }} />}
+                    label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><span>{m.icon}</span> {m.label}</Box>}
+                    size="small"
+                    sx={{
+                      bgcolor: m.done ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.08),
+                      color: m.done ? TEAL : SLATE_500,
+                      border: `1px solid ${m.done ? alpha(TEAL, 0.3) : alpha(SLATE_400, 0.2)}`,
+                      fontWeight: 500,
+                      fontSize: '0.75rem',
+                      '& .MuiChip-icon': {
+                        color: m.done ? TEAL : SLATE_400,
+                      }
+                    }}
+                  />
+                </Tooltip>
+              ))}
             </Box>
+
+            {/* Celebration message when all milestones complete */}
+            {milestones.progress === 100 && (
+              <Box sx={{ 
+                p: 2, 
+                mb: 3, 
+                bgcolor: alpha(TEAL, 0.05), 
+                borderRadius: 2,
+                border: `1px solid ${alpha(TEAL, 0.2)}`,
+                textAlign: 'center',
+              }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: TEAL }}>
+                  🎉 All milestones complete! Your partnership is off to a great start.
+                </Typography>
+              </Box>
+            )}
 
             {/* Current Focus */}
             <Box sx={{ 

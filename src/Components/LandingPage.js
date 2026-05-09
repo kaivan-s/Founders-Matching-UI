@@ -19,9 +19,11 @@ import {
   Bolt,
   Shield,
   BarChart,
-  Groups,
   AutoAwesome,
   Instagram,
+  Hub,
+  MarkEmailUnread,
+  Tune,
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import FeedbackDialog from './FeedbackDialog';
@@ -158,26 +160,48 @@ const LandingPage = () => {
   ];
 
   const features = [
-    { icon: <Bolt />, title: 'Smart Discovery', desc: 'Swipe through project-based profiles. Match on skills, stage, and compatibility scores.' },
-    { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing details.' },
-    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences. Let potential collaborators know who you really are.' },
-    { icon: <BarChart />, title: 'Personal Intros', desc: 'Add video or voice introductions to stand out. Show your personality beyond just text.' },
+    { icon: <Tune />, title: 'Intent-Based Curated Discovery', desc: 'Tell us the role you want to play and what stages excite you. We score projects against your goals and founder questionnaire answers—not random stacks—so matches feel chosen for you.' },
+    { icon: <Bolt />, title: 'Focused daily batches', desc: 'See a curated set of projects each day designed to reward close reading and strong applications instead of infinite scrolling.' },
+    { icon: <MarkEmailUnread />, title: 'Nudges when new matches land', desc: 'We email a digest when your next curated batch of projects is ready, so worthwhile leads find you before you open the app.' },
+    { icon: <Hub />, title: 'Pick your lane at home', desc: 'Start by joining an existing idea, spinning up your own project, or choosing the advisor path. Once inside, navigation lives in one clean sidebar—from Discover to workspaces and payouts.' },
+    { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing deeper details—or quick-apply when a project welcomes open applications.' },
+    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences so founders know who they\'re approving.' },
+    { icon: <BarChart />, title: 'Personal intros', desc: 'Add optional video or voice introductions to stand out during review.' },
     { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Partnership Agreement template ready for legal review.' },
-    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Browse advisors on any plan. With Pro+, book 30- or 60-minute paid consultations, pay your advisor directly (UPI, PayPal, bank transfer, and more), then schedule on their Cal.com link.' },
+    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Pro/Pro+ users can browse advisors and book consultations. Pay advisors directly (UPI, PayPal, bank transfer), then schedule on their Cal.com link. No platform fees.' },
   ];
 
-  const plans = [
+  const subscriptionPlans = [
     {
-      name: 'Free', price: '$0', period: 'forever', popular: false,
-      features: ['25 swipes / day', '2 projects', 'Join unlimited workspaces', 'Slack integration', 'Browse advisor marketplace', 'Weekly check-ins'],
+      name: 'Free', price: '$0', popular: false,
+      features: [
+        'Unlimited browsing',
+        '1 application per day',
+        '1 project',
+        '1 workspace',
+        'All workspace tools',
+        'See Free founders only',
+      ],
     },
     {
-      name: 'Pro', price: '$12', period: '/month', popular: true,
-      features: ['Unlimited swipes', 'Up to 10 projects', 'Create 3 workspaces', 'Notion integration', 'Summary dashboard', 'Browse advisor marketplace'],
+      name: 'Pro', price: '$12/mo', popular: true,
+      features: [
+        'Unlimited applications',
+        'Up to 3 projects',
+        'Unlimited workspaces',
+        'See Free + Pro founders',
+        'Advisor marketplace',
+        'All workspace tools',
+      ],
     },
     {
-      name: 'Pro+', price: '$29', period: '/month', popular: false,
-      features: ['Everything in Pro', 'Equity calculator & agreement template', 'Book paid advisor consultations', 'Unlimited projects', 'Unlimited workspaces'],
+      name: 'Pro+', price: '$29/mo', popular: false,
+      features: [
+        'Everything in Pro',
+        'See all founders',
+        '30-day post-match support',
+        'Human-moderated check-ins',
+      ],
     },
   ];
 
@@ -217,7 +241,7 @@ const LandingPage = () => {
 
         <Container maxWidth="md" sx={{ position: 'relative', zIndex: 2, textAlign: 'center', pt: { xs: 6, md: 10 } }}>
           <Chip
-            label="Where Partnerships Begin"
+            label="Where partnerships begin"
             size="small"
             sx={{
               mb: 3, fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em',
@@ -237,11 +261,19 @@ const LandingPage = () => {
             </Box>
           </Typography>
 
-          <Typography variant="h6" sx={{
-            color: SLATE_500, fontWeight: 400, maxWidth: 560, mx: 'auto', mb: 5,
-            fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.65,
-          }}>
-            Find collaborators who believe in your idea, agree on equity, and run your partnership in one workspace—plus book paid advisor sessions when you need expert guidance.
+          <Typography
+            variant="body1"
+            sx={{
+              color: SLATE_500,
+              fontWeight: 400,
+              maxWidth: 560,
+              mx: 'auto',
+              mb: 5,
+              fontSize: { xs: '1rem', md: '1.075rem' },
+              lineHeight: 1.6,
+            }}
+          >
+            Join a team, lead your own idea, or advise—fit-first intros and a nudge when something new lines up.
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
@@ -321,8 +353,8 @@ const LandingPage = () => {
             }}>
               Everything you need to build together
             </Typography>
-            <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 520, mx: 'auto' }}>
-              From first connection to signed agreement—and paid advisor sessions when you need them—Guild Space keeps your partnership on track.
+            <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
+              From first connection through equity clarity—plus curated discovery with optional daily email nudges while you search for the right team.
             </Typography>
           </Box>
 
@@ -363,7 +395,10 @@ const LandingPage = () => {
             fontWeight: 700, mt: 1.5, color: SLATE_900,
             fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
           }}>
-            Your partnership, organized
+            Home to match, workspace to build
+          </Typography>
+          <Typography variant="body2" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
+            Preview the three-choice home experience, curated carousel, and the tools that kick in after you connect—equity workflows, check-ins, integrations, and advisors.
           </Typography>
         </Box>
 
@@ -388,15 +423,15 @@ const LandingPage = () => {
                 <Bolt sx={{ fontSize: 20 }} />
               </Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                Swipe & Discover
+                Curated project discovery
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Browse project profiles in a carousel. Compatibility scores help you find the right collaborators.
+              Glide through curated projects ranked for your questionnaire answers. Peek at compatibility detail, skim founder answers, open the full breakdown, then skip or dive into an apply flow.
             </Typography>
-            {/* Mini filter bar */}
+            {/* Mini questionnaire / intent cues */}
             <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-              {['All', 'MVP Ready', 'Pre-seed', 'Idea Stage'].map((f, i) => (
+              {['Goals', 'Stage fit', 'Time commit'].map((f, i) => (
                 <Box key={i} sx={{
                   px: 1.5, py: 0.5, borderRadius: 5, fontSize: '0.65rem', fontWeight: 600,
                   bgcolor: i === 0 ? TEAL : 'transparent', color: i === 0 ? '#fff' : SLATE_400,
@@ -407,7 +442,7 @@ const LandingPage = () => {
                 </Box>
               ))}
             </Box>
-            {/* Carousel mockup */}
+            {/* Carousel / daily batch mockup */}
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
               {[
                 { name: 'Alex Chen', loc: 'San Francisco', project: 'FinTech SaaS', stage: 'MVP', skills: ['React', 'Node.js', 'AWS'], match: 92, scale: 0.88, opacity: 0.6 },
@@ -468,13 +503,13 @@ const LandingPage = () => {
                 </Box>
               ))}
             </Box>
-            {/* Swipe action bar */}
+            {/* Action bar */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2.5 }}>
               <Box sx={{
                 px: 2.5, py: 0.75, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1,
                 border: '1px solid', borderColor: SLATE_200, cursor: 'default',
               }}>
-                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600 }}>Skip</Typography>
+                <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600 }}>Later</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 {[0, 1, 2, 3, 4].map(d => (
@@ -486,7 +521,7 @@ const LandingPage = () => {
                 bgcolor: TEAL, cursor: 'default',
               }}>
                 <Handshake sx={{ fontSize: 14, color: '#fff' }} />
-                <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>Connect</Typography>
+                <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>Apply</Typography>
               </Box>
             </Box>
           </Box>
@@ -882,7 +917,7 @@ const LandingPage = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
             }}>
               <Typography variant="caption" sx={{ color: TEAL, fontWeight: 600, fontSize: '0.7rem' }}>
-                Pro+ unlocks booking — browse anytime
+                Pro/Pro+ feature — pay advisors directly
               </Typography>
               <ArrowForward sx={{ fontSize: 12, color: TEAL }} />
             </Box>
@@ -1076,15 +1111,15 @@ const LandingPage = () => {
             fontWeight: 700, mt: 1.5, color: SLATE_900,
             fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
           }}>
-            Three steps to a real partnership
+            Three paths on home, curated discovery afterward
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
-            { step: '1', title: 'Discover & Apply', desc: 'Browse project profiles. Answer screening questions to show you\'re committed. Project creators review your profile and responses.' },
-            { step: '2', title: 'Connect & Agree', desc: 'Once accepted, share full project details. Use equity templates to set clear ownership from day one.' },
-            { step: '3', title: 'Build Together', desc: 'Define roles, check in weekly, and upgrade to Pro+ when you need paid advisor consultations—all from your partnership workspace.' },
+            { step: '1', title: 'Choose why you landed here', desc: 'Sign in, land on Home, and pick Join a Project, Create a Project, or Join as an Advisor—that choice routes you instantly while the sidebar keeps workspaces, payouts, advisors, and more one click away.' },
+            { step: '2', title: 'Lock in curated discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Saving keeps your intent attached to your account so carousel rankings, compatibility detail, quick applies, and project deep-dives reflect what you said.' },
+            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out—and from there apply with context, negotiate equity with templates, coordinate in workspaces, and add paid advisor sessions when needed.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
@@ -1199,45 +1234,46 @@ const LandingPage = () => {
             fontWeight: 700, mt: 1.5, color: SLATE_900,
             fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
           }}>
-            Start free, scale when ready
+            Simple subscription plans
+          </Typography>
+          <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
+            All workspace features included in every plan. Upgrade for more projects, unlimited applications, and access to the advisor marketplace.
           </Typography>
         </Box>
 
-        <Grid container spacing={3} sx={{ maxWidth: 1000, mx: 'auto', mb: 6 }}>
-          {plans.map((plan) => (
+        {/* Subscription Plans */}
+        <Grid container spacing={3} sx={{ maxWidth: 1000, mx: 'auto', mb: 5 }}>
+          {subscriptionPlans.map((plan) => (
             <Grid item xs={12} md={4} key={plan.name}>
               <Box sx={{
-                p: 4, borderRadius: 3, height: '100%', position: 'relative',
+                p: 3, borderRadius: 3, height: '100%', position: 'relative',
                 border: plan.popular ? '2px solid' : '1px solid',
                 borderColor: plan.popular ? TEAL : SLATE_200,
                 bgcolor: '#fff',
                 transition: 'all 0.25s ease',
+                display: 'flex',
+                flexDirection: 'column',
                 '&:hover': {
                   boxShadow: plan.popular ? `0 12px 32px ${alpha(TEAL, 0.15)}` : `0 8px 24px ${alpha(NAVY, 0.06)}`,
                 },
               }}>
                 {plan.popular && (
-                  <Chip label="Popular" size="small" sx={{
-                    position: 'absolute', top: 16, right: 16,
-                    bgcolor: TEAL, color: '#fff', fontWeight: 600, fontSize: '0.7rem', height: 24,
+                  <Chip label="Most Popular" size="small" sx={{
+                    position: 'absolute', top: 12, right: 12,
+                    bgcolor: TEAL, color: '#fff', fontWeight: 600, fontSize: '0.65rem', height: 20,
                   }} />
                 )}
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_500, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_500, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.7rem' }}>
                   {plan.name}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', mt: 1, mb: 3 }}>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: SLATE_900, letterSpacing: '-0.02em' }}>
-                    {plan.price}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_400, ml: 0.5 }}>
-                    {plan.period}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {plan.features.map((f, i) => (
-                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <CheckCircle sx={{ fontSize: 16, color: '#10b981', flexShrink: 0 }} />
-                      <Typography variant="body2" sx={{ color: SLATE_500 }}>{f}</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800, color: SLATE_900, letterSpacing: '-0.02em', mt: 1, mb: 2 }}>
+                  {plan.price}
+                </Typography>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {plan.features.map((feature, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
+                      <Typography variant="body2" sx={{ color: SLATE_500 }}>{feature}</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -1246,9 +1282,13 @@ const LandingPage = () => {
           ))}
         </Grid>
 
-        <Typography variant="body2" sx={{ color: SLATE_400, textAlign: 'center', maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-          Plans cover platform access. Whatever you agree to pay an advisor for a session goes to them directly—not through Guild Space checkout.
-        </Typography>
+        {/* Key differentiator note */}
+        <Box sx={{ maxWidth: 700, mx: 'auto', p: 3, borderRadius: 3, bgcolor: alpha(TEAL, 0.04), border: '1px solid', borderColor: alpha(TEAL, 0.15), textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ color: SLATE_500 }}>
+            <strong>Tier-based discovery:</strong> Free users see only Free founders' projects. Pro users see Free + Pro. Pro+ sees everyone.
+            This ensures aligned commitment levels when forming partnerships.
+          </Typography>
+        </Box>
       </Container>
 
       {/* ─── For Advisors ─── */}
@@ -1265,7 +1305,7 @@ const LandingPage = () => {
               Paid consultations
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 600, mx: 'auto' }}>
-              List for free, set your own 30- and 60-minute rates, and add your Cal.com scheduling link. Pro+ members book you; they pay you directly and you meet on your calendar.
+              List for free, set your own 30- and 60-minute rates, and add your Cal.com scheduling link. Pro/Pro+ founders can browse and book—they pay you directly and you meet on your calendar.
             </Typography>
           </Box>
 
@@ -1290,8 +1330,8 @@ const LandingPage = () => {
                   {[
                     'Build your advisor profile and set separate rates for 30- and 60-minute sessions',
                     'Paste your Cal.com booking URL so founders schedule on your terms',
-                    'Accept or decline consultation requests from Pro+ members',
-                    'Members pay you directly. Guild Space records confirmations for a clear paper trail',
+                    'Accept or decline consultation requests from Pro/Pro+ founders',
+                    'Founders pay you directly (UPI, PayPal, bank transfer). Guild Space records confirmations for transparency',
                     'After your first confirmed consultation, enjoy a 30-day Pro Advisor trial—then stay bookable with a small subscription',
                   ].map((item, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
@@ -1418,8 +1458,8 @@ const LandingPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 700, color: SLATE_900, mb: 2, fontSize: { xs: '1.5rem', md: '2rem' }, letterSpacing: '-0.02em' }}>
           Ready to find your people?
         </Typography>
-        <Typography variant="body1" sx={{ color: SLATE_500, mb: 4, maxWidth: 400, mx: 'auto' }}>
-          Join Guild Space and start building with collaborators who share your vision.
+        <Typography variant="body1" sx={{ color: SLATE_500, mb: 4, maxWidth: 440, mx: 'auto' }}>
+          Jump into curated discovery after you choose join, create, or advise—then collaborate with founders who lined up expectations first.
         </Typography>
         {isSignedIn ? (
           <Button variant="contained" endIcon={<ArrowForward />} onClick={() => navigate('/home')} sx={{

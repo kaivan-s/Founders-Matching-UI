@@ -1124,9 +1124,14 @@ const SeekerDiscovery = () => {
       >
         <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Apply to {selectedProject?.title}
-            </Typography>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Apply to {selectedProject?.title}
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                Connect with the founder
+              </Typography>
+            </Box>
             <IconButton onClick={() => setApplyDialogOpen(false)} size="small">
               <Close />
             </IconButton>
@@ -1195,9 +1200,11 @@ const SeekerDiscovery = () => {
           <Button
             variant="contained"
             onClick={handleApply}
-            disabled={applying || (selectedProject?.application_questions?.length > 0 && 
-              !selectedProject.application_questions.every(q => applicationData.question_answers[q]?.trim())
-            )}
+            disabled={
+              applying || 
+              (selectedProject?.application_questions?.length > 0 && 
+                !selectedProject.application_questions.every(q => applicationData.question_answers[q]?.trim()))
+            }
             startIcon={applying ? <CircularProgress size={16} color="inherit" /> : <Send />}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >

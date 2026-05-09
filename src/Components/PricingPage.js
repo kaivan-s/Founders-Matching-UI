@@ -39,11 +39,21 @@ import {
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
+/** Fallback if /billing/plans omits advisor_pricing (keep in sync with plan_service.ADVISOR_PRICING). */
+const DEFAULT_ADVISOR_PRICING = {
+  subscriptionMonthlyUSD: 19,
+  subscriptionYearlyUSD: 99,
+  trialDaysAfterFirstBooking: 30,
+  minConsultationRateUSD: 5,
+  maxConsultationRateUSD: 1000,
+};
+
 const PricingPage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState(null);
+  const [advisorPricing, setAdvisorPricing] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [currentPlanDetails, setCurrentPlanDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +103,7 @@ const PricingPage = () => {
       if (response.ok) {
         const data = await response.json();
         setPlans(data.founder_plans);
+        setAdvisorPricing(data.advisor_pricing || {});
       }
 
       // Fetch current plan with full details
@@ -275,31 +286,34 @@ const PricingPage = () => {
     );
   }
 
+  const adv = { ...DEFAULT_ADVISOR_PRICING, ...(advisorPricing || {}) };
+  const yearlySave =
+    adv.subscriptionMonthlyUSD * 12 - adv.subscriptionYearlyUSD;
+
   const planFeatures = {
     FREE: [
-      { icon: <TrendingUp />, text: '25 swipes/day' },
-      { icon: <People />, text: '10 access requests/month' },
-      { icon: <Rocket />, text: '2 projects' },
-      { icon: <Business />, text: 'Join unlimited workspaces' },
-      { icon: <Check />, text: 'Slack integration' },
-      { icon: <Check />, text: 'Advisor marketplace' },
+      { icon: <TrendingUp />, text: 'Unlimited browsing' },
+      { icon: <People />, text: '1 application per day' },
+      { icon: <Rocket />, text: '1 project' },
+      { icon: <Business />, text: '1 workspace' },
+      { icon: <Check />, text: 'Equity calculator' },
+      { icon: <Check />, text: 'Slack & Notion integrations' },
       { icon: <Check />, text: 'Weekly check-ins' },
-      { icon: <Check />, text: 'KPIs & decisions' },
+      { icon: <Close color="disabled" />, text: 'Can only see Free projects', muted: true },
     ],
     PRO: [
-      { icon: <TrendingUp />, text: 'Unlimited swipes' },
-      { icon: <People />, text: 'Unlimited access requests' },
-      { icon: <Rocket />, text: 'Up to 10 projects' },
-      { icon: <Business />, text: 'Create up to 3 workspaces' },
-      { icon: <Check />, text: 'Notion integration' },
-      { icon: <Check />, text: 'Summary dashboard' },
+      { icon: <TrendingUp />, text: 'Unlimited applications' },
+      { icon: <Rocket />, text: 'Up to 3 projects' },
+      { icon: <Business />, text: 'Unlimited workspaces' },
+      { icon: <Star />, text: 'See Free + Pro projects' },
+      { icon: <Star />, text: 'Advisor marketplace access' },
       { icon: <Check />, text: 'Everything in Free' },
     ],
     PRO_PLUS: [
-      { icon: <TrendingUp />, text: 'Everything in Pro' },
-      { icon: <Business />, text: 'Unlimited workspaces' },
-      { icon: <Rocket />, text: 'Unlimited projects' },
-      { icon: <Star />, text: 'Equity calculator & agreement template' },
+      { icon: <Star />, text: 'See all projects (Free, Pro, Pro+)' },
+      { icon: <Star />, text: 'Post-match support (30 days)' },
+      { icon: <Check />, text: 'Human-moderated check-ins' },
+      { icon: <Check />, text: 'Everything in Pro' },
     ],
   };
 
@@ -328,9 +342,10 @@ const PricingPage = () => {
           const isPopular = plan.id === 'PRO';
           
           return (
-            <Grid item xs={12} md={4} key={plan.id}>
+            <Grid item xs={12} md={4} key={plan.id} sx={{ display: 'flex' }}>
               <Card
                 sx={{
+                  width: '100%',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -379,7 +394,15 @@ const PricingPage = () => {
                   />
                 )}
                 
-                <CardContent sx={{ flex: 1, p: 4 }}>
+                <CardContent
+                  sx={{
+                    flex: 1,
+                    p: 4,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 0,
+                  }}
+                >
                   <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a' }}> {/* Navy */}
                     {plan.id === 'FREE' ? 'Free' : plan.id === 'PRO' ? 'Pro' : 'Pro+'}
                   </Typography>
@@ -394,7 +417,7 @@ const PricingPage = () => {
                     )}
                   </Box>
 
-                  <List sx={{ mb: 3 }}>
+                  <List sx={{ flex: 1, mb: 2, py: 0 }}>
                     {planFeatures[plan.id].map((feature, idx) => (
                       <ListItem key={idx} sx={{ px: 0, py: 0.75 }}>
                         <ListItemIcon sx={{ minWidth: 32 }}>
@@ -425,6 +448,7 @@ const PricingPage = () => {
                     disabled={isCurrent}
                     sx={{
                       mt: 'auto',
+                      flexShrink: 0,
                       py: 1.5,
                       borderRadius: 3,
                       textTransform: 'none',
@@ -595,78 +619,87 @@ const PricingPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
           For Advisors
         </Typography>
-        
-        <Grid container spacing={4}>
+
+        <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Project Acceptance Fee
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#14b8a6', mb: 1 }}>
-                $69 <Typography component="span" variant="body1" color="text.secondary">one-time</Typography>
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Pay once when you accept a project to advise. No subscriptions, no renewals.
-              </Typography>
-              
-              <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                  What's included:
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Full access to the project workspace
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Direct communication with founders
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Advisor dashboard & tools
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Lifetime access to that project
-                </Typography>
-              </Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+              Consultations
+            </Typography>
+            <Box
+              component="ul"
+              sx={{
+                m: 0,
+                pl: 2.25,
+                listStyleType: 'disc',
+                '& li': {
+                  pl: 0.5,
+                  mb: 1,
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.55,
+                  '&:last-child': { mb: 0 },
+                },
+                '& li::marker': { color: '#0d9488' },
+              }}
+            >
+              <li>30 and 60 minute sessions—you choose rates from ${adv.minConsultationRateUSD} to ${adv.maxConsultationRateUSD}</li>
+              <li>Only founders on Pro or Pro+ can book through the marketplace</li>
+              <li>They pay you directly; Guild Space doesn&apos;t process those payments</li>
+              <li>Use your Cal.com link for scheduling after a booking is confirmed</li>
             </Box>
           </Grid>
-
           <Grid item xs={12} md={6}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Compensation Model
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+              Pro Advisor
+            </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#14b8a6', mb: 0.5 }}>
+              ${adv.subscriptionMonthlyUSD}/mo · ${adv.subscriptionYearlyUSD}/yr
+            </Typography>
+            {yearlySave > 0 && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                Yearly saves ${yearlySave} vs monthly
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Advisors receive equity in the projects they advise, not monetary payment
-              </Typography>
-              
-              <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2, mb: 2 }}>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>How it works:</strong>
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • You'll receive equity in the project you're advising
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Equity terms are discussed when you accept a project
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  • Each project acceptance = one-time $69 fee
-                </Typography>
-              </Box>
-
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => navigate('/advisor/onboarding')}
-                sx={{
-                  bgcolor: '#14b8a6',
-                  '&:hover': { bgcolor: '#0d9488' },
-                }}
-              >
-                Apply as Advisor
-              </Button>
+            )}
+            <Box
+              component="ul"
+              sx={{
+                m: 0,
+                mt: yearlySave > 0 ? 0 : 1,
+                pl: 2.25,
+                listStyleType: 'disc',
+                '& li': {
+                  pl: 0.5,
+                  mb: 1,
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.55,
+                  '&:last-child': { mb: 0 },
+                },
+                '& li::marker': { color: '#0d9488' },
+              }}
+            >
+              <li>Listings and consultations are free until your first confirmed booking</li>
+              <li>
+                Then a {adv.trialDaysAfterFirstBooking}-day trial—after that, stay subscribed to accept new requests
+              </li>
             </Box>
           </Grid>
         </Grid>
+
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => navigate('/advisor/onboarding')}
+          sx={{
+            bgcolor: '#14b8a6',
+            maxWidth: 400,
+            mx: 'auto',
+            display: 'block',
+            '&:hover': { bgcolor: '#0d9488' },
+          }}
+        >
+          Apply as Advisor
+        </Button>
       </Paper>
       </Container>
     </Box>

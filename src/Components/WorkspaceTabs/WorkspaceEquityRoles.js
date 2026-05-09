@@ -477,23 +477,17 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   }
   
   // Block access if plan is null (not loaded) or if equityFull is false
+  // Note: equityFull is now true for all tiers, so this should rarely show
   if (!plan || !hasEquityAccess) {
     return (
       <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 4 }}>
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Upgrade Required
+            Loading...
           </Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Full equity & roles management is available in Pro and Pro+ plans.
+          <Typography variant="body2">
+            Please wait while we load your workspace features.
           </Typography>
-          <Button
-            variant="contained"
-            onClick={() => window.location.href = '/pricing'}
-            sx={{ bgcolor: '#14b8a6', '&:hover': { bgcolor: '#0d9488' } }}
-          >
-            View Pricing Plans
-          </Button>
         </Alert>
       </Box>
     );

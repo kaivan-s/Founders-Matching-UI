@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, UserButton } from '@clerk/clerk-react';
 import {
   Box,
   Container,
@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 import OnboardingDialog from './OnboardingDialog';
+import FounderPlanNavTag from './FounderPlanNavTag';
 
 const TEAL = '#0d9488';
 const NAVY = '#1e3a8a';
@@ -112,9 +113,32 @@ const UserFlowSelector = ({ onFounderVerified }) => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: { xs: 4, md: 8 } }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: { xs: 4, md: 8 }, position: 'relative' }}>
+      {/* Account menu (sign out lives here) — /home has no AppLayout, so we show Clerk’s user button explicitly */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: { xs: 16, md: 24 },
+          right: { xs: 16, md: 32 },
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+        }}
+      >
+        <FounderPlanNavTag />
+        <UserButton
+          afterSignOutUrl="/"
+          appearance={{
+            elements: {
+              userButtonAvatarBox: { width: 36, height: 36 },
+            },
+          }}
+        />
+      </Box>
+
       <Container maxWidth="lg">
-        {/* Header */}
+        {/* Page title block (not the global app bar — that only appears on sidebar routes) */}
         <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
           <Typography
             variant="h3"

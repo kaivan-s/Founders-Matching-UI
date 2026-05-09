@@ -308,8 +308,6 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         throw new Error(data.error || 'Failed to create project');
       }
 
-      // Note: Credits system replaced with plan-based system
-      
       // Call success callback
       if (onProjectCreated) {
         onProjectCreated(data);
@@ -391,7 +389,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               Add New Project
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Add a new project to your profile
+              Share your idea and find co-founders
             </Typography>
           </Box>
         </Box>

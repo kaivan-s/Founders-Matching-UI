@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import Sidebar, { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from './Sidebar';
 import NewProjectDialog from './NewProjectDialog';
+import FounderPlanNavTag from './FounderPlanNavTag';
 
 const TEAL = '#0d9488';
 const SLATE_200 = '#e2e8f0';
@@ -105,6 +106,7 @@ const AppLayout = ({ children }) => {
                   <MenuIcon />
                 </IconButton>
               )}
+              <FounderPlanNavTag />
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

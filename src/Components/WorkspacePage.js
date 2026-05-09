@@ -34,7 +34,7 @@ import {
   Dashboard,
   ChatBubbleOutline,
 } from '@mui/icons-material';
-import { useWorkspace } from '../hooks/useWorkspace';
+import { useWorkspace, useWorkspaceParticipants } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
@@ -42,6 +42,7 @@ import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
 import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
 import WorkspaceChat from './WorkspaceChat';
+import WorkspaceOnboarding from './WorkspaceOnboarding';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
 
@@ -50,8 +51,11 @@ const WorkspacePage = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   const { workspace, loading, error, updateWorkspace } = useWorkspace(workspaceId);
+  const { participants } = useWorkspaceParticipants(workspaceId);
   const [workspacePlan, setWorkspacePlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
@@ -62,16 +66,37 @@ const WorkspacePage = () => {
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
   
   // Determine active tab based on route matches
-  // Tabs: 0=Overview, 1=Chat, 2=Equity & Roles, 3=Advisors, 4=Summary, 5=Integrations
+  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors, 3=Integrations (Chat is now a quick action)
   const activeTab = useMemo(() => {
-    if (overviewMatch) return 0;
-    if (chatMatch) return 1;
-    if (equityRolesMatch) return 2;
-    if (accountabilityMatch) return 3;
-    if (summaryMatch) return 4;
-    if (integrationsMatch) return 5;
+    if (overviewMatch || summaryMatch) return 0; // Summary merged into Overview
+    if (chatMatch) return -1; // Chat is handled separately
+    if (equityRolesMatch) return 1;
+    if (accountabilityMatch) return 2;
+    if (integrationsMatch) return 3;
     return 0; // Default to overview
   }, [overviewMatch, chatMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
+
+  // Check onboarding status
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!user?.id || !workspaceId) return;
+      try {
+        const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/onboarding`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setShowOnboarding(!data.completed);
+        }
+      } catch (err) {
+        // If onboarding check fails, don't block the workspace
+        console.error('Error checking onboarding:', err);
+      } finally {
+        setOnboardingChecked(true);
+      }
+    };
+    checkOnboarding();
+  }, [user?.id, workspaceId]);
 
   // Fetch workspace plan tier
   useEffect(() => {
@@ -106,9 +131,13 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
+    const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
+  };
+
+  const handleOpenChat = () => {
+    navigate(`/workspaces/${workspaceId}/chat`);
   };
 
   const handleEditTitle = () => {
@@ -171,10 +200,8 @@ const WorkspacePage = () => {
 
   const tabIcons = [
     <TrendingUp fontSize="small" />,
-    <ChatBubbleOutline fontSize="small" />,
     <Groups fontSize="small" />,
     <Handshake fontSize="small" />,
-    <Dashboard fontSize="small" />,
     <LinkIcon fontSize="small" />,
   ];
 
@@ -200,6 +227,34 @@ const WorkspacePage = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
         <Typography>Workspace not found</Typography>
+      </Box>
+    );
+  }
+
+  // Show onboarding wizard for new users
+  if (onboardingChecked && showOnboarding) {
+    return (
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+        <Box sx={{ 
+          bgcolor: '#ffffff',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          px: 3,
+          py: 2,
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {workspace.title || 'New Workspace'}
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, overflow: 'auto', py: 4 }}>
+          <WorkspaceOnboarding
+            workspaceId={workspaceId}
+            workspace={workspace}
+            participants={participants}
+            onComplete={() => setShowOnboarding(false)}
+            onSkip={() => setShowOnboarding(false)}
+          />
+        </Box>
       </Box>
     );
   }
@@ -383,11 +438,30 @@ const WorkspacePage = () => {
                         }}
                       />
                     )}
+                    <Tooltip title="Message your co-founder">
+                      <Chip
+                        icon={<ChatBubbleOutline sx={{ fontSize: 16 }} />}
+                        label="Chat"
+                        size="small"
+                        onClick={handleOpenChat}
+                        sx={{
+                          bgcolor: chatMatch ? '#0d9488' : 'transparent',
+                          color: chatMatch ? '#fff' : '#0d9488',
+                          border: '1px solid #0d9488',
+                          fontWeight: 600,
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          '&:hover': {
+                            bgcolor: chatMatch ? '#0f766e' : 'rgba(13, 148, 136, 0.1)',
+                          }
+                        }}
+                      />
+                    </Tooltip>
                     <Typography 
                       variant="caption" 
                       sx={{ 
                         color: 'text.secondary',
-                        display: { xs: 'none', sm: 'block' }
+                        display: { xs: 'none', md: 'block' }
                       }}
                     >
                       Updated {getLastUpdated()}
@@ -408,7 +482,7 @@ const WorkspacePage = () => {
         px: { xs: 1, sm: 2, md: 4 },
       }}>
         <Tabs 
-          value={activeTab} 
+          value={activeTab >= 0 ? activeTab : false} 
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
@@ -437,7 +511,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[0]}
-                <span>Overview</span>
+                <span>Home</span>
               </Box>
             }
           />
@@ -445,14 +519,6 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[1]}
-                <span>Chat</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[2]}
                 <span>Equity & Roles</span>
               </Box>
             }
@@ -460,7 +526,7 @@ const WorkspacePage = () => {
           <Tab 
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[3]}
+                {tabIcons[2]}
                 <span>Advisors</span>
               </Box>
             }
@@ -468,15 +534,7 @@ const WorkspacePage = () => {
           <Tab 
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[4]}
-                <span>Summary</span>
-              </Box>
-            }
-          />
-          <Tab 
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                {tabIcons[5]}
+                {tabIcons[3]}
                 <span>Integrations</span>
               </Box>
             }
@@ -503,12 +561,12 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
+                const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
               <Route path="chat" element={
                 workspace?.match_id ? (
-                  <Box sx={{ height: 'calc(100vh - 240px)', minHeight: 500 }}>
+                  <Box sx={{ height: 'calc(100vh - 200px)', minHeight: 500 }}>
                     <WorkspaceChat 
                       matchId={workspace.match_id} 
                       currentFounderId={workspace?.participants?.find(p => p.user?.clerk_user_id === user?.id)?.user_id}
@@ -524,10 +582,7 @@ const WorkspacePage = () => {
               } />
               <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
               <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
-              <Route path="summary" element={<WorkspaceSummary workspaceId={workspaceId} onNavigateTab={(tab) => {
-                const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'summary', 'integrations'];
-                navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
-              }} />} />
+              <Route path="summary" element={<Navigate to="overview" replace />} />
               <Route path="integrations" element={<WorkspaceIntegrations workspaceId={workspaceId} />} />
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="*" element={<Navigate to="overview" replace />} />

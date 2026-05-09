@@ -110,6 +110,10 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
     );
   });
 
+  const showBroadenedListNote = partners.some(
+    (p) => p.marketplace_broadened && p.marketplace_stage_match === false
+  );
+
   const formatRate = (rate) => {
     if (rate == null || rate === '') return null;
     const n = Number(rate);
@@ -252,6 +256,12 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
 
         {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', p: 2.5, bgcolor: 'background.default' }}>
+          {!loading && !error && showBroadenedListNote && (
+            <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+              We expanded the list so you still see options when few advisors match your workspace
+              stage. Advisors that fit your stage appear first.
+            </Alert>
+          )}
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
               <CircularProgress size={32} sx={{ color: 'primary.main' }} />
@@ -330,6 +340,17 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                                 >
                                   {partnerUser.name || 'Unknown'}
                                 </Typography>
+                                {partner.marketplace_broadened && partner.marketplace_stage_match && (
+                                  <Chip label="Stage fit" size="small" sx={{ height: 22, fontSize: '0.7rem' }} />
+                                )}
+                                {partner.marketplace_broadened && partner.marketplace_stage_match === false && (
+                                  <Chip
+                                    label="Also available"
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ height: 22, fontSize: '0.7rem', color: 'text.secondary' }}
+                                  />
+                                )}
                                 {partner.linkedin_verified && (
                                   <Chip
                                     icon={<LinkedIn sx={{ fontSize: 14 }} />}

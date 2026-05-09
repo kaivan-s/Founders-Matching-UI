@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import {
   Explore,
-  Inbox,
+  AssignmentInd,
   FolderOpen,
   Groups,
   People,
@@ -53,7 +53,7 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const [inboxOpen, setInboxOpen] = useState(true);
+  const [applicationsOpen, setApplicationsOpen] = useState(true);
   const [notificationCounts, setNotificationCounts] = useState({
     received: 0,
     sent: 0,
@@ -152,17 +152,17 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
     },
   ];
 
-  const inboxItems = [
+  const applicationItems = [
     {
-      id: 'received',
-      label: 'Received',
+      id: 'incoming',
+      label: 'Incoming',
       icon: <CallReceived />,
       path: '/applications',
       badge: notificationCounts.received,
     },
     {
-      id: 'sent',
-      label: 'Sent',
+      id: 'outgoing',
+      label: 'Outgoing',
       icon: <Send />,
       path: '/my-applications',
       badge: notificationCounts.sent,
@@ -217,6 +217,7 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
 
   const NavItem = ({ item, nested = false }) => {
     const active = isActive(item.path);
+    const showBadge = item.showBadgeAlways ? item.badge !== null : item.badge > 0;
     
     return (
       <ListItem disablePadding sx={{ display: 'block' }}>
@@ -242,34 +243,35 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
               justifyContent: 'center',
             }}
           >
-            {item.badge > 0 ? (
-              <Badge 
-                badgeContent={item.badge} 
-                color="primary"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    bgcolor: TEAL,
-                    color: '#fff',
-                    fontSize: '0.65rem',
-                    minWidth: 18,
-                    height: 18,
-                  },
-                }}
-              >
-                {item.icon}
-              </Badge>
-            ) : (
-              item.icon
-            )}
+            {item.icon}
           </ListItemIcon>
           {(!collapsed || isMobile) && (
-            <ListItemText 
-              primary={item.label} 
-              primaryTypographyProps={{
-                fontSize: '0.875rem',
-                fontWeight: active ? 600 : 500,
-              }}
-            />
+            <>
+              <ListItemText 
+                primary={item.label} 
+                primaryTypographyProps={{
+                  fontSize: '0.875rem',
+                  fontWeight: active ? 600 : 500,
+                }}
+              />
+              {showBadge && (
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 1.5,
+                    bgcolor: item.showBadgeAlways ? alpha(TEAL, 0.1) : TEAL,
+                    color: item.showBadgeAlways ? TEAL : '#fff',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    minWidth: 24,
+                    textAlign: 'center',
+                  }}
+                >
+                  {item.badge}
+                </Box>
+              )}
+            </>
           )}
         </ListItemButton>
       </ListItem>
@@ -337,11 +339,11 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
           ))}
         </List>
 
-        {/* Inbox section with sub-items */}
+        {/* Applications section (co-founder matching) */}
         <List disablePadding>
           <ListItem disablePadding sx={{ display: 'block' }}>
             <ListItemButton
-              onClick={() => !collapsed || isMobile ? setInboxOpen(!inboxOpen) : handleNavigate('/applications')}
+              onClick={() => !collapsed || isMobile ? setApplicationsOpen(!applicationsOpen) : handleNavigate('/applications')}
               sx={{
                 minHeight: 44,
                 px: collapsed && !isMobile ? 2 : 2.5,
@@ -372,27 +374,27 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
                     },
                   }}
                 >
-                  <Inbox />
+                  <AssignmentInd />
                 </Badge>
               </ListItemIcon>
               {(!collapsed || isMobile) && (
                 <>
                   <ListItemText 
-                    primary="Inbox" 
+                    primary="Applications" 
                     primaryTypographyProps={{
                       fontSize: '0.875rem',
                       fontWeight: 500,
                     }}
                   />
-                  {inboxOpen ? <ExpandLess sx={{ color: SLATE_400 }} /> : <ExpandMore sx={{ color: SLATE_400 }} />}
+                  {applicationsOpen ? <ExpandLess sx={{ color: SLATE_400 }} /> : <ExpandMore sx={{ color: SLATE_400 }} />}
                 </>
               )}
             </ListItemButton>
           </ListItem>
           {(!collapsed || isMobile) && (
-            <Collapse in={inboxOpen} timeout="auto" unmountOnExit>
+            <Collapse in={applicationsOpen} timeout="auto" unmountOnExit>
               <List disablePadding>
-                {inboxItems.map((item) => (
+                {applicationItems.map((item) => (
                   <NavItem key={item.id} item={item} nested />
                 ))}
               </List>

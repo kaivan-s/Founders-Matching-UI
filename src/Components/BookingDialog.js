@@ -22,7 +22,6 @@ import {
   CalendarMonth,
   Schedule,
   AttachMoney,
-  Info,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
@@ -219,7 +218,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
             {/* Pricing info */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>Consultation rates</Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 {has30 && (
                   <Chip 
                     icon={<Schedule sx={{ fontSize: 16 }} />}
@@ -235,8 +234,8 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                   />
                 )}
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-                Payment is handled directly between you and the advisor after booking.
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                Pay the advisor directly via UPI, PayPal, or their preferred method after booking. No platform fees.
               </Typography>
             </Paper>
 
@@ -329,20 +328,17 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <AttachMoney fontSize="small" sx={{ color: 'text.secondary' }} />
                   <Typography variant="body2" color="text.secondary">
-                    You'll pay the advisor
+                    You'll pay the advisor directly
                   </Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   ${Number(selectedRate || 0).toFixed(0)}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                <Info sx={{ fontSize: 14, color: 'text.secondary', mt: 0.4 }} />
-                <Typography variant="caption" color="text.secondary">
-                  Payment is sent <strong>directly to the advisor</strong> via UPI, PayPal, or Razorpay link
-                  after they accept your request. Guild Space does not process this payment.
-                </Typography>
-              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Payment is sent <strong>directly to the advisor</strong> via UPI, PayPal, or their preferred method
+                after they accept your request. No platform fees.
+              </Typography>
             </Paper>
           </>
         )}

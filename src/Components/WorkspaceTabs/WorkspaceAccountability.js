@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -7,48 +7,47 @@ import {
   CardContent,
   Alert,
   Divider,
+  alpha,
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Add, Star } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 import { useUser } from '@clerk/clerk-react';
 import AdvisorBrowseMarketplace from '../AdvisorBrowseMarketplace';
 
+const TEAL = '#0d9488';
+
 const WorkspaceAccountability = ({ workspaceId }) => {
   const { user } = useUser();
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
-  const [workspacePlan, setWorkspacePlan] = useState(null);
-  const [canBookAdvisor, setCanBookAdvisor] = useState(false);
+  const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (workspaceId && user?.id) {
-      fetchWorkspacePlan();
-    }
-  }, [workspaceId, user?.id]);
-
-  const fetchWorkspacePlan = async () => {
-    if (!user?.id || !workspaceId) return;
+  const fetchPlan = useCallback(async () => {
+    if (!user?.id) return;
     try {
-      const response = await fetch(
-        `${API_BASE}/workspaces/${workspaceId}/check-feature?feature=accountability.canBookAdvisor`,
-        {
-          headers: {
-            'X-Clerk-User-Id': user.id,
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE}/billing/my-plan`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
       if (response.ok) {
         const data = await response.json();
-        setWorkspacePlan(data.workspace_plan || 'FREE');
-        setCanBookAdvisor(data.has_access || false);
+        setPlan(data);
       }
     } catch (err) {
-      // Error fetching workspace plan
+      console.error('Error fetching plan:', err);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchPlan();
+  }, [fetchPlan]);
+
+  const canAccessAdvisors = plan && (plan.id === 'PRO' || plan.id === 'PRO_PLUS');
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
             Advisors
@@ -59,30 +58,65 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         </Box>
       </Box>
 
+      {/* Subscription gate message for Free users */}
+      {!loading && !canAccessAdvisors && (
+        <Alert 
+          severity="info" 
+          icon={<Star />}
+          sx={{ 
+            mb: 3, 
+            bgcolor: alpha(TEAL, 0.05),
+            border: `1px solid ${alpha(TEAL, 0.2)}`,
+            '& .MuiAlert-icon': { color: TEAL },
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+            Advisor marketplace is a Pro feature
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Upgrade to Pro to browse our advisor marketplace and book 1-on-1 consultations.
+            Pay advisors directly — no platform fees.
+          </Typography>
+          <Button 
+            size="small" 
+            variant="contained"
+            onClick={() => window.location.href = '/pricing'}
+            sx={{ textTransform: 'none', bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}
+          >
+            Upgrade to Pro
+          </Button>
+        </Alert>
+      )}
+
+      {/* Advisor marketplace info for Pro/Pro+ */}
+      {!loading && canAccessAdvisors && (
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 3, 
+            bgcolor: alpha(TEAL, 0.05),
+            border: `1px solid ${alpha(TEAL, 0.2)}`,
+            '& .MuiAlert-icon': { color: TEAL },
+          }}
+        >
+          <Typography variant="body2">
+            <strong>Book advisors directly</strong> — Browse the marketplace, find advisors who match your needs, 
+            and pay them directly via UPI, PayPal, or their preferred payment method. No platform fees.
+          </Typography>
+        </Alert>
+      )}
+
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <Button
           variant="contained"
           startIcon={<Add />}
           onClick={() => setMarketplaceOpen(true)}
+          disabled={!canAccessAdvisors}
+          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}
         >
           Browse Advisor Marketplace
         </Button>
       </Box>
-
-      {!canBookAdvisor && workspacePlan && (
-        <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-          <Typography variant="body2">
-            <strong>You can browse advisors freely.</strong> Booking a consultation requires a Pro+ subscription.
-            <Button 
-              size="small" 
-              onClick={() => window.location.href = '/pricing'}
-              sx={{ ml: 1, textTransform: 'none' }}
-            >
-              Upgrade to Pro+
-            </Button>
-          </Typography>
-        </Alert>
-      )}
 
       <Card variant="outlined" sx={{ mb: 4 }}>
         <CardContent>

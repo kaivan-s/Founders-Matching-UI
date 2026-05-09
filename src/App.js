@@ -30,6 +30,7 @@ import AdminAdvisors from './Components/AdminAdvisors';
 import ProfilePage from './Components/ProfilePage';
 import FounderDatePage from './Components/FounderDatePage';
 import ConsultationsPage from './Components/ConsultationsPage';
+import CreditsPage from './Components/CreditsPage';
 import AppLayout from './Components/AppLayout';
 import { API_BASE } from './config/api';
 import './App.css';
@@ -641,6 +642,24 @@ function AppContent() {
           >
             <Box sx={{ height: '100%', overflow: 'auto' }}>
               <PaymentHistory />
+            </Box>
+          </RouteWrapper>
+        } />
+        <Route path="/credits" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <CreditsPage />
             </Box>
           </RouteWrapper>
         } />
