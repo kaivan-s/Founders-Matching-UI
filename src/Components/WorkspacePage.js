@@ -440,20 +440,25 @@ const WorkspacePage = () => {
                     )}
                     <Tooltip title="Message your co-founder">
                       <Chip
-                        icon={<ChatBubbleOutline sx={{ fontSize: 16 }} />}
+                        icon={<ChatBubbleOutline sx={{ fontSize: 16, color: chatMatch ? '#fff' : '#0d9488' }} />}
                         label="Chat"
                         size="small"
                         onClick={handleOpenChat}
                         sx={{
                           bgcolor: chatMatch ? '#0d9488' : 'transparent',
                           color: chatMatch ? '#fff' : '#0d9488',
-                          border: '1px solid #0d9488',
+                          border: chatMatch ? '1px solid #0d9488' : '1px solid rgba(13, 148, 136, 0.5)',
                           fontWeight: 600,
                           fontSize: '0.75rem',
                           cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '& .MuiChip-icon': {
+                            color: chatMatch ? '#fff' : '#0d9488',
+                          },
                           '&:hover': {
-                            bgcolor: chatMatch ? '#0f766e' : 'rgba(13, 148, 136, 0.1)',
-                          }
+                            bgcolor: chatMatch ? '#0f766e' : 'rgba(13, 148, 136, 0.08)',
+                            borderColor: '#0d9488',
+                          },
                         }}
                       />
                     </Tooltip>
