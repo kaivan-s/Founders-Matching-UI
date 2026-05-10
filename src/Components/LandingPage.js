@@ -9,6 +9,7 @@ import {
   Chip,
   Divider,
   alpha,
+  Avatar,
 } from '@mui/material';
 import { 
   ArrowForward,
@@ -27,6 +28,7 @@ import {
   Event,
   ChatBubbleOutline,
   School,
+  LinkedIn,
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
 import FeedbackDialog from './FeedbackDialog';
@@ -41,6 +43,24 @@ const SLATE_500 = '#64748b';
 const SLATE_400 = '#94a3b8';
 const SLATE_200 = '#e2e8f0';
 const BG = '#f8fafc';
+
+/** Public landing: replace names, initials, bios, and optional LinkedIn URLs. */
+const TEAM_MEMBERS = [
+  {
+    name: 'First Founder',
+    role: 'Co-founder',
+    bio: 'Product, partnerships, and helping founders line up expectations before the first conversation.',
+    initials: 'FF',
+    linkedin: '',
+  },
+  {
+    name: 'Second Founder',
+    role: 'Co-founder',
+    bio: 'Engineering, trust & safety, and a calm workspace that keeps collaborations moving.',
+    initials: 'SF',
+    linkedin: '',
+  },
+];
 
 const NetworkBackground = () => {
   const canvasRef = useRef(null);
@@ -1456,6 +1476,115 @@ const LandingPage = () => {
               </SignInButton>
             )}
           </Box>
+        </Container>
+      </Box>
+
+      {/* ─── About us ─── */}
+      <Box id="about" component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: BG, borderTop: `1px solid ${SLATE_200}`, borderBottom: `1px solid ${SLATE_200}` }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', maxWidth: 640, mx: 'auto', mb: { xs: 5, md: 6 } }}>
+            <Typography
+              variant="overline"
+              sx={{ color: TEAL, fontWeight: 700, letterSpacing: '0.12em', fontSize: '0.72rem' }}
+            >
+              About us
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: SLATE_900,
+                mt: 1.5,
+                mb: 1.5,
+                fontSize: { xs: '1.5rem', md: '2rem' },
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Built by two founders, for founders
+            </Typography>
+            <Typography variant="body1" sx={{ color: SLATE_500, lineHeight: 1.7 }}>
+              Matching should feel intentional—meet the team.
+            </Typography>
+          </Box>
+          <Grid container spacing={3} justifyContent="center">
+            {TEAM_MEMBERS.map((member, index) => (
+              <Grid key={member.name} item xs={12} md={6}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    p: { xs: 3, sm: 4 },
+                    borderRadius: 3,
+                    bgcolor: '#fff',
+                    border: `1px solid ${SLATE_200}`,
+                    boxShadow: `0 12px 40px ${alpha(NAVY, 0.06)}`,
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: `0 20px 48px ${alpha(NAVY, 0.1)}`,
+                    },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start', flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Avatar
+                      alt={member.name}
+                      sx={{
+                        width: 76,
+                        height: 76,
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        background:
+                          index === 0
+                            ? `linear-gradient(145deg, ${TEAL} 0%, ${NAVY} 100%)`
+                            : `linear-gradient(145deg, ${NAVY} 0%, ${TEAL} 100%)`,
+                        color: '#fff',
+                        border: `2px solid ${alpha(index === 0 ? TEAL : NAVY, 0.35)}`,
+                      }}
+                    >
+                      {member.initials}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900, letterSpacing: '-0.02em', lineHeight: 1.25 }}>
+                            {member.name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: TEAL, fontWeight: 600, mt: 0.25 }}>
+                            {member.role}
+                          </Typography>
+                        </Box>
+                        {member.linkedin ? (
+                          <Box
+                            component="a"
+                            href={member.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${member.name} on LinkedIn`}
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 36,
+                              height: 36,
+                              borderRadius: 2,
+                              color: SLATE_400,
+                              border: `1px solid ${SLATE_200}`,
+                              '&:hover': { color: TEAL, borderColor: alpha(TEAL, 0.35), bgcolor: alpha(TEAL, 0.06) },
+                            }}
+                          >
+                            <LinkedIn sx={{ fontSize: 20 }} />
+                          </Box>
+                        ) : null}
+                      </Box>
+                      <Typography variant="body2" sx={{ color: SLATE_500, mt: 2, lineHeight: 1.65 }}>
+                        {member.bio}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
       </Box>
 

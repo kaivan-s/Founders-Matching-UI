@@ -563,6 +563,37 @@ const SeekerDiscovery = () => {
       if (!isFirst) setCurrentCardIndex(safeIndex - 1);
     };
 
+    const handleSkip = async () => {
+      if (!project?.id) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/seeker/skip/${project.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Failed to skip project:', errorData.error);
+        }
+      } catch (err) {
+        console.error('Error skipping project:', err);
+      }
+      
+      // Remove from local list and navigate
+      setMatches(prev => {
+        const newMatches = prev.filter(m => m.id !== project.id);
+        // Adjust index if needed
+        if (safeIndex >= newMatches.length && newMatches.length > 0) {
+          setCurrentCardIndex(newMatches.length - 1);
+        }
+        return newMatches;
+      });
+    };
+
     const nextBatchLabel = discoveryMeta?.next_batch_at_utc
       ? new Date(discoveryMeta.next_batch_at_utc).toLocaleString(undefined, {
           weekday: 'short',
@@ -784,9 +815,8 @@ const SeekerDiscovery = () => {
                     variant="outlined"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleNext();
+                      handleSkip();
                     }}
-                    disabled={isLast}
                     sx={{ 
                       flex: 1,
                       py: 1.5, 

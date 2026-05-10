@@ -524,32 +524,47 @@ const SwipeInterface = () => {
     const primaryProjectId = founder?.primary_project_id || projectId || (founder?.projects?.[0]?.id);
     
     try {
-      const swipeData = {
-        swiped_id: actualFounderId,  // Use actual founder ID for the swipe
-        swipe_type: direction,
-        ...(applicationData || {}), // Include question_answers, video_intro_url, voice_intro_url if provided
-      };
+      let response;
+      let swipeResult;
       
-      // Add project information (project_id is required - all swipes must be project-based)
-      if (primaryProjectId) {
-        swipeData.project_id = primaryProjectId;
-      }
-      
-      const response = await fetch(`${API_BASE}/swipes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Clerk-User-Id': user.id,
-        },
-        body: JSON.stringify(swipeData),
-      });
+      if (direction === 'left') {
+        // Skip (left swipe) - use the skip endpoint
+        response = await fetch(`${API_BASE}/seeker/skip/${primaryProjectId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to skip project');
+        }
+        
+        swipeResult = await response.json();
+      } else {
+        // Right swipe - use the apply endpoint
+        const applyData = {
+          ...(applicationData || {}), // Include question_answers, video_intro_url, voice_intro_url if provided
+        };
+        
+        response = await fetch(`${API_BASE}/seeker/apply/${primaryProjectId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify(applyData),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to record swipe');
-      }
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to apply');
+        }
 
-      const swipeResult = await response.json();
+        swipeResult = await response.json();
+      }
       
       // Refresh swipe limit after successful right swipe (only for non-unlimited plans)
       // Skip for Pro/Pro+ users who have unlimited swipes
