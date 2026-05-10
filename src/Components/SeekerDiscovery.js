@@ -614,11 +614,8 @@ const SeekerDiscovery = () => {
         )}
         {discoveryMeta?.persistent_feed && !discoveryMeta.note && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            You&apos;ll see up to {discoveryMeta.effective_limit ?? discoveryMeta.daily_limit} curated projects today.
-            {' '}
-            {nextBatchLabel && (
-              <>The next batch unlocks {nextBatchLabel}. If you&apos;ve saved discovery preferences and email is enabled, we&apos;ll also nudge you once that batch is ready.</>
-            )}
+            {discoveryMeta.effective_limit ?? discoveryMeta.daily_limit} curated projects today.
+            {nextBatchLabel && <> New batch {nextBatchLabel}.</>}
           </Alert>
         )}
 
