@@ -263,6 +263,8 @@ const MyProjects = () => {
             alignItems: 'center',
             height: '100%',
             textAlign: 'center',
+            maxWidth: 500,
+            mx: 'auto',
           }}>
             <Box sx={{ 
               display: 'inline-flex', 
@@ -277,14 +279,90 @@ const MyProjects = () => {
               <Business sx={{ fontSize: 40, color: TEAL }} />
             </Box>
             <Typography variant="h5" gutterBottom sx={{ mb: 1, fontWeight: 700, color: SLATE_900 }}>
-              No projects yet
+              Create your first project
             </Typography>
-            <Typography variant="body2" sx={{ color: SLATE_500 }}>
-              Click "New Project" in the header to create your first project.
+            <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
+              Share your startup idea and find the perfect co-founder to build it with you.
             </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<Add />}
+              onClick={() => window.dispatchEvent(new Event('openNewProjectDialog'))}
+              sx={{
+                bgcolor: TEAL,
+                px: 4,
+                py: 1.5,
+                fontSize: '1rem',
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
+                '&:hover': {
+                  bgcolor: TEAL_LIGHT,
+                  boxShadow: '0 6px 20px rgba(13, 148, 136, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Create Project
+            </Button>
           </Box>
         ) : (
           <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr', md: '1fr', lg: 'repeat(2, 1fr)' } }}>
+            {/* Create New Project Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Box
+                onClick={() => window.dispatchEvent(new Event('openNewProjectDialog'))}
+                sx={{
+                  height: '100%',
+                  minHeight: 180,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: alpha(TEAL, 0.04),
+                  borderRadius: 2,
+                  border: '2px dashed',
+                  borderColor: alpha(TEAL, 0.3),
+                  p: 3,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: alpha(TEAL, 0.08),
+                    borderColor: TEAL,
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 4px 12px ${alpha(TEAL, 0.15)}`,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    bgcolor: alpha(TEAL, 0.1),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Add sx={{ fontSize: 28, color: TEAL }} />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: TEAL, mb: 0.5 }}>
+                  Create New Project
+                </Typography>
+                <Typography variant="caption" sx={{ color: SLATE_500, textAlign: 'center' }}>
+                  Start a new startup idea
+                </Typography>
+              </Box>
+            </motion.div>
+
             {projects.map((project, index) => {
               const stageColor = getStageColor(project.stage);
               return (

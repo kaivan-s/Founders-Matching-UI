@@ -840,8 +840,8 @@ function App() {
 function AppWithHeader() {
   const location = useLocation();
 
-  // Full-width pages only: home chooser, advisor marketing/onboarding, legal. In-app advisor dashboard uses sidebar.
-  const noLayoutRoutes = ['/home', '/advisor/landing', '/advisor/onboarding', '/privacy-policy', '/terms-and-conditions', '/faq'];
+  // Full-width pages only: home chooser, advisor marketing, legal. In-app pages (including advisor onboarding) use sidebar.
+  const noLayoutRoutes = ['/home', '/advisor/landing', '/privacy-policy', '/terms-and-conditions', '/faq'];
   const isNoLayoutRoute = noLayoutRoutes.includes(location.pathname);
 
   // For routes without sidebar layout

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser, UserButton, SignedIn } from '@clerk/clerk-react';
 import {
@@ -45,6 +45,13 @@ const AppLayout = ({ children }) => {
   const isAdmin =
     user?.publicMetadata?.role === 'admin' ||
     user?.primaryEmailAddress?.emailAddress === 'kaivansattar@gmail.com';
+
+  // Listen for event to open new project dialog from other components
+  useEffect(() => {
+    const handleOpenNewProject = () => setNewProjectDialogOpen(true);
+    window.addEventListener('openNewProjectDialog', handleOpenNewProject);
+    return () => window.removeEventListener('openNewProjectDialog', handleOpenNewProject);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -110,29 +117,6 @@ const AppLayout = ({ children }) => {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={() => setNewProjectDialogOpen(true)}
-                sx={{
-                  bgcolor: TEAL,
-                  px: { xs: 1.5, sm: 2.5 },
-                  py: 0.875,
-                  fontSize: '0.8125rem',
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    bgcolor: '#14b8a6',
-                    boxShadow: '0 4px 6px -1px rgba(13, 148, 136, 0.2)',
-                  },
-                }}
-              >
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>New Project</Box>
-                <Box sx={{ display: { xs: 'block', sm: 'none' } }}>New</Box>
-              </Button>
-
               <Tooltip title="Notifications">
                 <IconButton
                   sx={{

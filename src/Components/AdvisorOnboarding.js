@@ -652,23 +652,22 @@ const AdvisorOnboarding = ({ onComplete }) => {
     switch (activeStep) {
       case 0: // Profile & Photo
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Profile Picture Section */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Profile Picture Section - Compact horizontal layout */}
             <Box sx={{ 
               display: 'flex', 
-              flexDirection: 'column', 
               alignItems: 'center', 
               gap: 2, 
-              p: 3, 
+              p: 1.5, 
               bgcolor: '#f8fafc', 
-              borderRadius: 2,
-              border: hasValidProfilePicture() ? '2px solid #10b981' : '2px dashed #f59e0b'
+              borderRadius: 1.5,
+              border: hasValidProfilePicture() ? '1px solid #10b981' : '1px dashed #f59e0b'
             }}>
-              <Box sx={{ position: 'relative' }}>
+              <Box sx={{ position: 'relative', flexShrink: 0 }}>
                 <Avatar
                   src={profileImage?.preview || existingImageUrl || user?.imageUrl}
                   alt={user?.fullName || 'Profile'}
-                  sx={{ width: 120, height: 120, border: '4px solid white', boxShadow: 2 }}
+                  sx={{ width: 64, height: 64, border: '2px solid white', boxShadow: 1 }}
                 />
                 <input
                   accept="image/jpeg,image/png,image/webp,image/gif"
@@ -680,49 +679,41 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 <label htmlFor="profile-image-upload">
                   <IconButton
                     component="span"
+                    size="small"
                     sx={{
                       position: 'absolute',
-                      bottom: 0,
-                      right: 0,
+                      bottom: -4,
+                      right: -4,
                       bgcolor: '#0f172a',
                       color: 'white',
                       '&:hover': { bgcolor: '#1e293b' },
-                      width: 36,
-                      height: 36,
+                      width: 24,
+                      height: 24,
                     }}
                   >
-                    <PhotoCamera fontSize="small" />
+                    <PhotoCamera sx={{ fontSize: 14 }} />
                   </IconButton>
                 </label>
               </Box>
               
               {hasValidProfilePicture() ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#10b981' }}>
-                    <CheckCircle fontSize="small" />
-                    <Typography variant="body2" fontWeight={600}>Profile picture added</Typography>
-                  </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircle sx={{ color: '#10b981', fontSize: 18 }} />
+                  <Typography variant="body2" fontWeight={600} color="#10b981">Photo added</Typography>
                   {profileImage && (
-                    <Button
-                      size="small"
-                      variant="text"
-                      color="error"
-                      onClick={handleImageRemove}
-                    >
+                    <Button size="small" variant="text" color="error" onClick={handleImageRemove} sx={{ ml: 1, minWidth: 'auto', p: 0.5 }}>
                       Remove
                     </Button>
                   )}
                 </Box>
               ) : (
-                <Box sx={{ textAlign: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#f59e0b', mb: 1 }}>
-                    <Warning fontSize="small" />
-                    <Typography variant="body2" fontWeight={600}>Profile picture required</Typography>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#f59e0b' }}>
+                    <Warning sx={{ fontSize: 16 }} />
+                    <Typography variant="body2" fontWeight={600}>Photo required</Typography>
                   </Box>
                   <Typography variant="caption" color="text.secondary">
-                    Click the camera icon to upload a professional photo.
-                    <br />
-                    Advisors with photos get 3x more consultations booked.
+                    Click camera to upload. Photos get 3x more bookings.
                   </Typography>
                 </Box>
               )}
@@ -1514,8 +1505,8 @@ const AdvisorOnboarding = ({ onComplete }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
-          bgcolor: '#f5f5f5'
+          height: '100%',
+          minHeight: 400,
         }}
       >
         <CircularProgress />
@@ -1529,17 +1520,16 @@ const AdvisorOnboarding = ({ onComplete }) => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',
-        minHeight: '100vh',
-        bgcolor: '#f5f5f5',
-        p: { xs: 2, sm: 3 }
+        height: '100%',
+        p: { xs: 2, sm: 3 },
+        overflow: 'auto',
       }}
     >
       <Paper 
         sx={{ 
           width: '100%',
           maxWidth: { xs: '100%', sm: '90%', md: 800, lg: 900 },
-          height: { xs: 'calc(100vh - 32px)', sm: '85vh', md: '80vh' },
-          minHeight: { xs: 'auto', sm: 600 },
+          maxHeight: { xs: 'none', sm: 650, md: 700 },
           display: 'flex',
           flexDirection: 'column',
           borderRadius: { xs: 1, sm: 2 },
@@ -1549,18 +1539,18 @@ const AdvisorOnboarding = ({ onComplete }) => {
       >
         {/* Fixed Header */}
         <Box sx={{ 
-          p: { xs: 2, sm: 3 }, 
+          p: { xs: 2, sm: 2.5 }, 
           borderBottom: 1, 
           borderColor: 'divider', 
           bgcolor: 'white',
           flexShrink: 0
         }}>
           <Typography 
-            variant="h4" 
+            variant="h5" 
             sx={{ 
               fontWeight: 700, 
-              mb: { xs: 2, sm: 3 },
-              fontSize: { xs: '1.5rem', sm: '2rem' }
+              mb: 2,
+              fontSize: { xs: '1.25rem', sm: '1.5rem' }
             }}
           >
             Become an Advisor
@@ -1569,9 +1559,8 @@ const AdvisorOnboarding = ({ onComplete }) => {
           <Stepper 
             activeStep={activeStep} 
             sx={{ 
-              mb: 0,
-              '& .MuiStepLabel-root': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              '& .MuiStepLabel-label': {
+                fontSize: { xs: '0.65rem', sm: '0.75rem' }
               }
             }}
           >
@@ -1588,39 +1577,37 @@ const AdvisorOnboarding = ({ onComplete }) => {
           sx={{ 
             flex: 1,
             overflowY: 'auto',
-            p: { xs: 2, sm: 3, md: 4 },
+            p: { xs: 2, sm: 2.5 },
             bgcolor: 'white',
             minHeight: 0
           }}
         >
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
 
-          <Box sx={{ minHeight: '100%' }}>
-            {renderStepContent()}
-          </Box>
+          {renderStepContent()}
         </Box>
 
         {/* Fixed Footer */}
         <Box 
           sx={{ 
-            p: { xs: 2, sm: 3 }, 
+            p: { xs: 1.5, sm: 2 }, 
             borderTop: 1, 
             borderColor: 'divider',
             bgcolor: 'white',
             display: 'flex',
             justifyContent: 'space-between',
             flexShrink: 0,
-            gap: { xs: 1, sm: 2 }
           }}
         >
           <Button
             disabled={activeStep === 0 || loading}
             onClick={handleBack}
             variant="outlined"
+            size="small"
           >
             Back
           </Button>
@@ -1628,9 +1615,10 @@ const AdvisorOnboarding = ({ onComplete }) => {
             variant="contained"
             onClick={handleNext}
             disabled={!validateStep() || loading}
+            size="small"
           >
             {loading ? (
-              <CircularProgress size={24} />
+              <CircularProgress size={20} />
             ) : activeStep === steps.length - 1 ? (
               'Submit'
             ) : (
