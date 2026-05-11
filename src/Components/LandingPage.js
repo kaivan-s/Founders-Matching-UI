@@ -154,6 +154,15 @@ const LandingPage = () => {
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  
+  // Store the intended URL in localStorage for redirect after sign-in
+  // This is more reliable than relying on Clerk's afterSignInUrl prop
+  useEffect(() => {
+    const intendedPath = window.location.pathname;
+    if (intendedPath && intendedPath !== '/' && !intendedPath.startsWith('/advisor/')) {
+      localStorage.setItem('redirectAfterSignIn', intendedPath);
+    }
+  }, []);
 
   const problems = [
     { num: '01', title: 'IP Theft Risk', desc: 'Share your idea with strangers, get rejected, and watch them build it without you.' },
@@ -225,7 +234,7 @@ const LandingPage = () => {
             Guild Space
           </Typography>
           {!isSignedIn && (
-            <SignInButton mode="modal" afterSignInUrl="/home">
+            <SignInButton mode="modal">
               <Button sx={{
                 textTransform: 'none', borderRadius: 2, px: 3, py: 0.8, fontWeight: 600, fontSize: '0.875rem',
                 color: NAVY, border: '1px solid', borderColor: SLATE_200, bgcolor: 'rgba(255,255,255,0.7)',
@@ -291,7 +300,7 @@ const LandingPage = () => {
                 Go to Dashboard
               </Button>
             ) : (
-              <SignInButton mode="modal" afterSignInUrl="/home">
+              <SignInButton mode="modal">
                 <Button variant="contained" endIcon={<ArrowForward />} sx={{
                   px: 4.5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1rem', fontWeight: 600,
                   bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT },
@@ -1475,7 +1484,7 @@ const LandingPage = () => {
             Go to Dashboard
           </Button>
         ) : (
-          <SignInButton mode="modal" afterSignInUrl="/home">
+          <SignInButton mode="modal">
             <Button variant="contained" endIcon={<ArrowForward />} sx={{
               px: 4.5, py: 1.5, borderRadius: 2, textTransform: 'none', fontSize: '1rem', fontWeight: 600,
               bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT },

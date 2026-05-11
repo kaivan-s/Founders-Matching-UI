@@ -202,6 +202,17 @@ function AppContent() {
   const [advisorChecked, setAdvisorChecked] = useState(false);
   const [showFlowSelector, setShowFlowSelector] = useState(false);
 
+  // Check for stored redirect URL after sign-in and navigate there
+  useEffect(() => {
+    if (user && location.pathname === '/home') {
+      const redirectUrl = localStorage.getItem('redirectAfterSignIn');
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterSignIn');
+        navigate(redirectUrl, { replace: true });
+      }
+    }
+  }, [user, location.pathname, navigate]);
+
   const checkUserType = useCallback(async () => {
     try {
       // IMPORTANT: Only check for advisor if user is on advisor routes
