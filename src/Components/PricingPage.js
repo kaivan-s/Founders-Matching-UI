@@ -63,6 +63,7 @@ const PricingPage = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [cancelSuccess, setCancelSuccess] = useState(null);
   const [workspaceSelectionRequired, setWorkspaceSelectionRequired] = useState(false);
   const [userWorkspaces, setUserWorkspaces] = useState([]);
 
@@ -154,9 +155,10 @@ const PricingPage = () => {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
 
-      // Success - close dialog and refresh plans
+      // Success - close dialog and show message
       setCancelDialogOpen(false);
       setWorkspaceSelectionRequired(false);
+      setCancelSuccess(data.message || 'Subscription cancelled. You\'ll keep access until the end of your billing period.');
       await fetchPlans();
       
     } catch (err) {
@@ -239,12 +241,20 @@ const PricingPage = () => {
           </Box>
           
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
-            Welcome to {planDisplayName}!
+            Payment Successful!
           </Typography>
           
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Your subscription has been activated successfully. 
-            You now have access to all {planDisplayName} features.
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#0d9488' }}>
+            Welcome to {planDisplayName}
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            Your payment was successful! Your {planDisplayName} subscription is being activated.
+          </Typography>
+          
+          <Typography variant="body2" sx={{ mb: 3, color: '#64748b', bgcolor: '#f1f5f9', p: 2, borderRadius: 2 }}>
+            Note: It may take 5-10 minutes for your Pro status to reflect in the app. 
+            If you don't see the update, try refreshing the page.
           </Typography>
           
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 3 }}>
@@ -335,6 +345,17 @@ const PricingPage = () => {
         </Typography>
       </Box>
 
+      {/* Cancel Success Alert */}
+      {cancelSuccess && (
+        <Alert 
+          severity="success" 
+          sx={{ mb: 4 }}
+          onClose={() => setCancelSuccess(null)}
+        >
+          {cancelSuccess}
+        </Alert>
+      )}
+
       {/* Founder Plans */}
       <Grid container spacing={4} sx={{ mb: 8 }}>
         {Object.values(plans).map((plan) => {
@@ -380,18 +401,30 @@ const PricingPage = () => {
                   />
                 )}
                 {isCurrent && (
-                  <Chip
-                    label="Current Plan"
-                    sx={{
-                      position: 'absolute',
-                      top: 16,
-                      left: 16,
-                      bgcolor: '#f1f5f9',
-                      color: '#475569',
-                      fontWeight: 600,
-                      borderRadius: 2,
-                    }}
-                  />
+                  <Box sx={{ position: 'absolute', top: 16, left: 16, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Chip
+                      label="Current Plan"
+                      sx={{
+                        bgcolor: '#f1f5f9',
+                        color: '#475569',
+                        fontWeight: 600,
+                        borderRadius: 2,
+                      }}
+                    />
+                    {currentPlanDetails?.subscription_status === 'canceled' && currentPlanDetails?.subscription_current_period_end && (
+                      <Chip
+                        label={`Ends ${new Date(currentPlanDetails.subscription_current_period_end).toLocaleDateString()}`}
+                        size="small"
+                        sx={{
+                          bgcolor: '#fef3c7',
+                          color: '#92400e',
+                          fontWeight: 500,
+                          fontSize: '0.7rem',
+                          borderRadius: 2,
+                        }}
+                      />
+                    )}
+                  </Box>
                 )}
                 
                 <CardContent
@@ -560,7 +593,7 @@ const PricingPage = () => {
           ) : (
             <Box>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                Are you sure you want to cancel your subscription? You'll lose access to:
+                Are you sure you want to cancel your subscription? After your current billing period ends, you'll lose access to:
               </Typography>
               <List dense>
                 <ListItem>
@@ -582,9 +615,8 @@ const PricingPage = () => {
                   </ListItem>
                 )}
               </List>
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                You'll be downgraded to the Free plan immediately. If you have more than 1 workspace, 
-                you'll need to select which one to keep.
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Your subscription won't renew, but you'll keep full access to your current plan until the end of your billing period.
               </Alert>
             </Box>
           )}
