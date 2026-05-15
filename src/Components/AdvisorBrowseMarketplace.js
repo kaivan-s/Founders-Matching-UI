@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Drawer,
   Box,
   Typography,
   Button,
@@ -54,6 +53,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
   const [searchQuery, setSearchQuery] = useState('');
   const [bookingAdvisor, setBookingAdvisor] = useState(null);  // selected advisor for booking dialog
   const [reviewsAdvisor, setReviewsAdvisor] = useState(null);  // selected advisor to view reviews
+  const [selectedAdvisor, setSelectedAdvisor] = useState(null);  // selected advisor for detail view
 
   const fetchPartners = async () => {
     if (!workspaceId || !user?.id) {
@@ -180,18 +180,19 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
   };
 
   return (
-    <Drawer
-      anchor="right"
+    <Dialog
       open={open}
       onClose={onClose}
+      maxWidth="md"
+      fullWidth
       PaperProps={{
         sx: {
-          width: { xs: '100%', sm: 520, md: 600 },
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          borderRadius: 3,
+          maxHeight: '85vh',
         },
       }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '85vh' }}>
         {/* Header */}
         <Box 
           sx={{ 
@@ -202,10 +203,9 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', letterSpacing: '-0.01em' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
             Find an Advisor
           </Typography>
           <IconButton 
@@ -214,7 +214,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
             sx={{
               color: 'text.secondary',
               '&:hover': {
-                bgcolor: alpha('#0ea5e9', 0.08),
+                bgcolor: 'action.hover',
                 color: 'primary.main',
               },
             }}
@@ -224,7 +224,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 2.5, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ px: 3, py: 2, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
           <TextField
             fullWidth
             placeholder="Search by name, expertise, or domain..."
@@ -234,7 +234,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                bgcolor: 'background.default',
+                bgcolor: 'grey.50',
                 '&:hover': {
                   bgcolor: 'background.paper',
                 },
@@ -255,7 +255,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         </Box>
 
         {/* Content */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 2.5, bgcolor: 'background.default' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: 3, bgcolor: 'grey.50' }}>
           {!loading && !error && showBroadenedListNote && (
             <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
               We expanded the list so you still see options when few advisors match your workspace
@@ -297,14 +297,17 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                   <Card 
                     key={partner.user_id} 
                     variant="outlined"
+                    onClick={() => setSelectedAdvisor(partner)}
                     sx={{
                       borderRadius: 2,
                       borderColor: 'divider',
                       bgcolor: 'background.paper',
+                      cursor: 'pointer',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                        borderColor: alpha('#0ea5e9', 0.3),
+                        borderColor: 'primary.light',
+                        transform: 'translateY(-2px)',
                       },
                     }}
                   >
@@ -418,7 +421,10 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                               {/* Rating display - clickable to view reviews */}
                               {partner.rating_stats?.avg_rating != null && (
                                 <Box
-                                  onClick={() => setReviewsAdvisor(partner)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReviewsAdvisor(partner);
+                                  }}
                                   sx={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -467,7 +473,10 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                               <Button
                                 variant="contained"
                                 size="small"
-                                onClick={() => setBookingAdvisor(partner)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setBookingAdvisor(partner);
+                                }}
                                 disabled={!isBookable}
                                 startIcon={<CalendarMonth fontSize="small" />}
                                 sx={{
@@ -596,7 +605,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         </Box>
       </Box>
 
-      {/* Booking dialog (mounted on top of the drawer) */}
+      {/* Booking dialog */}
       <BookingDialog
         open={!!bookingAdvisor}
         advisor={bookingAdvisor}
@@ -609,7 +618,25 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         advisor={reviewsAdvisor}
         onClose={() => setReviewsAdvisor(null)}
       />
-    </Drawer>
+
+      {/* Advisor Detail Dialog */}
+      <AdvisorDetailDialog
+        advisor={selectedAdvisor}
+        onClose={() => setSelectedAdvisor(null)}
+        onBookConsultation={(advisor) => {
+          setSelectedAdvisor(null);
+          setBookingAdvisor(advisor);
+        }}
+        onViewReviews={(advisor) => {
+          setSelectedAdvisor(null);
+          setReviewsAdvisor(advisor);
+        }}
+        formatRate={formatRate}
+        renderBadges={renderBadges}
+        getExperienceLabel={getExperienceLabel}
+        BADGE_CONFIG={BADGE_CONFIG}
+      />
+    </Dialog>
   );
 };
 
@@ -813,6 +840,291 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
           </>
         )}
       </DialogContent>
+    </Dialog>
+  );
+};
+
+const AdvisorDetailDialog = ({ 
+  advisor, 
+  onClose, 
+  onBookConsultation, 
+  onViewReviews,
+  formatRate,
+  renderBadges,
+  getExperienceLabel,
+  BADGE_CONFIG
+}) => {
+  if (!advisor) return null;
+
+  const partnerUser = advisor.user || {};
+  const rate30 = formatRate(advisor.consultation_rate_30min_usd);
+  const rate60 = formatRate(advisor.consultation_rate_60min_usd);
+  const isBookable = !!(rate30 || rate60);
+  const profBg = advisor.professional_background || {};
+
+  return (
+    <Dialog
+      open={!!advisor}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          maxHeight: '90vh',
+        },
+      }}
+    >
+      {/* Header with close button */}
+      <Box sx={{ position: 'relative' }}>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            bgcolor: 'rgba(255,255,255,0.9)',
+            zIndex: 1,
+            '&:hover': { bgcolor: 'white' },
+          }}
+          size="small"
+        >
+          <Close />
+        </IconButton>
+
+        {/* Profile header */}
+        <Box
+          sx={{
+            p: 4,
+            bgcolor: 'primary.main',
+            color: 'white',
+            textAlign: 'center',
+          }}
+        >
+          <Avatar
+            src={advisor.profile_image_url}
+            sx={{
+              width: 100,
+              height: 100,
+              mx: 'auto',
+              mb: 2,
+              border: '4px solid white',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+              fontSize: '2.5rem',
+              bgcolor: 'primary.dark',
+            }}
+          >
+            {partnerUser.name?.[0]?.toUpperCase() || 'A'}
+          </Avatar>
+          
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+            {partnerUser.name || 'Advisor'}
+          </Typography>
+          
+          {advisor.headline && (
+            <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
+              {advisor.headline}
+            </Typography>
+          )}
+          
+          {/* Badges row */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+            {advisor.linkedin_verified && (
+              <Chip
+                icon={<LinkedIn sx={{ fontSize: 16 }} />}
+                label="LinkedIn Verified"
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  fontWeight: 500,
+                  '& .MuiChip-icon': { color: 'white' },
+                }}
+              />
+            )}
+            {advisor.rating_stats?.avg_rating != null && (
+              <Chip
+                icon={<Star sx={{ fontSize: 16 }} />}
+                label={`${advisor.rating_stats.avg_rating.toFixed(1)} (${advisor.rating_stats.total_reviews} reviews)`}
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewReviews(advisor);
+                }}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  '& .MuiChip-icon': { color: '#FFD700' },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 0 }}>
+        {/* Pricing section */}
+        <Box sx={{ p: 3, bgcolor: 'grey.50', borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Consultation Rates
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {rate30 && (
+              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  {rate30}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">30 min session</Typography>
+              </Paper>
+            )}
+            {rate60 && (
+              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  {rate60}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">60 min session</Typography>
+              </Paper>
+            )}
+            {!isBookable && (
+              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="body2" color="text.secondary">Rates not set</Typography>
+              </Paper>
+            )}
+          </Box>
+        </Box>
+
+        {/* About section */}
+        {advisor.bio && (
+          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              About
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.7 }}>
+              {advisor.bio}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Experience & Credentials */}
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Experience
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {profBg.years_experience && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WorkHistory sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2">{getExperienceLabel(profBg.years_experience)}</Typography>
+              </Box>
+            )}
+            {profBg.startups_advised_count && profBg.startups_advised_count !== '0' && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Business sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2">{profBg.startups_advised_count} startups advised</Typography>
+              </Box>
+            )}
+            {profBg.current_role?.company && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Work sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2">@ {profBg.current_role.company}</Typography>
+              </Box>
+            )}
+          </Box>
+          
+          {/* Verification badges */}
+          {advisor.verification_badges?.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              {renderBadges(advisor.verification_badges)}
+            </Box>
+          )}
+        </Box>
+
+        {/* Expertise */}
+        {(advisor.domains?.length > 0 || advisor.expertise_stages?.length > 0) && (
+          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Expertise
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {advisor.expertise_stages?.map((stage) => (
+                <Chip
+                  key={stage}
+                  label={stage}
+                  size="small"
+                  color="primary"
+                  sx={{
+                    fontWeight: 500,
+                  }}
+                />
+              ))}
+              {advisor.domains?.map((domain) => (
+                <Chip
+                  key={domain}
+                  label={domain}
+                  size="small"
+                  variant="outlined"
+                  sx={{ borderColor: 'divider' }}
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
+
+        {/* Availability */}
+        <Box sx={{ p: 3 }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Availability
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {advisor.availability_frequency && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Schedule sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                  {advisor.availability_frequency}
+                </Typography>
+              </Box>
+            )}
+            {advisor.preferred_language && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Language sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2">{advisor.preferred_language}</Typography>
+              </Box>
+            )}
+            {advisor.max_active_connections && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Person sx={{ color: 'text.secondary', fontSize: 20 }} />
+                <Typography variant="body2">
+                  {advisor.active_connections_count || 0}/{advisor.max_active_connections} slots
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </DialogContent>
+
+      {/* Action button */}
+      <Box sx={{ p: 3, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+        <Button
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={!isBookable}
+          onClick={() => onBookConsultation(advisor)}
+          startIcon={<CalendarMonth />}
+          sx={{
+            borderRadius: 2,
+            py: 1.5,
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '1rem',
+          }}
+        >
+          {isBookable ? 'Book a Consultation' : 'Rates Not Available'}
+        </Button>
+      </Box>
     </Dialog>
   );
 };
