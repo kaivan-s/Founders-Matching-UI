@@ -7,6 +7,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  StepButton,
   Button,
   TextField,
   FormControl,
@@ -478,8 +479,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
     return trimmed.startsWith('http://') || trimmed.startsWith('https://');
   };
 
-  const validateStep = () => {
-    switch (activeStep) {
+  // Check if a specific step is complete (used for stepper icons)
+  const isStepComplete = (stepIndex) => {
+    switch (stepIndex) {
       case 0: // Profile & Photo
         return (
           hasValidProfilePicture() &&
@@ -523,6 +525,25 @@ const AdvisorOnboarding = ({ onComplete }) => {
       default:
         return true;
     }
+  };
+
+  // Check if ALL required steps are complete (for final submit)
+  const allStepsComplete = () => {
+    return isStepComplete(0) && isStepComplete(1) && isStepComplete(2) && isStepComplete(3) && isStepComplete(4);
+  };
+
+  const validateStep = () => {
+    // For the final step, require all steps to be complete
+    if (activeStep === steps.length - 1) {
+      return allStepsComplete();
+    }
+    // For other steps, always allow navigation (but show incomplete status)
+    return true;
+  };
+
+  // Navigate to a specific step
+  const handleStepClick = (stepIndex) => {
+    setActiveStep(stepIndex);
   };
 
   const getCompletionScore = () => {
@@ -1403,8 +1424,50 @@ const AdvisorOnboarding = ({ onComplete }) => {
       case 5: // Review & Submit
         const badges = getBadgesEarned();
         const score = getCompletionScore();
+        
+        // Get list of incomplete steps
+        const incompleteSteps = [];
+        if (!isStepComplete(0)) incompleteSteps.push({ index: 0, name: 'Profile & Photo' });
+        if (!isStepComplete(1)) incompleteSteps.push({ index: 1, name: 'Professional Background' });
+        if (!isStepComplete(2)) incompleteSteps.push({ index: 2, name: 'Expertise & Advisory' });
+        if (!isStepComplete(3)) incompleteSteps.push({ index: 3, name: 'Portfolio & Links' });
+        if (!isStepComplete(4)) incompleteSteps.push({ index: 4, name: 'Consultation Setup' });
+        
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Incomplete Sections Warning */}
+            {incompleteSteps.length > 0 && (
+              <Alert 
+                severity="warning" 
+                sx={{ 
+                  bgcolor: '#fef3c7', 
+                  '& .MuiAlert-icon': { color: '#d97706' },
+                  '& .MuiAlert-message': { width: '100%' }
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                  Complete these sections to submit:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {incompleteSteps.map((step) => (
+                    <Chip
+                      key={step.index}
+                      label={step.name}
+                      size="small"
+                      onClick={() => handleStepClick(step.index)}
+                      sx={{ 
+                        cursor: 'pointer',
+                        bgcolor: '#fff',
+                        border: '1px solid #d97706',
+                        color: '#92400e',
+                        '&:hover': { bgcolor: '#fef3c7' }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Alert>
+            )}
+
             {/* Completion Score */}
             <Box sx={{ p: 3, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -1557,18 +1620,37 @@ const AdvisorOnboarding = ({ onComplete }) => {
           </Typography>
           
           <Stepper 
-            activeStep={activeStep} 
+            activeStep={activeStep}
+            nonLinear
+            alternativeLabel
             sx={{ 
               '& .MuiStepLabel-label': {
-                fontSize: { xs: '0.65rem', sm: '0.75rem' }
+                fontSize: { xs: '0.6rem', sm: '0.75rem' }
+              },
+              '& .MuiStepButton-root': {
+                py: 0.5,
               }
             }}
           >
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
+            {steps.map((label, index) => {
+              const stepComplete = isStepComplete(index);
+              return (
+                <Step key={label} completed={stepComplete}>
+                  <StepButton 
+                    onClick={() => handleStepClick(index)}
+                    optional={
+                      index < 5 && !stepComplete ? (
+                        <Typography variant="caption" color="error" sx={{ fontSize: '0.6rem' }}>
+                          Required
+                        </Typography>
+                      ) : null
+                    }
+                  >
+                    {label}
+                  </StepButton>
+                </Step>
+              );
+            })}
           </Stepper>
         </Box>
 
