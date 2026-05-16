@@ -41,7 +41,9 @@ import {
   ExpandLess,
   Edit,
   AllInclusive,
+  Lock,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../config/api';
 import ProjectCompatibilityAnswersTabs, {
@@ -100,6 +102,7 @@ const DEALBREAKER_OPTIONS = [
 
 const SeekerDiscovery = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   
   // View states: 'loading' | 'questionnaire' | 'results'
   const [view, setView] = useState('loading');
@@ -136,6 +139,25 @@ const SeekerDiscovery = () => {
   const [projectDetailOpen, setProjectDetailOpen] = useState(false);
   const [detailProject, setDetailProject] = useState(null);
   const [detailTab, setDetailTab] = useState(0);
+
+  // Keyboard navigation for carousel
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (view !== 'results' || matches.length === 0) return;
+      if (applyDialogOpen || projectDetailOpen) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setCurrentCardIndex(prev => Math.max(0, prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setCurrentCardIndex(prev => Math.min(matches.length - 1, prev + 1));
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, matches.length, applyDialogOpen, projectDetailOpen]);
 
   // Load saved preferences from backend on mount
   useEffect(() => {
@@ -607,268 +629,434 @@ const SeekerDiscovery = () => {
 
     return (
       <Box>
-        {discoveryMeta?.note && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            {discoveryMeta.note}
-          </Alert>
-        )}
-        {discoveryMeta?.persistent_feed && !discoveryMeta.note && (
-          <Alert severity="info" sx={{ mb: 2 }}>
-            {discoveryMeta.effective_limit ?? discoveryMeta.daily_limit} curated projects today.
-            {nextBatchLabel && <> New batch {nextBatchLabel}.</>}
-          </Alert>
-        )}
-
-        {/* Header with progress and edit */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 600 }}>
-              {safeIndex + 1} of {matches.length} projects
-            </Typography>
-          </Box>
+        {/* Top bar with Edit filters button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
           <Button
-            variant="text"
+            variant="outlined"
             size="small"
             startIcon={<Edit />}
             onClick={handleUpdatePreferences}
-            sx={{ color: SLATE_500 }}
+            sx={{ 
+              borderColor: TEAL,
+              color: TEAL,
+              fontWeight: 600,
+              textTransform: 'none',
+              px: 2,
+              '&:hover': { 
+                borderColor: TEAL_LIGHT,
+                bgcolor: alpha(TEAL, 0.05),
+              },
+            }}
           >
             Edit filters
           </Button>
         </Box>
 
-        {/* Progress dots */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.75, mb: 3 }}>
-          {matches.map((_, idx) => (
-            <Box
-              key={idx}
-              onClick={() => setCurrentCardIndex(idx)}
+        {/* Only show warning notes, not the curated projects info */}
+        {discoveryMeta?.note && (
+          <Alert severity="warning" sx={{ mb: 1 }}>
+            {discoveryMeta.note}
+          </Alert>
+        )}
+
+        {/* Carousel of project cards - Full width */}
+        <Box sx={{ 
+          position: 'relative', 
+          height: { xs: 480, sm: 540, md: 580 },
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          perspective: '1500px',
+          mx: { xs: -2, sm: -3, md: -4 },
+        }}>
+          {/* Left Navigation Arrow */}
+          {matches.length > 1 && (
+            <IconButton
+              onClick={handlePrev}
+              disabled={isFirst}
               sx={{
-                width: idx === safeIndex ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                bgcolor: idx === safeIndex ? TEAL : alpha(SLATE_400, 0.3),
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: idx === safeIndex ? TEAL : alpha(SLATE_400, 0.5) },
+                position: 'absolute',
+                left: { xs: 4, sm: 16 },
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 25,
+                bgcolor: 'white',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: '1px solid',
+                borderColor: SLATE_200,
+                width: { xs: 36, sm: 44 },
+                height: { xs: 36, sm: 44 },
+                opacity: isFirst ? 0.5 : 1,
+                '&:hover': {
+                  bgcolor: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+                '&:disabled': {
+                  bgcolor: 'white',
+                },
               }}
-            />
-          ))}
+            >
+              <ArrowBack sx={{ color: NAVY }} />
+            </IconButton>
+          )}
+
+          {/* Right Navigation Arrow */}
+          {matches.length > 1 && (
+            <IconButton
+              onClick={handleNext}
+              disabled={isLast}
+              sx={{
+                position: 'absolute',
+                right: { xs: 4, sm: 16 },
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 25,
+                bgcolor: 'white',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: '1px solid',
+                borderColor: SLATE_200,
+                width: { xs: 36, sm: 44 },
+                height: { xs: 36, sm: 44 },
+                opacity: isLast ? 0.5 : 1,
+                '&:hover': {
+                  bgcolor: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+                '&:disabled': {
+                  bgcolor: 'white',
+                },
+              }}
+            >
+              <ArrowForward sx={{ color: NAVY }} />
+            </IconButton>
+          )}
+
+          <AnimatePresence initial={false}>
+            {(() => {
+              const cardsToShow = [];
+              const maxVisible = 3; // Show 3 cards (1 left, 1 center, 1 right) - cleaner look
+              const sideCards = Math.floor(maxVisible / 2);
+              
+              for (let offset = -sideCards; offset <= sideCards; offset++) {
+                const idx = safeIndex + offset;
+                if (idx >= 0 && idx < matches.length) {
+                  cardsToShow.push({ index: idx, offset, project: matches[idx] });
+                }
+              }
+              
+              // Get unlocked count from discovery meta (FREE=5, PRO/PRO+=15)
+              const unlockedCount = discoveryMeta?.unlocked_count ?? matches.length;
+              
+              return cardsToShow.map(({ index: cardIdx, offset, project: cardProject }) => {
+                const isCenter = offset === 0;
+                const absOffset = Math.abs(offset);
+                const isLocked = cardIdx >= unlockedCount;
+                
+                // Card positioning - center card takes most width, side cards peek in
+                const cardWidth = 500;
+                const cardGap = 20;
+                const horizontalPos = offset * (cardWidth * 0.55 + cardGap);
+                const scale = isCenter ? 1.0 : Math.max(0.6, 0.75 - (absOffset * 0.08));
+                const cardOpacity = isCenter ? 1 : Math.max(0.4, 0.65 - (absOffset * 0.12));
+                const zIdx = isCenter ? 20 : 10 - absOffset;
+                
+                return (
+                  <motion.div
+                    key={cardProject.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{
+                      x: horizontalPos,
+                      scale: scale,
+                      opacity: cardOpacity,
+                      rotateY: isCenter ? 0 : offset > 0 ? -5 : 5,
+                    }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    onClick={() => {
+                      if (!isCenter && !isLocked) {
+                        setCurrentCardIndex(cardIdx);
+                      }
+                    }}
+                    style={{
+                      position: 'absolute',
+                      width: cardWidth,
+                      zIndex: zIdx,
+                      cursor: isLocked ? 'default' : 'pointer',
+                      pointerEvents: 'auto',
+                    }}
+                    whileHover={!isCenter && !isLocked ? { scale: scale * 1.05, opacity: 1 } : {}}
+                  >
+                    <Card
+                      onClick={(e) => {
+                        if (isLocked) {
+                          e.stopPropagation();
+                          return;
+                        }
+                        if (isCenter) {
+                          setDetailProject(cardProject);
+                          setDetailTab(0);
+                          setProjectDetailOpen(true);
+                        } else {
+                          e.stopPropagation();
+                          setCurrentCardIndex(cardIdx);
+                        }
+                      }}
+                      sx={{
+                        border: '1px solid',
+                        borderColor: isLocked ? SLATE_200 : isCenter ? TEAL : SLATE_200,
+                        boxShadow: isCenter 
+                          ? `0 8px 24px ${alpha(SLATE_900, 0.12)}` 
+                          : `0 4px 12px ${alpha(SLATE_900, 0.06)}`,
+                        cursor: isLocked ? 'default' : 'pointer',
+                        transition: 'all 0.2s',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&:hover': isLocked ? {} : isCenter ? {
+                          borderColor: TEAL,
+                          boxShadow: `0 12px 32px ${alpha(SLATE_900, 0.15)}`,
+                        } : {
+                          borderColor: alpha(TEAL, 0.3),
+                        },
+                      }}
+                    >
+                      {/* Locked overlay */}
+                      {isLocked && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            bgcolor: alpha(SLATE_900, 0.92),
+                            zIndex: 10,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            p: 3,
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 64,
+                              height: 64,
+                              borderRadius: '50%',
+                              bgcolor: alpha('#fff', 0.1),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              mb: 2,
+                            }}
+                          >
+                            <Lock sx={{ fontSize: 32, color: '#fff' }} />
+                          </Box>
+                          <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+                            Project Locked
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: alpha('#fff', 0.7), mb: 3, maxWidth: 280 }}>
+                            Upgrade to Pro to unlock all 15 curated projects daily
+                          </Typography>
+                          <Button
+                            variant="contained"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/pricing');
+                            }}
+                            sx={{
+                              bgcolor: TEAL,
+                              color: '#fff',
+                              fontWeight: 600,
+                              px: 4,
+                              py: 1.5,
+                              '&:hover': { bgcolor: TEAL_LIGHT },
+                            }}
+                          >
+                            Upgrade to Pro
+                          </Button>
+                          <Typography variant="caption" sx={{ color: alpha('#fff', 0.5), mt: 2 }}>
+                            {matches.length - unlockedCount} more projects available with Pro
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      <CardContent sx={{ p: 3, filter: isLocked ? 'blur(8px)' : 'none' }}>
+                        {/* Header with match score */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+                              {cardProject.title}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip 
+                                label={cardProject.stage?.replace('_', ' ')} 
+                                size="small" 
+                                sx={{ bgcolor: alpha(SKY, 0.1), color: SKY, fontWeight: 600, textTransform: 'capitalize' }} 
+                              />
+                              {cardProject.genre && (
+                                <Chip label={cardProject.genre} size="small" sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }} />
+                              )}
+                            </Box>
+                          </Box>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center',
+                            bgcolor: cardProject.match_score >= 80 ? alpha(TEAL, 0.1) : cardProject.match_score >= 60 ? alpha(SKY, 0.1) : alpha(SLATE_400, 0.1),
+                            borderRadius: 2,
+                            p: 1.5,
+                            minWidth: 64,
+                          }}>
+                            <Typography variant="h5" sx={{ 
+                              fontWeight: 700, 
+                              color: cardProject.match_score >= 80 ? TEAL : cardProject.match_score >= 60 ? SKY : SLATE_500,
+                              lineHeight: 1,
+                            }}>
+                              {cardProject.match_score}%
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>
+                              match
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* Description */}
+                        <Box sx={{ mb: 2.5, minHeight: 72 }}>
+                          <Typography 
+                            variant="body1" 
+                            sx={{ 
+                              color: SLATE_500, 
+                              lineHeight: 1.6,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {cardProject.description}
+                          </Typography>
+                        </Box>
+
+                        {/* Match reasons */}
+                        <Box sx={{ bgcolor: alpha(TEAL, 0.05), borderRadius: 2, p: 2, mb: 2.5, minHeight: 64 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            Why this matches
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                            {(cardProject.match_reasons?.length > 0 ? cardProject.match_reasons : ['Good fit based on your preferences']).slice(0, 3).map((reason, idx) => (
+                              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                                <Typography variant="caption" sx={{ color: SLATE_900 }}>{reason}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </Box>
+
+                        {/* Founder info */}
+                        {cardProject.founder && (
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1.5, 
+                            p: 1.5, 
+                            bgcolor: alpha(SLATE_200, 0.3), 
+                            borderRadius: 2,
+                            mb: 2.5,
+                          }}>
+                            <Avatar
+                              src={cardProject.founder.profile_picture_url}
+                              sx={{ width: 40, height: 40, bgcolor: alpha(SKY, 0.15), color: SKY, fontWeight: 600, fontSize: 14 }}
+                            >
+                              {cardProject.founder.name?.split(' ').map(n => n[0]).join('')}
+                            </Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                                  {cardProject.founder.name}
+                                </Typography>
+                                {cardProject.founder.verification?.tier !== 'UNVERIFIED' && (
+                                  <Verified sx={{ fontSize: 14, color: TEAL }} />
+                                )}
+                              </Box>
+                              <Typography variant="caption" sx={{ color: SLATE_500, display: 'block' }}>
+                                {cardProject.founder.headline || cardProject.founder.location || 'Founder'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+
+                        {/* Action buttons - only on center card and not locked */}
+                        {isCenter && !isLocked && (
+                          <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Button
+                              variant="outlined"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSkip();
+                              }}
+                              sx={{ 
+                                flex: 1,
+                                py: 1.5, 
+                                borderColor: SLATE_200, 
+                                color: SLATE_500,
+                                fontWeight: 600,
+                                '&:hover': { borderColor: SLATE_400 },
+                              }}
+                            >
+                              Skip
+                            </Button>
+                            <Button
+                              variant="contained"
+                              endIcon={<Send />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProject(cardProject);
+                                setApplyDialogOpen(true);
+                              }}
+                              sx={{ 
+                                flex: 2,
+                                py: 1.5, 
+                                bgcolor: TEAL, 
+                                fontWeight: 600, 
+                                '&:hover': { bgcolor: TEAL_LIGHT } 
+                              }}
+                            >
+                              Apply to Join
+                            </Button>
+                          </Box>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              });
+            })()}
+          </AnimatePresence>
         </Box>
 
-        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: SLATE_400, mb: 1 }}>
-          Click the card to see the full pitch, skills they need, and the founder&apos;s questionnaire answers.
-        </Typography>
-
-        {/* Single project card */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={project.id}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Card
-              onClick={() => {
-                setDetailProject(project);
-                setDetailTab(0);
-                setProjectDetailOpen(true);
-              }}
-              sx={{
-              border: '1px solid',
-              borderColor: SLATE_200,
-              boxShadow: `0 4px 16px ${alpha(SLATE_900, 0.08)}`,
-              cursor: 'pointer',
-            }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                {/* Header with match score */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
-                      {project.title}
+        {/* Footer with project counter */}
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          {(() => {
+            const unlockedCount = discoveryMeta?.unlocked_count ?? matches.length;
+            const lockedCount = Math.max(0, matches.length - unlockedCount);
+            return (
+              <>
+                <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 600 }}>
+                  {safeIndex + 1} of {matches.length} projects
+                  {lockedCount > 0 && (
+                    <Typography component="span" sx={{ color: SLATE_400, fontWeight: 400 }}>
+                      {' '}({unlockedCount} unlocked, {lockedCount} locked)
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip 
-                        label={project.stage?.replace('_', ' ')} 
-                        size="small" 
-                        sx={{ bgcolor: alpha(SKY, 0.1), color: SKY, fontWeight: 600, textTransform: 'capitalize' }} 
-                      />
-                      {project.genre && (
-                        <Chip label={project.genre} size="small" sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }} />
-                      )}
-                    </Box>
-                  </Box>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center',
-                    bgcolor: project.match_score >= 80 ? alpha(TEAL, 0.1) : project.match_score >= 60 ? alpha(SKY, 0.1) : alpha(SLATE_400, 0.1),
-                    borderRadius: 2,
-                    p: 1.5,
-                    minWidth: 64,
-                  }}>
-                    <Typography variant="h5" sx={{ 
-                      fontWeight: 700, 
-                      color: project.match_score >= 80 ? TEAL : project.match_score >= 60 ? SKY : SLATE_500,
-                      lineHeight: 1,
-                    }}>
-                      {project.match_score}%
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>
-                      match
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Description - Fixed height with show more */}
-                <Box sx={{ mb: 2.5, minHeight: 72 }}>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: SLATE_500, 
-                      lineHeight: 1.6,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {project.description}
-                  </Typography>
-                  {project.description?.length > 150 && (
-                    <Button
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDescriptionDialogOpen(true);
-                      }}
-                      sx={{ 
-                        color: TEAL, 
-                        textTransform: 'none', 
-                        p: 0, 
-                        mt: 0.5,
-                        minWidth: 'auto',
-                        '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
-                      }}
-                    >
-                      Show more
-                    </Button>
                   )}
-                </Box>
-
-                {/* Match reasons - Fixed height */}
-                <Box sx={{ bgcolor: alpha(TEAL, 0.05), borderRadius: 2, p: 2, mb: 2.5, minHeight: 64 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Why this matches
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {(project.match_reasons?.length > 0 ? project.match_reasons : ['Good fit based on your preferences']).slice(0, 3).map((reason, idx) => (
-                      <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
-                        <Typography variant="caption" sx={{ color: SLATE_900 }}>{reason}</Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
-
-                {/* Founder info - Compact */}
-                {project.founder && (
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1.5, 
-                    p: 1.5, 
-                    bgcolor: alpha(SLATE_200, 0.3), 
-                    borderRadius: 2,
-                    mb: 2.5,
-                  }}>
-                    <Avatar
-                      src={project.founder.profile_picture_url}
-                      sx={{ width: 40, height: 40, bgcolor: alpha(SKY, 0.15), color: SKY, fontWeight: 600, fontSize: 14 }}
-                    >
-                      {project.founder.name?.split(' ').map(n => n[0]).join('')}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                          {project.founder.name}
-                        </Typography>
-                        {project.founder.verification?.tier !== 'UNVERIFIED' && (
-                          <Verified sx={{ fontSize: 14, color: TEAL }} />
-                        )}
-                      </Box>
-                      <Typography variant="caption" sx={{ color: SLATE_500, display: 'block' }}>
-                        {project.founder.headline || project.founder.location || 'Founder'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
-
-                {/* Action buttons */}
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSkip();
-                    }}
-                    sx={{ 
-                      flex: 1,
-                      py: 1.5, 
-                      borderColor: SLATE_200, 
-                      color: SLATE_500,
-                      fontWeight: 600,
-                      '&:hover': { borderColor: SLATE_400 },
-                    }}
-                  >
-                    Skip
-                  </Button>
-                  <Button
-                    variant="contained"
-                    endIcon={<Send />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedProject(project);
-                      setApplyDialogOpen(true);
-                    }}
-                    sx={{ 
-                      flex: 2,
-                      py: 1.5, 
-                      bgcolor: TEAL, 
-                      fontWeight: 600, 
-                      '&:hover': { bgcolor: TEAL_LIGHT } 
-                    }}
-                  >
-                    Apply to Join
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation arrows for desktop */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'space-between', mt: 3 }}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBack />}
-            onClick={handlePrev}
-            disabled={isFirst}
-            sx={{ borderColor: SLATE_200, color: SLATE_500 }}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outlined"
-            endIcon={<ArrowForward />}
-            onClick={handleNext}
-            disabled={isLast}
-            sx={{ borderColor: SLATE_200, color: SLATE_500 }}
-          >
-            Next
-          </Button>
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, mt: 0.5 }}>
+                  Use arrow keys or click side cards to navigate
+                </Typography>
+              </>
+            );
+          })()}
         </Box>
 
         {/* End of results message */}
@@ -914,7 +1102,13 @@ const SeekerDiscovery = () => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
-      <Box sx={{ maxWidth: 700, mx: 'auto', width: '100%', p: { xs: 2, sm: 4 } }}>
+      <Box sx={{ 
+        maxWidth: view === 'results' ? 1200 : 700, 
+        mx: 'auto', 
+        width: '100%', 
+        p: { xs: 2, sm: 3, md: 4 },
+        transition: 'max-width 0.3s ease',
+      }}>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>
         )}

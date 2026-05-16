@@ -302,27 +302,26 @@ const PricingPage = () => {
 
   const planFeatures = {
     FREE: [
-      { icon: <TrendingUp />, text: '3 curated projects per day' },
+      { icon: <TrendingUp />, text: '5 unlocked projects per day' },
+      { icon: <Star />, text: '10 more locked (upgrade to unlock)' },
       { icon: <People />, text: '1 application per day' },
       { icon: <Rocket />, text: '1 project' },
       { icon: <Business />, text: '1 workspace' },
-      { icon: <Check />, text: 'Equity calculator' },
-      { icon: <Check />, text: 'Slack & Notion integrations' },
-      { icon: <Check />, text: 'Weekly check-ins' },
+      { icon: <Check />, text: 'All workspace tools included' },
       { icon: <Close color="disabled" />, text: 'Can only see Free projects', muted: true },
     ],
     PRO: [
-      { icon: <TrendingUp />, text: 'Unlimited applications' },
+      { icon: <TrendingUp />, text: '15 curated projects per day (all unlocked)' },
+      { icon: <People />, text: 'Unlimited applications' },
       { icon: <Rocket />, text: 'Up to 3 projects' },
       { icon: <Business />, text: 'Unlimited workspaces' },
       { icon: <Star />, text: 'See Free + Pro projects' },
       { icon: <Star />, text: 'Advisor marketplace access' },
-      { icon: <Check />, text: 'Everything in Free' },
     ],
     PRO_PLUS: [
+      { icon: <TrendingUp />, text: '15 curated projects per day (all unlocked)' },
       { icon: <Star />, text: 'See all projects (Free, Pro, Pro+)' },
       { icon: <Star />, text: 'Post-match support (30 days)' },
-      { icon: <Check />, text: 'Priority check-in support' },
       { icon: <Check />, text: 'Everything in Pro' },
     ],
   };

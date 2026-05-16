@@ -18,6 +18,13 @@ import {
   Link,
   LinearProgress,
   Tooltip,
+  Tabs,
+  Tab,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  TextField,
 } from '@mui/material';
 import {
   People,
@@ -40,6 +47,12 @@ import {
   Email,
   Schedule,
   AttachMoney,
+  Feedback,
+  BugReport,
+  Lightbulb,
+  DesignServices,
+  PriceChange,
+  MoreHoriz,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config/api';
@@ -57,6 +70,9 @@ const BG = '#f8fafc';
 const AdminAdvisors = () => {
   const { user } = useUser();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(0);
+  
+  // Advisor states
   const [advisors, setAdvisors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -65,6 +81,70 @@ const AdminAdvisors = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailProfile, setDetailProfile] = useState(null);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+
+  // Feedback states
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(null);
+  const [feedbackFilter, setFeedbackFilter] = useState({ status: '', category: '' });
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [updatingFeedback, setUpdatingFeedback] = useState(false);
+
+  const fetchFeedback = async () => {
+    if (!user?.id) return;
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+    try {
+      const params = new URLSearchParams();
+      if (feedbackFilter.status) params.append('status', feedbackFilter.status);
+      if (feedbackFilter.category) params.append('category', feedbackFilter.category);
+      
+      const res = await fetch(`${API_BASE}/admin/feedback?${params.toString()}`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (res.status === 403) {
+        setFeedbackError('Admin access required');
+        setFeedbackList([]);
+        return;
+      }
+      if (!res.ok) throw new Error('Failed to fetch feedback');
+      const data = await res.json();
+      setFeedbackList(data || []);
+    } catch (err) {
+      setFeedbackError(err.message || 'Failed to load feedback');
+      setFeedbackList([]);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const updateFeedback = async (feedbackId, updates) => {
+    setUpdatingFeedback(true);
+    try {
+      const res = await fetch(`${API_BASE}/admin/feedback/${feedbackId}`, {
+        method: 'PATCH',
+        headers: { 
+          'X-Clerk-User-Id': user.id,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to update');
+      const updated = await res.json();
+      setFeedbackList(prev => prev.map(f => f.id === feedbackId ? { ...f, ...updated } : f));
+      setSelectedFeedback(null);
+    } catch (err) {
+      setFeedbackError(err.message);
+    } finally {
+      setUpdatingFeedback(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 1) {
+      fetchFeedback();
+    }
+  }, [activeTab, feedbackFilter, user?.id]);
 
   const fetchPending = async () => {
     if (!user?.id) return;
@@ -159,49 +239,75 @@ const AdminAdvisors = () => {
           Back
         </Button>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: alpha(NAVY, 0.08), color: NAVY }}>
             <People sx={{ fontSize: 28 }} />
           </Box>
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900 }}>
-              Pending Advisor Applications
+              Admin Panel
             </Typography>
             <Typography variant="body2" sx={{ color: SLATE_500 }}>
-              Review and approve advisors to make them discoverable in the marketplace
+              Manage advisor applications and view product feedback
             </Typography>
           </Box>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
+        {/* Tabs */}
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, v) => setActiveTab(v)}
+          sx={{ 
+            mb: 3,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+            },
+            '& .Mui-selected': {
+              color: NAVY,
+            },
+            '& .MuiTabs-indicator': {
+              bgcolor: NAVY,
+            },
+          }}
+        >
+          <Tab icon={<People sx={{ fontSize: 20 }} />} iconPosition="start" label={`Advisors (${advisors.length})`} />
+          <Tab icon={<Feedback sx={{ fontSize: 20 }} />} iconPosition="start" label="Product Feedback" />
+        </Tabs>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: TEAL }} />
-          </Box>
-        ) : advisors.length === 0 ? (
-          <Box
-            sx={{
-              p: 6,
-              textAlign: 'center',
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: SLATE_200,
-              bgcolor: '#fff',
-            }}
-          >
-            <People sx={{ fontSize: 48, color: SLATE_200, mb: 2 }} />
-            <Typography variant="body1" sx={{ color: SLATE_500, fontWeight: 500 }}>
-              No pending advisor applications
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {advisors.map((advisor) => (
+        {/* Advisors Tab */}
+        {activeTab === 0 && (
+          <>
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress sx={{ color: TEAL }} />
+              </Box>
+            ) : advisors.length === 0 ? (
+              <Box
+                sx={{
+                  p: 6,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: SLATE_200,
+                  bgcolor: '#fff',
+                }}
+              >
+                <People sx={{ fontSize: 48, color: SLATE_200, mb: 2 }} />
+                <Typography variant="body1" sx={{ color: SLATE_500, fontWeight: 500 }}>
+                  No pending advisor applications
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {advisors.map((advisor) => (
               <Box
                 key={advisor.id}
                 sx={{
@@ -287,8 +393,26 @@ const AdminAdvisors = () => {
                   </Box>
                 </Box>
               </Box>
-            ))}
-          </Box>
+              ))}
+            </Box>
+          )}
+          </>
+        )}
+
+        {/* Feedback Tab */}
+        {activeTab === 1 && (
+          <FeedbackPanel
+            feedbackList={feedbackList}
+            loading={feedbackLoading}
+            error={feedbackError}
+            filter={feedbackFilter}
+            setFilter={setFeedbackFilter}
+            selectedFeedback={selectedFeedback}
+            setSelectedFeedback={setSelectedFeedback}
+            updateFeedback={updateFeedback}
+            updatingFeedback={updatingFeedback}
+            setError={setFeedbackError}
+          />
         )}
       </Box>
 
@@ -743,6 +867,331 @@ const AdminAdvisors = () => {
         </Box>
       </Dialog>
     </Box>
+  );
+};
+
+// Feedback Panel Component
+const FeedbackPanel = ({ 
+  feedbackList, 
+  loading, 
+  error, 
+  filter, 
+  setFilter, 
+  selectedFeedback, 
+  setSelectedFeedback, 
+  updateFeedback,
+  updatingFeedback,
+  setError
+}) => {
+  const CATEGORY_ICONS = {
+    Bug: <BugReport sx={{ fontSize: 16 }} />,
+    Feature: <Lightbulb sx={{ fontSize: 16 }} />,
+    UX: <DesignServices sx={{ fontSize: 16 }} />,
+    Pricing: <PriceChange sx={{ fontSize: 16 }} />,
+    Other: <MoreHoriz sx={{ fontSize: 16 }} />,
+  };
+
+  const STATUS_COLORS = {
+    'New': { bg: '#fef3c7', color: '#92400e' },
+    'Under review': { bg: '#dbeafe', color: '#1e40af' },
+    'Planned': { bg: '#e0e7ff', color: '#3730a3' },
+    'In progress': { bg: '#d1fae5', color: '#065f46' },
+    'Implemented': { bg: '#d1fae5', color: '#047857' },
+    'Rejected': { bg: '#fee2e2', color: '#991b1b' },
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Filters */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={filter.status}
+            label="Status"
+            onChange={(e) => setFilter({ ...filter, status: e.target.value })}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="New">New</MenuItem>
+            <MenuItem value="Under review">Under review</MenuItem>
+            <MenuItem value="Planned">Planned</MenuItem>
+            <MenuItem value="In progress">In progress</MenuItem>
+            <MenuItem value="Implemented">Implemented</MenuItem>
+            <MenuItem value="Rejected">Rejected</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            value={filter.category}
+            label="Category"
+            onChange={(e) => setFilter({ ...filter, category: e.target.value })}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="Bug">Bug</MenuItem>
+            <MenuItem value="Feature">Feature</MenuItem>
+            <MenuItem value="UX">UX</MenuItem>
+            <MenuItem value="Pricing">Pricing</MenuItem>
+            <MenuItem value="Other">Other</MenuItem>
+          </Select>
+        </FormControl>
+        <Chip 
+          label={`${feedbackList.length} items`} 
+          sx={{ alignSelf: 'center', bgcolor: SLATE_200 }} 
+        />
+      </Box>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress sx={{ color: TEAL }} />
+        </Box>
+      ) : feedbackList.length === 0 ? (
+        <Box
+          sx={{
+            p: 6,
+            textAlign: 'center',
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: SLATE_200,
+            bgcolor: '#fff',
+          }}
+        >
+          <Feedback sx={{ fontSize: 48, color: SLATE_200, mb: 2 }} />
+          <Typography variant="body1" sx={{ color: SLATE_500, fontWeight: 500 }}>
+            No feedback found
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {feedbackList.map((fb) => (
+            <Box
+              key={fb.id}
+              onClick={() => setSelectedFeedback(fb)}
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: SLATE_200,
+                bgcolor: '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                '&:hover': {
+                  borderColor: alpha(TEAL, 0.3),
+                  boxShadow: `0 8px 24px ${alpha(TEAL, 0.06)}`,
+                },
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 1.5 }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Chip
+                      icon={CATEGORY_ICONS[fb.category] || CATEGORY_ICONS.Other}
+                      label={fb.category}
+                      size="small"
+                      sx={{ 
+                        bgcolor: alpha(NAVY, 0.08), 
+                        color: NAVY,
+                        fontWeight: 500,
+                        '& .MuiChip-icon': { color: NAVY },
+                      }}
+                    />
+                    <Chip
+                      label={fb.status}
+                      size="small"
+                      sx={{ 
+                        bgcolor: STATUS_COLORS[fb.status]?.bg || SLATE_200,
+                        color: STATUS_COLORS[fb.status]?.color || SLATE_500,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                    {fb.title}
+                  </Typography>
+                </Box>
+                <Typography variant="caption" sx={{ color: SLATE_400, whiteSpace: 'nowrap' }}>
+                  {formatDate(fb.created_at)}
+                </Typography>
+              </Box>
+              
+              <Typography variant="body2" sx={{ color: SLATE_500, mb: 1.5, lineHeight: 1.6 }} noWrap>
+                {fb.description}
+              </Typography>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                  From: {fb.founders?.name || fb.founders?.email || 'Unknown'}
+                </Typography>
+                {fb.usefulness_score != null && (
+                  <Chip 
+                    label={`Score: ${fb.usefulness_score}`} 
+                    size="small" 
+                    sx={{ bgcolor: '#ecfdf5', color: '#10b981', fontWeight: 600 }}
+                  />
+                )}
+                {fb.reward_amount_cents > 0 && (
+                  <Chip 
+                    label={`$${(fb.reward_amount_cents / 100).toFixed(2)} ${fb.reward_paid ? '(Paid)' : '(Pending)'}`} 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: fb.reward_paid ? '#d1fae5' : '#fef3c7',
+                      color: fb.reward_paid ? '#047857' : '#92400e',
+                      fontWeight: 600,
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Feedback Detail Dialog */}
+      <Dialog
+        open={!!selectedFeedback}
+        onClose={() => setSelectedFeedback(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        {selectedFeedback && (
+          <>
+            <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200, pb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>Feedback Details</Typography>
+                <IconButton size="small" onClick={() => setSelectedFeedback(null)}>
+                  <Close />
+                </IconButton>
+              </Box>
+            </DialogTitle>
+            <DialogContent sx={{ pt: 3 }}>
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                  <Chip
+                    icon={CATEGORY_ICONS[selectedFeedback.category]}
+                    label={selectedFeedback.category}
+                    size="small"
+                    sx={{ bgcolor: alpha(NAVY, 0.08), color: NAVY }}
+                  />
+                  <Chip
+                    label={selectedFeedback.status}
+                    size="small"
+                    sx={{ 
+                      bgcolor: STATUS_COLORS[selectedFeedback.status]?.bg,
+                      color: STATUS_COLORS[selectedFeedback.status]?.color,
+                      fontWeight: 600,
+                    }}
+                  />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                  {selectedFeedback.title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_500, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                  {selectedFeedback.description}
+                </Typography>
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                  Submitted by: {selectedFeedback.founders?.name || selectedFeedback.founders?.email}
+                </Typography>
+                <br />
+                <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                  Date: {formatDate(selectedFeedback.created_at)}
+                </Typography>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Admin Actions */}
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+                Admin Actions
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Update Status</InputLabel>
+                  <Select
+                    value={selectedFeedback.status}
+                    label="Update Status"
+                    onChange={(e) => updateFeedback(selectedFeedback.id, { status: e.target.value })}
+                    disabled={updatingFeedback}
+                  >
+                    <MenuItem value="New">New</MenuItem>
+                    <MenuItem value="Under review">Under review</MenuItem>
+                    <MenuItem value="Planned">Planned</MenuItem>
+                    <MenuItem value="In progress">In progress</MenuItem>
+                    <MenuItem value="Implemented">Implemented</MenuItem>
+                    <MenuItem value="Rejected">Rejected</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Usefulness Score (0-100)"
+                  type="number"
+                  size="small"
+                  defaultValue={selectedFeedback.usefulness_score || ''}
+                  inputProps={{ min: 0, max: 100 }}
+                  onBlur={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val) && val >= 0 && val <= 100) {
+                      updateFeedback(selectedFeedback.id, { usefulness_score: val });
+                    }
+                  }}
+                  disabled={updatingFeedback}
+                />
+
+                <TextField
+                  label="Reward Amount (cents)"
+                  type="number"
+                  size="small"
+                  defaultValue={selectedFeedback.reward_amount_cents || ''}
+                  inputProps={{ min: 0 }}
+                  onBlur={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (!isNaN(val) && val >= 0) {
+                      updateFeedback(selectedFeedback.id, { reward_amount_cents: val });
+                    }
+                  }}
+                  disabled={updatingFeedback}
+                />
+
+                {selectedFeedback.reward_amount_cents > 0 && !selectedFeedback.reward_paid && (
+                  <Button
+                    variant="contained"
+                    color="success"
+                    onClick={() => updateFeedback(selectedFeedback.id, { reward_paid: true })}
+                    disabled={updatingFeedback}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Mark Reward as Paid
+                  </Button>
+                )}
+              </Box>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
+    </>
   );
 };
 

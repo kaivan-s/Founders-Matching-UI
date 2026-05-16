@@ -1205,64 +1205,95 @@ const SwipeInterface = () => {
             width: '100%',
             flex: '1 1 auto',
             minHeight: 0,
-            maxHeight: { xs: 'calc(100vh - 320px)', sm: 'calc(100vh - 280px)', md: 'calc(100vh - 240px)' },
+            maxHeight: { xs: 'calc(100vh - 300px)', sm: 'calc(100vh - 260px)', md: 'calc(100vh - 220px)' },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            perspective: '1000px',
+            perspective: '1200px',
             overflow: 'hidden',
-            px: { xs: 1, sm: 2, md: 4, lg: 6 },
-            mt: -3,
+            px: { xs: 0, sm: 1, md: 2 },
+            mt: -2,
           }}>
+            {/* Left Navigation Arrow */}
+            {founders.length > 1 && !isMobile && (
+              <IconButton
+                onClick={handlePrevious}
+                sx={{
+                  position: 'absolute',
+                  left: { sm: 8, md: 16, lg: 24 },
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 25,
+                  bgcolor: 'white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  border: '1px solid',
+                  borderColor: 'rgba(226, 232, 240, 0.8)',
+                  width: 44,
+                  height: 44,
+                  '&:hover': {
+                    bgcolor: 'white',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    borderColor: 'primary.main',
+                  },
+                }}
+              >
+                <ArrowBack sx={{ color: 'primary.main' }} />
+              </IconButton>
+            )}
+
+            {/* Right Navigation Arrow */}
+            {founders.length > 1 && !isMobile && (
+              <IconButton
+                onClick={handleNext}
+                sx={{
+                  position: 'absolute',
+                  right: { sm: 8, md: 16, lg: 24 },
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 25,
+                  bgcolor: 'white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  border: '1px solid',
+                  borderColor: 'rgba(226, 232, 240, 0.8)',
+                  width: 44,
+                  height: 44,
+                  '&:hover': {
+                    bgcolor: 'white',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    borderColor: 'primary.main',
+                  },
+                }}
+              >
+                <ArrowForward sx={{ color: 'primary.main' }} />
+              </IconButton>
+            )}
+
             <AnimatePresence initial={false}>
-              {/* Show all available projects - up to 15 cards in linear scroll */}
+              {/* Show 10 projects in carousel - 1 center + 4-5 on each side */}
               {(() => {
                 if (founders.length === 0) return null;
                 
                 const cardsToShow = [];
-                const maxVisibleCards = 21; // Increased for better full-width utilization
+                const maxVisibleCards = isMobile ? 5 : 10; // Show fewer on mobile
+                const sideCards = Math.floor(maxVisibleCards / 2); // Cards on each side
                 const totalFounders = founders.length;
                 
-                // Calculate how many cards to show on each side of center
-                let leftCards, rightCards;
-                
-                if (totalFounders <= maxVisibleCards) {
-                  // Show all projects when we have maxVisibleCards or fewer
-                  // Calculate positions relative to current index
-                  for (let i = 0; i < totalFounders; i++) {
-                    let visualOffset = i - currentIndex;
-                    // Wrap visual offset for circular display
-                    if (visualOffset > Math.floor(totalFounders / 2)) {
-                      visualOffset = visualOffset - totalFounders;
-                    } else if (visualOffset < -Math.floor(totalFounders / 2)) {
-                      visualOffset = visualOffset + totalFounders;
-                    }
-                    
-                    cardsToShow.push({
-                      index: i,
-                      visualOffset: visualOffset,
-                      founder: founders[i]
-                    });
-                  }
-                } else {
-                  // If more than maxVisibleCards projects, show maxVisibleCards centered around current
-                  leftCards = Math.floor(maxVisibleCards / 2);
-                  rightCards = Math.floor(maxVisibleCards / 2);
+                // Build list of cards to show centered around currentIndex
+                for (let offset = -sideCards; offset <= sideCards; offset++) {
+                  let cardIndex = currentIndex + offset;
                   
-                  for (let offset = -leftCards; offset <= rightCards; offset++) {
-                    let cardIndex = currentIndex + offset;
-                    
-                    // Wrap around for infinite scroll
+                  // Wrap around for circular carousel
+                  if (totalFounders > 0) {
                     cardIndex = ((cardIndex % totalFounders) + totalFounders) % totalFounders;
-                    
-                    const founder = founders[cardIndex];
-                    if (founder) {
-                      cardsToShow.push({
-                        index: cardIndex,
-                        visualOffset: offset,
-                        founder: founder
-                      });
-                    }
+                  }
+                  
+                  const founder = founders[cardIndex];
+                  if (founder && !cardsToShow.find(c => c.index === cardIndex)) {
+                    cardsToShow.push({
+                      index: cardIndex,
+                      visualOffset: offset,
+                      founder: founder
+                    });
                   }
                 }
                 
@@ -1284,30 +1315,23 @@ const SwipeInterface = () => {
                   const isCurrentCard = visualOffset === 0;
                   const isBeingSwiped = swiping === founder?.id && isCurrentCard;
                 
-                  // Linear horizontal carousel - optimized for full-width website layout
-                  // Cards arranged in a horizontal line
-                  
-                  // Calculate horizontal position with responsive spacing
-                  // Smaller cards on mobile to ensure counter is visible
-                  const cardWidth = isMobile ? 260 : isTablet ? 290 : 320;
-                  const cardGap = isMobile ? 16 : isTablet ? 20 : 32;
+                  // Carousel layout - 10 cards visible with center card prominent
+                  const cardWidth = isMobile ? 220 : isTablet ? 260 : 280;
+                  const cardGap = isMobile ? 12 : isTablet ? 16 : 20;
                   const horizontalOffset = distanceFromCurrent * (cardWidth + cardGap);
                   
-                  // Scale based on distance from center - more gradual scaling
+                  // Scale: center card is larger, side cards progressively smaller
                   const absDistance = Math.abs(distanceFromCurrent);
-                  const scale = isCurrentCard ? 1.05 : // Center card slightly larger
-                              Math.max(0.75, 1 - (absDistance * 0.08)); // Gradual scale down
+                  const scale = isCurrentCard ? 1.0 : Math.max(0.65, 0.85 - (absDistance * 0.05));
                   
-                  // Opacity fade for distance - more gradual
-                  const opacity = isCurrentCard ? 1 :
-                                Math.max(0.5, 1 - (absDistance * 0.12));
+                  // Opacity: center is full, sides fade out
+                  const opacity = isCurrentCard ? 1 : Math.max(0.4, 0.8 - (absDistance * 0.1));
                   
-                  // Z-index for layering (center card on top)
-                  const zIndex = isCurrentCard ? 20 : Math.max(1, 15 - absDistance);
+                  // Z-index: center on top
+                  const zIndex = isCurrentCard ? 20 : Math.max(1, 10 - absDistance);
                   
-                  // Slight rotation for depth perception
-                  const rotateY = isCurrentCard ? 0 : 
-                                distanceFromCurrent > 0 ? -4 : 4; // Subtle angle for side cards
+                  // Slight rotation for 3D effect
+                  const rotateY = isCurrentCard ? 0 : distanceFromCurrent > 0 ? -3 : 3;
 
                   return (
                     <motion.div
@@ -1349,24 +1373,40 @@ const SwipeInterface = () => {
                     whileDrag={isCurrentCard ? { scale: 0.95 } : {}}
                     style={{ 
                       position: 'absolute',
-                      width: isMobile ? '260px' : isTablet ? '290px' : '320px',
-                      height: isMobile ? '380px' : isTablet ? '420px' : '480px',
+                      width: isMobile ? '220px' : isTablet ? '260px' : '280px',
+                      height: isMobile ? '340px' : isTablet ? '400px' : '440px',
                       zIndex: zIndex,
-                      pointerEvents: isCurrentCard ? 'auto' : 'none',
-                      cursor: isCurrentCard ? 'grab' : 'default',
+                      pointerEvents: 'auto',
+                      cursor: isCurrentCard ? 'grab' : 'pointer',
                       transformOrigin: 'center center',
                       ...(isCurrentCard ? {
                         WebkitFontSmoothing: 'antialiased',
                         MozOsxFontSmoothing: 'grayscale',
                       } : {}),
                     }}
+                    onClick={() => {
+                      if (!isCurrentCard && founder) {
+                        setCurrentIndex(index);
+                      }
+                    }}
                     whileHover={isCurrentCard ? { 
                       scale: 1.03,
                       transition: { duration: 0.2, ease: 'easeOut' }
-                    } : {}}
+                    } : {
+                      scale: scale * 1.05,
+                      opacity: 1,
+                      transition: { duration: 0.2, ease: 'easeOut' }
+                    }}
                   >
                     <Card 
-                      onClick={() => isCurrentCard && founder && handleCardClick(founder)}
+                      onClick={(e) => {
+                        if (!isCurrentCard) {
+                          e.stopPropagation();
+                          setCurrentIndex(index);
+                        } else if (founder) {
+                          handleCardClick(founder);
+                        }
+                      }}
                       elevation={0}
                       sx={{ 
                         height: '100%',
@@ -1396,7 +1436,12 @@ const SwipeInterface = () => {
                           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
                           borderColor: 'rgba(30, 58, 138, 0.3)',
                           transform: 'translateY(-1px)',
-                        } : {},
+                        } : {
+                          opacity: 1,
+                          borderColor: 'rgba(30, 58, 138, 0.2)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                          transform: 'scale(1.02)',
+                        },
                       }}
                     >
                     {/* Compatibility Score Badge - shown for paid users with preferences set */}

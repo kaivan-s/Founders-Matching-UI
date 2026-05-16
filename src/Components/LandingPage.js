@@ -190,10 +190,10 @@ const LandingPage = () => {
     {
       name: 'Free', price: '$0', popular: false,
       features: [
-        '3 curated projects per day',
+        '5 unlocked projects/day',
+        '10 more locked (upgrade to view)',
         '1 application per day',
-        '1 project',
-        '1 workspace',
+        '1 project & 1 workspace',
         'All workspace tools',
         'See Free founders only',
       ],
@@ -201,21 +201,21 @@ const LandingPage = () => {
     {
       name: 'Pro', price: '$12/mo', popular: true,
       features: [
+        '15 curated projects/day (all unlocked)',
         'Unlimited applications',
         'Up to 3 projects',
         'Unlimited workspaces',
         'See Free + Pro founders',
         'Advisor marketplace',
-        'All workspace tools',
       ],
     },
     {
       name: 'Pro+', price: '$29/mo', popular: false,
       features: [
-        'Everything in Pro',
-        'See all founders',
+        '15 curated projects/day (all unlocked)',
+        'See all founders (Free, Pro, Pro+)',
         '30-day post-match support',
-        'Priority check-in support',
+        'Everything in Pro',
       ],
     },
   ];
@@ -369,7 +369,7 @@ const LandingPage = () => {
               Everything you need to build together
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
-              From first connection through equity clarity—curated discovery (3 projects per day on Free), optional email nudges, workspace chat, and Founder Date milestones while you find the right team.
+              From first connection through equity clarity—curated discovery (5 unlocked daily on Free, 15 on Pro), optional email nudges, workspace chat, and Founder Date milestones while you find the right team.
             </Typography>
           </Box>
 
