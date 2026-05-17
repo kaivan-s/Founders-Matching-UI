@@ -23,9 +23,6 @@ import {
   Instagram,
   Hub,
   MarkEmailUnread,
-  Tune,
-  Event,
-  ChatBubbleOutline,
   School,
 } from '@mui/icons-material';
 import { SignInButton, useUser } from '@clerk/clerk-react';
@@ -172,18 +169,60 @@ const LandingPage = () => {
   ];
 
   const features = [
-    { icon: <Tune />, title: 'Intent-Based Curated Discovery', desc: 'Tell us the role you want to play and what stages excite you. We score projects against your goals and founder questionnaire answers—not random stacks—so matches feel chosen for you.' },
-    { icon: <Bolt />, title: 'Focused daily batches', desc: 'See a curated set of projects each day designed to reward close reading and strong applications instead of infinite scrolling.' },
-    { icon: <MarkEmailUnread />, title: 'Nudges when new matches land', desc: 'We email a digest when your next curated batch of projects is ready, so worthwhile leads find you before you open the app.' },
-    { icon: <Hub />, title: 'Pick your lane at home', desc: 'Start by joining an existing idea, spinning up your own project, or choosing the advisor path. Once inside, navigation lives in one clean sidebar—from Discover to workspaces and payouts.' },
-    { icon: <Shield />, title: 'Apply to Connect', desc: 'Custom screening questions protect your ideas. Review profiles and answers before sharing deeper details—or quick-apply when a project welcomes open applications.' },
-    { icon: <People />, title: 'Rich Profiles', desc: 'Showcase your experience, past projects, and work preferences so founders know who they\'re approving.' },
-    { icon: <BarChart />, title: 'Personal intros', desc: 'Add optional video or voice introductions to stand out during review.' },
-    { icon: <Handshake />, title: 'Equity Calculator & Agreement Template', desc: 'A structured questionnaire and weighted formula give you a fair equity split, then generate a jurisdiction-aware Partnership Agreement template ready for legal review.' },
-    { icon: <Event />, title: 'Founder Date stages', desc: 'Structured intro milestones with Cal.com-friendly links so you and your match book the right calls at the right pace—not a single awkward “let’s jump on Zoom” thread.' },
-    { icon: <ChatBubbleOutline />, title: 'Workspace chat', desc: 'Real-time messaging inside each workspace with your co-founder—keep decisions and context in one place instead of scattered email.' },
-    { icon: <School />, title: 'First Match Coaching', desc: 'After your first acceptance, guided prompts help you agree on what to tackle first—roles, expectations, and next steps—so the partnership starts with clarity.' },
-    { icon: <AutoAwesome />, title: 'Advisor Marketplace', desc: 'Pro/Pro+ users can browse advisors and book consultations. Pay advisors directly (UPI, PayPal, bank transfer), then schedule on their Cal.com link. No platform fees on consultation payouts.' },
+    { 
+      icon: <Bolt />, 
+      title: 'Smart Discovery', 
+      tagline: '15 AI-matched projects daily',
+      preview: {
+        items: ['92% match', '87% match', '78% match'],
+        label: 'AI-ranked daily batches'
+      }
+    },
+    { 
+      icon: <MarkEmailUnread />, 
+      title: 'Email Notifications', 
+      tagline: 'Never miss a match',
+      preview: {
+        items: ['New matches ready!', 'Daily digest', 'Application updates'],
+        label: 'Stay in the loop'
+      }
+    },
+    { 
+      icon: <Shield />, 
+      title: 'Screening Questions', 
+      tagline: 'Protect your ideas',
+      preview: {
+        items: ['Custom questions', 'Review answers', 'Control access'],
+        label: 'You decide who sees what'
+      }
+    },
+    { 
+      icon: <Hub />, 
+      title: 'Workspace Tools', 
+      tagline: 'Chat, equity, Slack & Notion',
+      preview: {
+        items: ['Real-time chat', 'Equity calculator', 'Integrations'],
+        label: 'Everything in one place'
+      }
+    },
+    { 
+      icon: <School />, 
+      title: 'First Match Coaching', 
+      tagline: 'Guided partnership start',
+      preview: {
+        items: ['Define roles', 'Set expectations', 'Plan next steps'],
+        label: 'Start strong together'
+      }
+    },
+    { 
+      icon: <AutoAwesome />, 
+      title: 'Advisor Marketplace', 
+      tagline: 'Expert guidance on demand',
+      preview: {
+        items: ['Browse advisors', 'Book sessions', 'Direct payments'],
+        label: 'Get expert help'
+      }
+    },
   ];
 
   const subscriptionPlans = [
@@ -369,30 +408,184 @@ const LandingPage = () => {
               Everything you need to build together
             </Typography>
             <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
-              From first connection through equity clarity—curated discovery (5 unlocked daily on Free, 15 on Pro), optional email nudges, workspace chat, and Founder Date milestones while you find the right team.
+              From discovery to partnership—everything in one place.
             </Typography>
           </Box>
 
-          <Grid container spacing={3}>
-            {features.map((f) => (
-              <Grid item xs={12} sm={6} lg={4} key={f.title}>
+          <Grid container spacing={2.5} justifyContent="center">
+            {features.map((f, index) => (
+              <Grid item xs={6} sm={4} md={4} key={f.title}>
                 <Box sx={{
-                  p: 3.5, borderRadius: 3, border: '1px solid', borderColor: SLATE_200,
-                  height: '100%', transition: 'all 0.25s ease',
-                  '&:hover': { borderColor: alpha(SKY, 0.4), boxShadow: `0 8px 24px ${alpha(SKY, 0.06)}` },
+                  perspective: '1000px',
+                  height: 200,
+                  opacity: 0,
+                  animation: `fadeInUp 0.6s ease forwards`,
+                  animationDelay: `${index * 0.1}s`,
+                  '@keyframes fadeInUp': {
+                    '0%': { opacity: 0, transform: 'translateY(30px)' },
+                    '100%': { opacity: 1, transform: 'translateY(0)' },
+                  },
                 }}>
                   <Box sx={{
-                    display: 'inline-flex', p: 1.25, borderRadius: 2,
-                    bgcolor: alpha(TEAL, 0.08), color: TEAL, mb: 2.5,
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.6s ease',
+                    '&:hover': {
+                      transform: 'rotateY(180deg)',
+                    },
                   }}>
-                    {React.cloneElement(f.icon, { sx: { fontSize: 24 } })}
+                    {/* Front Face */}
+                    <Box sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      backfaceVisibility: 'hidden',
+                      p: 2.5, borderRadius: 3, border: '1px solid', borderColor: SLATE_200,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      textAlign: 'center',
+                      bgcolor: '#fff',
+                    }}>
+                      <Box sx={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 56, height: 56, borderRadius: '50%',
+                        bgcolor: alpha(TEAL, 0.1), color: TEAL, mb: 2,
+                      }}>
+                        {React.cloneElement(f.icon, { sx: { fontSize: 28 } })}
+                      </Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5, fontSize: '0.9rem', lineHeight: 1.3 }}>
+                        {f.title}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.75rem' }}>
+                        {f.tagline}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Back Face - Mockup Preview */}
+                    <Box sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)',
+                      p: 2, borderRadius: 3, 
+                      bgcolor: '#fff',
+                      border: `2px solid ${TEAL}`,
+                      display: 'flex', flexDirection: 'column',
+                      overflow: 'hidden',
+                    }}>
+                      <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: TEAL, mb: 1 }}>
+                        {f.title}
+                      </Typography>
+                      
+                      {/* Mini Mockup based on feature type */}
+                      {index === 0 && (
+                        /* Smart Discovery - Mini Cards */
+                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center', flex: 1, alignItems: 'center' }}>
+                          {['92%', '87%', '78%'].map((match, i) => (
+                            <Box key={i} sx={{
+                              flex: 1, p: 1, borderRadius: 1.5, bgcolor: alpha(TEAL, 0.05),
+                              textAlign: 'center', transform: i === 1 ? 'scale(1.1)' : 'scale(0.9)',
+                              border: i === 1 ? `2px solid ${TEAL}` : `1px solid ${SLATE_200}`,
+                            }}>
+                              <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: alpha(TEAL, 0.2), mx: 'auto', mb: 0.5 }} />
+                              <Typography sx={{ fontSize: '0.55rem', fontWeight: 700, color: i === 1 ? TEAL : SLATE_500 }}>{match}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 1 && (
+                        /* Email Notifications - Inbox Preview */
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {['New matches ready!', 'Daily digest sent', 'App accepted'].map((msg, i) => (
+                            <Box key={i} sx={{ 
+                              p: 0.75, borderRadius: 1, bgcolor: i === 0 ? alpha(TEAL, 0.1) : alpha(TEAL, 0.03),
+                              border: `1px solid ${i === 0 ? TEAL : SLATE_200}`,
+                              display: 'flex', alignItems: 'center', gap: 1,
+                            }}>
+                              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: i === 0 ? TEAL : SLATE_400 }} />
+                              <Typography sx={{ fontSize: '0.55rem', color: SLATE_900 }}>{msg}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 2 && (
+                        /* Screening Questions - Form Preview */
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {['Why this project?', 'Your experience?', 'Availability?'].map((q, i) => (
+                            <Box key={i} sx={{ p: 0.75, borderRadius: 1, bgcolor: alpha(TEAL, 0.03), border: `1px solid ${SLATE_200}` }}>
+                              <Typography sx={{ fontSize: '0.5rem', color: SLATE_500, mb: 0.25 }}>{q}</Typography>
+                              <Box sx={{ height: 8, bgcolor: alpha(TEAL, 0.1), borderRadius: 0.5 }} />
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 3 && (
+                        /* Workspace Tools - Icons Grid */
+                        <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.5 }}>
+                          {['💬 Chat', '⚖️ Equity', '🔗 Slack', '📝 Notion'].map((tool, i) => (
+                            <Box key={i} sx={{ 
+                              p: 0.75, borderRadius: 1, bgcolor: alpha(TEAL, 0.05),
+                              border: `1px solid ${SLATE_200}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '0.55rem', color: SLATE_900,
+                            }}>
+                              {tool}
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 4 && (
+                        /* First Match Coaching - Checklist */
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {['Define roles', 'Set expectations', 'Plan sprint 1'].map((step, i) => (
+                            <Box key={i} sx={{ 
+                              p: 0.75, borderRadius: 1, bgcolor: alpha(TEAL, 0.03),
+                              border: `1px solid ${SLATE_200}`,
+                              display: 'flex', alignItems: 'center', gap: 1,
+                            }}>
+                              <Box sx={{ 
+                                width: 12, height: 12, borderRadius: '50%', 
+                                border: `1px solid ${i < 2 ? TEAL : SLATE_400}`,
+                                bgcolor: i < 2 ? TEAL : 'transparent',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.5rem', color: '#fff',
+                              }}>
+                                {i < 2 && '✓'}
+                              </Box>
+                              <Typography sx={{ fontSize: '0.55rem', color: SLATE_900, textDecoration: i < 2 ? 'line-through' : 'none', opacity: i < 2 ? 0.5 : 1 }}>{step}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 5 && (
+                        /* Advisor Marketplace - Advisor Cards */
+                        <Box sx={{ flex: 1, display: 'flex', gap: 0.5 }}>
+                          {['⭐ 4.9', '⭐ 4.8'].map((rating, i) => (
+                            <Box key={i} sx={{ 
+                              flex: 1, p: 1, borderRadius: 1, bgcolor: alpha(TEAL, 0.05),
+                              border: `1px solid ${SLATE_200}`,
+                              textAlign: 'center',
+                            }}>
+                              <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: alpha(TEAL, 0.2), mx: 'auto', mb: 0.5 }} />
+                              <Typography sx={{ fontSize: '0.5rem', color: SLATE_900, mb: 0.25 }}>Advisor</Typography>
+                              <Typography sx={{ fontSize: '0.5rem', color: TEAL, fontWeight: 600 }}>{rating}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      <Typography sx={{ fontSize: '0.55rem', color: TEAL, fontWeight: 600, mt: 1, textAlign: 'center' }}>
+                        {f.preview.label}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: '1.05rem' }}>
-                    {f.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_500, lineHeight: 1.75 }}>
-                    {f.desc}
-                  </Typography>
                 </Box>
               </Grid>
             ))}
@@ -413,7 +606,7 @@ const LandingPage = () => {
             Home to match, workspace to build
           </Typography>
           <Typography variant="body2" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Preview home, curated discovery, Founder Date milestones, workspace chat, first-match coaching, and what opens after you connect—equity, check-ins, integrations, and advisors.
+            Preview home, curated discovery, workspace chat, first-match coaching, and what opens after you connect—equity, check-ins, integrations, and advisors.
           </Typography>
         </Box>
 
@@ -1134,7 +1327,7 @@ const LandingPage = () => {
           {[
             { step: '1', title: 'Choose why you landed here', desc: 'Sign in, land on Home, and pick Join a Project, Create a Project, or Join as an Advisor—that choice routes you instantly while the sidebar keeps workspaces, payouts, advisors, and more one click away.' },
             { step: '2', title: 'Lock in curated discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Saving keeps your intent attached to your account so carousel rankings, compatibility detail, quick applies, and project deep-dives reflect what you said.' },
-            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out. Apply with context, use Founder Date milestones for intro calls, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
+            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out. Apply with context, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
