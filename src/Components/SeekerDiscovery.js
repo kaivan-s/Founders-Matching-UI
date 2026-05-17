@@ -1221,50 +1221,28 @@ const SeekerDiscovery = () => {
           }}>
             {/* Profile Banner */}
             {profileIncomplete && !profileBannerDismissed && (
-              <Box sx={{ 
-                flex: 1,
-                p: 1.5,
-                bgcolor: alpha(TEAL, 0.08),
-                border: `1px solid ${alpha(TEAL, 0.3)}`,
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-              }}>
-                <InfoOutlined sx={{ color: TEAL, fontSize: 20 }} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: '0.875rem' }}>
-                    Complete your profile to stand out
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: SLATE_500, display: { xs: 'none', sm: 'block' } }}>
-                    Verified profiles get 3x more responses
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={() => navigate('/profile?tab=verification')}
-                  sx={{
-                    bgcolor: TEAL,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    px: 1.5,
-                    py: 0.5,
-                    '&:hover': { bgcolor: TEAL_LIGHT },
-                  }}
-                >
-                  Verify
-                </Button>
-                <IconButton 
-                  size="small" 
-                  onClick={() => setProfileBannerDismissed(true)}
-                  sx={{ color: SLATE_400, p: 0.5 }}
-                >
-                  <Close fontSize="small" />
-                </IconButton>
-              </Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ArrowForward />}
+                onClick={() => navigate('/profile?tab=verification')}
+                sx={{ 
+                  bgcolor: TEAL,
+                  color: '#fff',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    bgcolor: TEAL_LIGHT,
+                  },
+                }}
+              >
+                Verify your profile to get featured more
+              </Button>
             )}
+            
+            {/* Spacer to push buttons to the right */}
+            <Box sx={{ flex: 1 }} />
             
             {/* Edit Filters Button */}
             <Button
