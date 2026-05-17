@@ -15,7 +15,6 @@ import {
 import {
   Close,
   Celebration,
-  Schedule,
   Lightbulb,
   ArrowForward,
   Chat,
@@ -24,6 +23,10 @@ import {
 } from '@mui/icons-material';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.founder-match.in/api';
+
+// Teal accent color (used across app for CTAs)
+const TEAL = '#0d9488';
+const TEAL_LIGHT = '#14b8a6';
 
 const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpenChat }) => {
   const { user } = useUser();
@@ -76,7 +79,6 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
       PaperProps={{
         sx: { 
           borderRadius: 3, 
-          bgcolor: '#1a1a2e',
           overflow: 'visible',
         }
       }}
@@ -90,11 +92,11 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
           width: 60,
           height: 60,
           borderRadius: '50%',
-          bgcolor: '#6366f1',
+          bgcolor: TEAL,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
+          boxShadow: `0 4px 20px ${alpha(TEAL, 0.4)}`,
         }}
       >
         <Celebration sx={{ fontSize: 28, color: 'white' }} />
@@ -103,11 +105,11 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
       <DialogTitle sx={{ pt: 5, pb: 1, textAlign: 'center' }}>
         <IconButton
           onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
+          sx={{ position: 'absolute', right: 8, top: 8, color: 'text.secondary' }}
         >
           <Close />
         </IconButton>
-        <Typography variant="h5" fontWeight={700}>
+        <Typography variant="h5" fontWeight={700} color="text.primary">
           You have a match!
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -125,14 +127,14 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
               gap: 1,
               p: 1.5,
               mb: 3,
-              bgcolor: alpha('#f59e0b', 0.15),
+              bgcolor: alpha(TEAL, 0.08),
               borderRadius: 2,
               border: '1px solid',
-              borderColor: alpha('#f59e0b', 0.3),
+              borderColor: alpha(TEAL, 0.2),
             }}
           >
-            <Timer sx={{ color: '#f59e0b', fontSize: 20 }} />
-            <Typography variant="body2" fontWeight={600} sx={{ color: '#f59e0b' }}>
+            <Timer sx={{ color: TEAL, fontSize: 20 }} />
+            <Typography variant="body2" fontWeight={600} sx={{ color: TEAL }}>
               Schedule your first call: {formatDeadline(coaching.first_call_deadline)}
             </Typography>
           </Box>
@@ -140,8 +142,8 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
 
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            <Chat sx={{ color: '#6366f1', fontSize: 20 }} />
-            <Typography variant="subtitle2" fontWeight={600}>
+            <Chat sx={{ color: TEAL, fontSize: 20 }} />
+            <Typography variant="subtitle2" fontWeight={600} color="text.primary">
               Start the Conversation
             </Typography>
           </Box>
@@ -154,14 +156,15 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
                 key={i}
                 sx={{
                   p: 1.5,
-                  bgcolor: alpha('#6366f1', 0.08),
+                  bgcolor: alpha(TEAL, 0.05),
                   borderRadius: 2,
                   border: '1px solid',
-                  borderColor: alpha('#6366f1', 0.2),
+                  borderColor: alpha(TEAL, 0.15),
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   '&:hover': {
-                    bgcolor: alpha('#6366f1', 0.15),
+                    bgcolor: alpha(TEAL, 0.1),
+                    borderColor: alpha(TEAL, 0.3),
                     transform: 'translateX(4px)',
                   },
                 }}
@@ -169,7 +172,7 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
                   navigator.clipboard?.writeText(q);
                 }}
               >
-                <Typography variant="body2">"{q}"</Typography>
+                <Typography variant="body2" color="text.primary">"{q}"</Typography>
                 <Typography variant="caption" color="text.secondary">
                   Click to copy
                 </Typography>
@@ -183,8 +186,8 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
         {coaching?.founder_date_cta && (
           <Box sx={{ mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-              <VideoCall sx={{ color: '#10b981', fontSize: 20 }} />
-              <Typography variant="subtitle2" fontWeight={600}>
+              <VideoCall sx={{ color: TEAL, fontSize: 20 }} />
+              <Typography variant="subtitle2" fontWeight={600} color="text.primary">
                 {coaching.founder_date_cta.label}
               </Typography>
             </Box>
@@ -198,10 +201,9 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
                 onClick={onStartFounderDate}
                 endIcon={<ArrowForward />}
                 sx={{
-                  textTransform: 'none',
-                  borderColor: '#10b981',
-                  color: '#10b981',
-                  '&:hover': { borderColor: '#059669', bgcolor: alpha('#10b981', 0.1) },
+                  borderColor: TEAL,
+                  color: TEAL,
+                  '&:hover': { borderColor: TEAL_LIGHT, bgcolor: alpha(TEAL, 0.05) },
                 }}
               >
                 Start Founder Date
@@ -212,8 +214,8 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
 
         <Box sx={{ mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            <Lightbulb sx={{ color: '#fbbf24', fontSize: 20 }} />
-            <Typography variant="subtitle2" fontWeight={600}>
+            <Lightbulb sx={{ color: TEAL, fontSize: 20 }} />
+            <Typography variant="subtitle2" fontWeight={600} color="text.primary">
               Pro Tips
             </Typography>
           </Box>
@@ -226,9 +228,10 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
                   sx={{
                     minWidth: 24,
                     height: 24,
-                    bgcolor: alpha('#fbbf24', 0.2),
-                    color: '#fbbf24',
+                    bgcolor: alpha(TEAL, 0.1),
+                    color: TEAL,
                     fontSize: '0.7rem',
+                    fontWeight: 600,
                   }}
                 />
                 <Typography variant="body2" color="text.secondary">
@@ -246,7 +249,7 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
             variant="outlined"
             fullWidth
             onClick={onClose}
-            sx={{ textTransform: 'none' }}
+            sx={{ color: 'text.secondary' }}
           >
             Got it
           </Button>
@@ -256,9 +259,8 @@ const FirstMatchCoaching = ({ matchId, open, onClose, onStartFounderDate, onOpen
             onClick={onOpenChat}
             endIcon={<Chat />}
             sx={{
-              textTransform: 'none',
-              bgcolor: '#6366f1',
-              '&:hover': { bgcolor: '#5558dd' },
+              bgcolor: TEAL,
+              '&:hover': { bgcolor: TEAL_LIGHT },
             }}
           >
             Open Chat
