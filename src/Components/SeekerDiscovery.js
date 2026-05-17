@@ -42,6 +42,7 @@ import {
   Edit,
   AllInclusive,
   Lock,
+  InfoOutlined,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -139,6 +140,32 @@ const SeekerDiscovery = () => {
   const [projectDetailOpen, setProjectDetailOpen] = useState(false);
   const [detailProject, setDetailProject] = useState(null);
   const [detailTab, setDetailTab] = useState(0);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [profileBannerDismissed, setProfileBannerDismissed] = useState(false);
+
+  // Check profile completeness
+  useEffect(() => {
+    const checkProfileCompleteness = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/profile`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        
+        if (response.ok) {
+          const profile = await response.json();
+          // Check if profile is incomplete (not verified on either platform)
+          const isIncomplete = !profile.linkedin_verified && !profile.github_verified;
+          setProfileIncomplete(isIncomplete);
+        }
+      } catch {
+        // Silent fail
+      }
+    };
+    
+    checkProfileCompleteness();
+  }, [user?.id]);
 
   // Keyboard navigation for carousel
   useEffect(() => {
@@ -629,29 +656,6 @@ const SeekerDiscovery = () => {
 
     return (
       <Box>
-        {/* Top bar with Edit filters button */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Edit />}
-            onClick={handleUpdatePreferences}
-            sx={{ 
-              borderColor: TEAL,
-              color: TEAL,
-              fontWeight: 600,
-              textTransform: 'none',
-              px: 2,
-              '&:hover': { 
-                borderColor: TEAL_LIGHT,
-                bgcolor: alpha(TEAL, 0.05),
-              },
-            }}
-          >
-            Edit filters
-          </Button>
-        </Box>
-
         {/* Only show warning notes, not the curated projects info */}
         {discoveryMeta?.note && (
           <Alert severity="warning" sx={{ mb: 1 }}>
@@ -1037,7 +1041,7 @@ const SeekerDiscovery = () => {
         </Box>
 
         {/* Footer with project counter */}
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
+        <Box sx={{ mt: 0, textAlign: 'center' }}>
           {(() => {
             const unlockedCount = discoveryMeta?.unlocked_count ?? matches.length;
             const lockedCount = Math.max(0, matches.length - unlockedCount);
@@ -1114,6 +1118,128 @@ const SeekerDiscovery = () => {
         )}
         {success && (
           <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>{success}</Alert>
+        )}
+        
+        {/* Profile Completion Banner + Edit Filters Row */}
+        {view === 'results' && (
+          <Box sx={{ 
+            mb: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}>
+            {/* Profile Banner */}
+            {profileIncomplete && !profileBannerDismissed && (
+              <Box sx={{ 
+                flex: 1,
+                p: 1.5,
+                bgcolor: alpha(TEAL, 0.08),
+                border: `1px solid ${alpha(TEAL, 0.3)}`,
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+              }}>
+                <InfoOutlined sx={{ color: TEAL, fontSize: 20 }} />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: '0.875rem' }}>
+                    Complete your profile to stand out
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_500, display: { xs: 'none', sm: 'block' } }}>
+                    Verified profiles get 3x more responses
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => navigate('/profile?tab=verification')}
+                  sx={{
+                    bgcolor: TEAL,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    px: 1.5,
+                    py: 0.5,
+                    '&:hover': { bgcolor: TEAL_LIGHT },
+                  }}
+                >
+                  Verify
+                </Button>
+                <IconButton 
+                  size="small" 
+                  onClick={() => setProfileBannerDismissed(true)}
+                  sx={{ color: SLATE_400, p: 0.5 }}
+                >
+                  <Close fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+            
+            {/* Edit Filters Button */}
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Edit />}
+              onClick={handleUpdatePreferences}
+              sx={{ 
+                borderColor: TEAL,
+                color: TEAL,
+                fontWeight: 600,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  borderColor: TEAL_LIGHT,
+                  bgcolor: alpha(TEAL, 0.05),
+                },
+              }}
+            >
+              Edit filters
+            </Button>
+          </Box>
+        )}
+        
+        {/* Profile Banner for questionnaire view */}
+        {view === 'questionnaire' && profileIncomplete && !profileBannerDismissed && (
+          <Box sx={{ 
+            mb: 3,
+            p: 2,
+            bgcolor: alpha(TEAL, 0.08),
+            border: `1px solid ${alpha(TEAL, 0.3)}`,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}>
+            <InfoOutlined sx={{ color: TEAL, fontSize: 22 }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                Complete your profile to stand out
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                Verified profiles get 3x more responses from founders
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => navigate('/profile?tab=verification')}
+              sx={{
+                bgcolor: TEAL,
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { bgcolor: TEAL_LIGHT },
+              }}
+            >
+              Verify Profile
+            </Button>
+            <IconButton 
+              size="small" 
+              onClick={() => setProfileBannerDismissed(true)}
+              sx={{ color: SLATE_400 }}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
         )}
 
         {view === 'questionnaire' && (

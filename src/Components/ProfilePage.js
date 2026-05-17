@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -61,6 +62,7 @@ const BG = '#f8fafc';
 
 const ProfilePage = () => {
   const { user } = useUser();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -87,6 +89,19 @@ const ProfilePage = () => {
     { label: 'Links', icon: <LinkIcon fontSize="small" /> },
     { label: 'Verification', icon: <CheckCircle fontSize="small" /> },
   ];
+  
+  // Handle URL tab parameter (e.g., /profile?tab=verification)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    
+    if (tabParam) {
+      const tabIndex = tabs.findIndex(t => t.label.toLowerCase() === tabParam.toLowerCase());
+      if (tabIndex !== -1) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [location.search]);
 
   const fetchVerification = useCallback(async () => {
     if (!user?.id) return;
