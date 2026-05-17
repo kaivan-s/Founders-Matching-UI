@@ -49,7 +49,7 @@ import {
   DeleteForever,
   ManageAccounts,
 } from '@mui/icons-material';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
 import ActivationPanel from './ActivationPanel';
 
@@ -66,6 +66,7 @@ const BG = '#f8fafc';
 
 const ProfilePage = () => {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1170,11 +1171,12 @@ const ProfilePage = () => {
       });
       
       if (response.ok) {
-        setSnackbar({ open: true, message: 'Account deleted successfully. You will be signed out...', severity: 'success' });
-        // Sign out and redirect after a short delay
-        setTimeout(() => {
-          window.location.href = '/sign-out';
-        }, 2000);
+        setSnackbar({ open: true, message: 'Account deleted successfully. Signing out...', severity: 'success' });
+        // Sign out from Clerk and redirect to home
+        setTimeout(async () => {
+          await signOut();
+          window.location.href = '/';
+        }, 1500);
       } else {
         const data = await response.json();
         setSnackbar({ open: true, message: data.error || 'Failed to delete account', severity: 'error' });
