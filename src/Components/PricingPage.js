@@ -438,14 +438,42 @@ const PricingPage = () => {
                   <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a' }}> {/* Navy */}
                     {plan.id === 'FREE' ? 'Free' : plan.id === 'PRO' ? 'Pro' : 'Pro+'}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 3 }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#1e3a8a' }}> {/* Navy */}
-                      {formatPrice(plan.monthlyPriceUSD)}
-                    </Typography>
-                    {plan.monthlyPriceUSD > 0 && (
-                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                        /month
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
+                      {/* Show original price with strikethrough for Pro plan */}
+                      {plan.id === 'PRO' && (
+                        <Typography 
+                          variant="h5" 
+                          sx={{ 
+                            textDecoration: 'line-through', 
+                            color: '#94a3b8',
+                            fontWeight: 500,
+                          }}
+                        >
+                          $12
+                        </Typography>
+                      )}
+                      <Typography variant="h3" sx={{ fontWeight: 800, color: plan.id === 'PRO' ? '#0d9488' : '#1e3a8a' }}>
+                        {plan.id === 'PRO' ? '$5' : formatPrice(plan.monthlyPriceUSD)}
                       </Typography>
+                      {plan.monthlyPriceUSD > 0 && (
+                        <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+                          /month
+                        </Typography>
+                      )}
+                    </Box>
+                    {plan.id === 'PRO' && (
+                      <Chip 
+                        label="🔥 Limited Time: 58% OFF" 
+                        size="small" 
+                        sx={{ 
+                          mt: 1,
+                          bgcolor: '#ecfdf5', 
+                          color: '#059669', 
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                        }} 
+                      />
                     )}
                   </Box>
 

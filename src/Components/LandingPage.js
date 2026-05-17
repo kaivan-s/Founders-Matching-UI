@@ -199,7 +199,7 @@ const LandingPage = () => {
       ],
     },
     {
-      name: 'Pro', price: '$12/mo', popular: true,
+      name: 'Pro', price: '$5/mo', originalPrice: '$12/mo', popular: true,
       features: [
         '15 curated projects/day (all unlocked)',
         'Unlimited applications',
@@ -1281,9 +1281,41 @@ const LandingPage = () => {
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_500, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.7rem' }}>
                   {plan.name}
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 800, color: SLATE_900, letterSpacing: '-0.02em', mt: 1, mb: 2 }}>
-                  {plan.price}
-                </Typography>
+                <Box sx={{ mt: 1, mb: 2 }}>
+                  {plan.originalPrice && (
+                    <Typography 
+                      component="span" 
+                      sx={{ 
+                        textDecoration: 'line-through', 
+                        color: SLATE_400, 
+                        fontSize: '1.1rem',
+                        mr: 1,
+                      }}
+                    >
+                      {plan.originalPrice}
+                    </Typography>
+                  )}
+                  <Typography 
+                    component="span" 
+                    variant="h4" 
+                    sx={{ fontWeight: 800, color: plan.originalPrice ? '#0d9488' : SLATE_900, letterSpacing: '-0.02em' }}
+                  >
+                    {plan.price}
+                  </Typography>
+                  {plan.originalPrice && (
+                    <Chip 
+                      label="58% OFF" 
+                      size="small" 
+                      sx={{ 
+                        ml: 1, 
+                        bgcolor: '#ecfdf5', 
+                        color: '#059669', 
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                      }} 
+                    />
+                  )}
+                </Box>
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {plan.features.map((feature, i) => (
                     <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
