@@ -142,6 +142,13 @@ const SeekerDiscovery = () => {
   const [detailTab, setDetailTab] = useState(0);
   const [profileIncomplete, setProfileIncomplete] = useState(false);
   const [profileBannerDismissed, setProfileBannerDismissed] = useState(false);
+  
+  // Skipped projects view (Pro/Pro+ only)
+  const [viewingSkipped, setViewingSkipped] = useState(false);
+  const [skippedProjects, setSkippedProjects] = useState([]);
+  const [canViewSkipped, setCanViewSkipped] = useState(false);
+  const [loadingSkipped, setLoadingSkipped] = useState(false);
+  const [normalMatches, setNormalMatches] = useState([]); // Store normal matches when viewing skipped
 
   // Check profile completeness
   useEffect(() => {
@@ -294,6 +301,71 @@ const SeekerDiscovery = () => {
     setView('questionnaire');
     setQuestionnaireScreen(0);
     setDiscoveryMeta(null);
+    // Reset skipped view
+    if (viewingSkipped) {
+      setViewingSkipped(false);
+      setMatches(normalMatches);
+    }
+  };
+
+  // Fetch skipped projects for Pro/Pro+ users
+  const fetchSkippedProjects = async () => {
+    if (!user?.id) return;
+    
+    setLoadingSkipped(true);
+    try {
+      const searchParams = {
+        ...answers,
+        role: answers.role === 'any' ? '' : answers.role,
+        stage: answers.stage === 'any' ? '' : answers.stage,
+      };
+      
+      const response = await fetch(`${API_BASE}/seeker/skipped-projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify(searchParams),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch skipped projects');
+      }
+      
+      const data = await response.json();
+      setCanViewSkipped(data.can_view_skipped);
+      setSkippedProjects(data.matches || []);
+      return data;
+    } catch (err) {
+      console.error('Error fetching skipped projects:', err);
+      return null;
+    } finally {
+      setLoadingSkipped(false);
+    }
+  };
+
+  const handleToggleSkipped = async () => {
+    if (viewingSkipped) {
+      // Switch back to normal view
+      setViewingSkipped(false);
+      setMatches(normalMatches);
+      setCurrentCardIndex(0);
+    } else {
+      // Fetch and show skipped
+      const data = await fetchSkippedProjects();
+      if (data && data.can_view_skipped && data.matches?.length > 0) {
+        setNormalMatches(matches);
+        setMatches(data.matches);
+        setViewingSkipped(true);
+        setCurrentCardIndex(0);
+      } else if (data && !data.can_view_skipped) {
+        setError('Upgrade to Pro to view skipped projects');
+      } else if (data && data.matches?.length === 0) {
+        setSuccess('No skipped projects to show');
+      }
+    }
   };
 
   const handleApply = async () => {
@@ -660,6 +732,25 @@ const SeekerDiscovery = () => {
         {discoveryMeta?.note && (
           <Alert severity="warning" sx={{ mb: 1 }}>
             {discoveryMeta.note}
+          </Alert>
+        )}
+        
+        {/* Viewing Skipped Projects Banner */}
+        {viewingSkipped && (
+          <Alert 
+            severity="info" 
+            sx={{ mb: 2 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={handleToggleSkipped}
+              >
+                Back to Feed
+              </Button>
+            }
+          >
+            Viewing skipped projects — You previously passed on these. Changed your mind?
           </Alert>
         )}
 
@@ -1194,6 +1285,30 @@ const SeekerDiscovery = () => {
               }}
             >
               Edit filters
+            </Button>
+            
+            {/* View Skipped Projects Button (Pro/Pro+ only) */}
+            <Button
+              variant={viewingSkipped ? "contained" : "outlined"}
+              size="small"
+              startIcon={loadingSkipped ? <CircularProgress size={16} color="inherit" /> : <Refresh />}
+              onClick={handleToggleSkipped}
+              disabled={loadingSkipped}
+              sx={{ 
+                borderColor: viewingSkipped ? TEAL : SLATE_400,
+                color: viewingSkipped ? '#fff' : SLATE_500,
+                bgcolor: viewingSkipped ? TEAL : 'transparent',
+                fontWeight: 600,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  borderColor: TEAL,
+                  bgcolor: viewingSkipped ? TEAL_LIGHT : alpha(TEAL, 0.05),
+                  color: viewingSkipped ? '#fff' : TEAL,
+                },
+              }}
+            >
+              {viewingSkipped ? 'Back to Feed' : 'See Skipped'}
             </Button>
           </Box>
         )}

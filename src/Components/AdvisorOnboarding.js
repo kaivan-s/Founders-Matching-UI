@@ -22,12 +22,9 @@ import {
   Alert,
   CircularProgress,
   Chip,
-  Slider,
   Avatar,
   IconButton,
-  Tooltip,
   LinearProgress,
-  Collapse,
 } from '@mui/material';
 import {
   PhotoCamera,
@@ -36,10 +33,7 @@ import {
   LinkedIn,
   Add,
   Delete,
-  VerifiedUser,
-  Star,
   WorkHistory,
-  School,
   Link as LinkIcon,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
@@ -50,11 +44,6 @@ const DOMAINS = [
   'Marketplace', 'Consumer', 'B2B', 'Hardware', 'Other'
 ];
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Hindi', 'Portuguese', 'Other'];
-const CADENCE_OPTIONS = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Bi-weekly' },
-  { value: 'monthly', label: 'Monthly' },
-];
 
 const ADVISORY_TYPES = [
   { value: 'strategic', label: 'Strategic/Business Advice', description: 'High-level strategy, business model, market positioning' },
@@ -92,10 +81,7 @@ const STARTUPS_ADVISED_OPTIONS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 40 }, (_, i) => CURRENT_YEAR - i);
 
-const isDefaultAvatar = (imageUrl) => {
-  if (!imageUrl) return true;
-  return imageUrl.includes('gravatar.com/avatar') && imageUrl.includes('d=blank');
-};
+const STORAGE_KEY = 'advisor_onboarding_draft';
 
 const AdvisorOnboarding = ({ onComplete }) => {
   const { user } = useUser();
@@ -106,9 +92,41 @@ const AdvisorOnboarding = ({ onComplete }) => {
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [linkedinStatus, setLinkedinStatus] = useState({ linkedin_verified: false, linkedin_configured: false });
   const [connectingLinkedin, setConnectingLinkedin] = useState(false);
-  const [profileImage, setProfileImage] = useState(null); // { preview: dataURL, file: File }
+  const [profileImage, setProfileImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [existingImageUrl, setExistingImageUrl] = useState(null); // From database
+  const [existingImageUrl, setExistingImageUrl] = useState(null);
+  
+  // Load saved draft from localStorage on mount
+  const loadSavedDraft = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading saved draft:', e);
+    }
+    return null;
+  };
+  
+  // Save current form data to localStorage
+  const saveDraft = (data) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Error saving draft:', e);
+    }
+  };
+  
+  // Clear saved draft
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.error('Error clearing draft:', e);
+    }
+  };
   
   const [formData, setFormData] = useState({
     // Basic Info
@@ -117,16 +135,14 @@ const AdvisorOnboarding = ({ onComplete }) => {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     
     // Expertise
-    expertise_stages: [],
     preferred_stages: [],
     advisory_types: [],
     domains: [],
     languages: ['English'],
     
     // Capacity
-    max_active_workspaces: 3,
-    preferred_cadence: 'weekly',
     availability_hours_per_week: '',
+    max_active_workspaces: 5, // Default value (hidden from UI but required by backend)
     
     // Pay-per-consultation pricing
     consultation_rate_30min_usd: '',
@@ -144,47 +160,73 @@ const AdvisorOnboarding = ({ onComplete }) => {
     linkedin_url: '',
     twitter_url: '',
     
-    // Professional Background (structured)
+    // Professional Background
     professional_background: {
       years_experience: '',
       current_role: { title: '', company: '', start_year: '' },
-      previous_roles: [], // Array of { title, company, start_year, end_year }
+      previous_roles: [],
       startups_advised_count: '',
-      notable_achievements: '', // Exits, IPOs, funding rounds
+      notable_achievements: '',
+      success_story: '', // NEW: Describe a specific startup you helped
     },
     
-    // Portfolio & Proof
+    // Portfolio - simplified
     portfolio: {
       personal_website: '',
-      crunchbase_url: '',
-      angellist_url: '',
-      medium_url: '',
-      youtube_url: '',
-      other_links: [], // Array of { label, url }
+      other_links: [],
     },
     
-    // Legacy questionnaire (for additional free-text)
+    // How you help founders (combined question)
     questionnaire_data: {
-      what_makes_you_unique: '',
       how_you_help_founders: '',
     }
   });
 
+  // Reduced to 4 steps
   const steps = [
-    'Profile & Photo',
-    'Professional Background',
-    'Expertise & Advisory',
-    'Portfolio & Links',
+    'Profile & Verification',
+    'Experience & Expertise',
     'Consultation Setup',
     'Review & Submit'
   ];
 
-  // Check if advisor profile already exists on mount
+  // Check if advisor profile already exists on mount, or load from localStorage
   useEffect(() => {
     const checkExistingProfile = async () => {
       if (!user?.id) {
         setCheckingProfile(false);
         return;
+      }
+      
+      // First, check localStorage for saved draft (from LinkedIn redirect)
+      const savedDraft = loadSavedDraft();
+      if (savedDraft) {
+        setFormData(prev => ({
+          ...prev,
+          ...savedDraft,
+          // Preserve nested objects properly
+          professional_background: {
+            ...prev.professional_background,
+            ...(savedDraft.professional_background || {}),
+            current_role: {
+              ...prev.professional_background.current_role,
+              ...(savedDraft.professional_background?.current_role || {}),
+            },
+          },
+          portfolio: {
+            ...prev.portfolio,
+            ...(savedDraft.portfolio || {}),
+          },
+          payment_methods: {
+            ...prev.payment_methods,
+            ...(savedDraft.payment_methods || {}),
+          },
+          questionnaire_data: {
+            ...prev.questionnaire_data,
+            ...(savedDraft.questionnaire_data || {}),
+          },
+        }));
+        // Don't clear draft yet - user might navigate away again
       }
 
       try {
@@ -196,53 +238,57 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
         if (response.ok) {
           const profileData = await response.json();
-          // Profile exists - only redirect if APPROVED; PENDING/REJECTED can edit
           if (profileData !== null && profileData !== undefined && typeof profileData === 'object' && Object.keys(profileData).length > 0) {
             const status = profileData.status || 'PENDING';
             if (status === 'APPROVED') {
+              clearDraft(); // Clear draft on successful profile
               navigate('/advisor/dashboard', { replace: true });
               return;
             }
-            // PENDING or REJECTED: load existing data for editing
+            // PENDING or REJECTED: load existing data for editing (but prefer localStorage if it has more data)
             if (profileData.profile_image_url) {
               setExistingImageUrl(profileData.profile_image_url);
             }
-            setFormData(prev => ({
-              ...prev,
-              headline: profileData.headline || prev.headline,
-              bio: profileData.bio || prev.bio,
-              timezone: profileData.timezone || prev.timezone,
-              expertise_stages: profileData.expertise_stages || prev.expertise_stages,
-              preferred_stages: profileData.preferred_stages || prev.preferred_stages,
-              advisory_types: profileData.advisory_types || prev.advisory_types,
-              domains: profileData.domains || prev.domains,
-              languages: profileData.languages || prev.languages,
-              max_active_workspaces: profileData.max_active_workspaces ?? prev.max_active_workspaces,
-              preferred_cadence: profileData.preferred_cadence || prev.preferred_cadence,
-              availability_hours_per_week: profileData.availability_hours_per_week || prev.availability_hours_per_week,
-              consultation_rate_30min_usd: profileData.consultation_rate_30min_usd ?? prev.consultation_rate_30min_usd,
-              consultation_rate_60min_usd: profileData.consultation_rate_60min_usd ?? prev.consultation_rate_60min_usd,
-              payment_methods: { ...prev.payment_methods, ...(profileData.payment_methods || {}) },
-              contact_email: profileData.contact_email || prev.contact_email,
-              contact_note: profileData.contact_note || prev.contact_note,
-              linkedin_url: profileData.linkedin_url || prev.linkedin_url,
-              twitter_url: profileData.twitter_url || prev.twitter_url,
-              professional_background: {
-                ...prev.professional_background,
-                ...(profileData.professional_background || {}),
-                current_role: {
-                  ...prev.professional_background.current_role,
-                  ...(profileData.professional_background?.current_role || {}),
+            // Only load from server if we didn't have a saved draft
+            if (!savedDraft) {
+              setFormData(prev => ({
+                ...prev,
+                headline: profileData.headline || prev.headline,
+                bio: profileData.bio || prev.bio,
+                timezone: profileData.timezone || prev.timezone,
+                preferred_stages: profileData.preferred_stages || prev.preferred_stages,
+                advisory_types: profileData.advisory_types || prev.advisory_types,
+                domains: profileData.domains || prev.domains,
+                languages: profileData.languages || prev.languages,
+                availability_hours_per_week: profileData.availability_hours_per_week || prev.availability_hours_per_week,
+                consultation_rate_30min_usd: profileData.consultation_rate_30min_usd ?? prev.consultation_rate_30min_usd,
+                consultation_rate_60min_usd: profileData.consultation_rate_60min_usd ?? prev.consultation_rate_60min_usd,
+                payment_methods: { ...prev.payment_methods, ...(profileData.payment_methods || {}) },
+                contact_email: profileData.contact_email || prev.contact_email,
+                contact_note: profileData.contact_note || prev.contact_note,
+                linkedin_url: profileData.linkedin_url || prev.linkedin_url,
+                twitter_url: profileData.twitter_url || prev.twitter_url,
+                professional_background: {
+                  ...prev.professional_background,
+                  ...(profileData.professional_background || {}),
+                  current_role: {
+                    ...prev.professional_background.current_role,
+                    ...(profileData.professional_background?.current_role || {}),
                 },
                 previous_roles: profileData.professional_background?.previous_roles || prev.professional_background.previous_roles,
+                success_story: profileData.professional_background?.success_story || prev.professional_background.success_story,
               },
               portfolio: {
-                ...prev.portfolio,
-                ...(profileData.portfolio || {}),
+                personal_website: profileData.portfolio?.personal_website || prev.portfolio.personal_website,
                 other_links: profileData.portfolio?.other_links || prev.portfolio.other_links,
               },
-              questionnaire_data: { ...prev.questionnaire_data, ...(profileData.questionnaire_data || {}) },
+              questionnaire_data: { 
+                how_you_help_founders: profileData.questionnaire_data?.how_you_help_founders || 
+                                       profileData.questionnaire_data?.what_makes_you_unique || // Backward compat
+                                       prev.questionnaire_data.how_you_help_founders 
+              },
             }));
+            }
           }
         }
       } catch (err) {
@@ -268,7 +314,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
           setLinkedinStatus(data);
         }
       } catch (err) {
-        // Ignore errors - LinkedIn status is optional
+        // Ignore errors
       }
     };
     checkLinkedinStatus();
@@ -277,6 +323,10 @@ const AdvisorOnboarding = ({ onComplete }) => {
   const handleConnectLinkedin = async () => {
     if (!user?.id) return;
     setConnectingLinkedin(true);
+    
+    // Save form data before redirecting to LinkedIn OAuth
+    saveDraft(formData);
+    
     try {
       const response = await fetch(`${API_BASE}/advisors/linkedin/connect`, {
         headers: { 'X-Clerk-User-Id': user.id },
@@ -301,20 +351,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       setError('Please select a valid image (JPEG, PNG, WebP, or GIF)');
       return;
     }
     
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       setError('Image must be less than 5MB');
       return;
     }
     
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setProfileImage({
@@ -331,14 +378,8 @@ const AdvisorOnboarding = ({ onComplete }) => {
     setProfileImage(null);
   };
 
-  const hasProfileImage = () => {
+  const hasValidProfilePicture = () => {
     return !!(profileImage?.preview || existingImageUrl);
-  };
-
-  const getProfileImageSrc = () => {
-    if (profileImage?.preview) return profileImage.preview;
-    if (existingImageUrl) return existingImageUrl;
-    return null;
   };
 
   const handleNext = () => {
@@ -459,30 +500,16 @@ const AdvisorOnboarding = ({ onComplete }) => {
     });
   };
 
-  const hasValidProfilePicture = () => {
-    // Check our custom upload first, then fall back to existing URL
-    return !!(profileImage?.preview || existingImageUrl);
-  };
-
-  const isValidLinkedInUrl = (url) => {
-    if (!url || !url.trim()) return false;
-    const trimmed = url.trim();
-    return (
-      trimmed.startsWith('https://') &&
-      (trimmed.includes('linkedin.com') || trimmed.includes('linked.in'))
-    );
-  };
-
   const isValidUrl = (url) => {
-    if (!url || !url.trim()) return true; // Optional URLs are valid if empty
+    if (!url || !url.trim()) return true;
     const trimmed = url.trim();
     return trimmed.startsWith('http://') || trimmed.startsWith('https://');
   };
 
-  // Check if a specific step is complete (used for stepper icons)
+  // Check if a specific step is complete
   const isStepComplete = (stepIndex) => {
     switch (stepIndex) {
-      case 0: // Profile & Photo
+      case 0: // Profile & Verification
         return (
           hasValidProfilePicture() &&
           formData.headline.length >= 10 &&
@@ -491,97 +518,65 @@ const AdvisorOnboarding = ({ onComplete }) => {
           formData.contact_email.includes('@') &&
           linkedinStatus.linkedin_verified
         );
-      case 1: { // Professional Background
+      case 1: { // Experience & Expertise
         const bg = formData.professional_background;
         return (
           bg.years_experience &&
           bg.current_role.title.trim() &&
           bg.current_role.company.trim() &&
-          bg.startups_advised_count
-        );
-      }
-      case 2: // Expertise & Advisory
-        return (
+          bg.startups_advised_count &&
           formData.advisory_types.length > 0 &&
           formData.preferred_stages.length > 0 &&
           formData.domains.length > 0
         );
-      case 3: // Portfolio & Links
-        // Portfolio is optional but if provided, URLs must be valid
-        const p = formData.portfolio;
-        return (
-          isValidUrl(p.personal_website) &&
-          isValidUrl(p.crunchbase_url) &&
-          isValidUrl(p.angellist_url)
-        );
-      case 4: // Consultation Setup
-        return (
-          formData.max_active_workspaces >= 1 &&
-          formData.max_active_workspaces <= 10 &&
-          formData.availability_hours_per_week
-        );
-      case 5: // Review & Submit
-        return true; // Review page, always valid
+      }
+      case 2: // Consultation Setup
+        return formData.availability_hours_per_week !== '';
+      case 3: // Review
+        return true;
       default:
         return true;
     }
   };
 
-  // Check if ALL required steps are complete (for final submit)
   const allStepsComplete = () => {
-    return isStepComplete(0) && isStepComplete(1) && isStepComplete(2) && isStepComplete(3) && isStepComplete(4);
+    return isStepComplete(0) && isStepComplete(1) && isStepComplete(2);
   };
 
   const validateStep = () => {
-    // For the final step, require all steps to be complete
     if (activeStep === steps.length - 1) {
       return allStepsComplete();
     }
-    // For other steps, always allow navigation (but show incomplete status)
     return true;
   };
 
-  // Navigate to a specific step
   const handleStepClick = (stepIndex) => {
     setActiveStep(stepIndex);
   };
 
   const getCompletionScore = () => {
     let score = 0;
-    const maxScore = 100;
     
-    // Profile picture (15 points)
     if (hasValidProfilePicture()) score += 15;
-    
-    // Basic info (15 points)
     if (formData.headline.length >= 10) score += 5;
-    if (formData.bio.length >= 100) score += 5;
-    if (linkedinStatus.linkedin_verified) score += 5;
+    if (formData.bio.length >= 100) score += 10;
+    if (linkedinStatus.linkedin_verified) score += 10;
     
-    // Professional background (25 points)
     const bg = formData.professional_background;
     if (bg.years_experience) score += 5;
     if (bg.current_role.title && bg.current_role.company) score += 10;
     if (bg.previous_roles.length > 0) score += 5;
     if (bg.notable_achievements?.trim()) score += 5;
+    if (bg.success_story?.trim()) score += 10;
     
-    // Expertise (15 points)
     if (formData.advisory_types.length > 0) score += 5;
     if (formData.preferred_stages.length > 0) score += 5;
     if (formData.domains.length > 0) score += 5;
     
-    // Portfolio (15 points)
-    const p = formData.portfolio;
-    if (p.personal_website?.trim()) score += 5;
-    if (p.crunchbase_url?.trim() || p.angellist_url?.trim()) score += 5;
-    if (p.other_links?.length > 0) score += 5;
-    
-    // Consultation setup (15 points)
+    if (formData.portfolio.personal_website?.trim()) score += 5;
     if (formData.availability_hours_per_week) score += 5;
-    if (formData.consultation_rate_30min_usd || formData.consultation_rate_60min_usd) score += 5;
-    if (Object.values(formData.payment_methods).some(v => v?.trim())) score += 5;
     
-    return Math.min(score, maxScore);
+    return Math.min(score, 100);
   };
 
   const getBadgesEarned = () => {
@@ -596,13 +591,10 @@ const AdvisorOnboarding = ({ onComplete }) => {
     if (formData.professional_background.years_experience) {
       const years = formData.professional_background.years_experience;
       if (['10-15', '15-20', '20+'].includes(years)) {
-        badges.push({ id: 'veteran', label: 'Veteran Advisor', icon: Star });
+        badges.push({ id: 'veteran', label: 'Veteran Advisor', icon: WorkHistory });
       }
     }
-    if (formData.professional_background.previous_roles?.length >= 2) {
-      badges.push({ id: 'experienced', label: 'Extensive Background', icon: WorkHistory });
-    }
-    if (formData.portfolio.personal_website || formData.portfolio.crunchbase_url) {
+    if (formData.portfolio.personal_website) {
       badges.push({ id: 'portfolio', label: 'Portfolio Verified', icon: LinkIcon });
     }
     
@@ -614,7 +606,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
     setError(null);
 
     try {
-      // First create/update the advisor profile
       const response = await fetch(`${API_BASE}/advisors/profile`, {
         method: 'POST',
         headers: {
@@ -633,7 +624,6 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
       const profile = await response.json();
 
-      // Then upload the profile image if one was selected
       if (profileImage?.file) {
         setUploadingImage(true);
         try {
@@ -658,6 +648,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
         setUploadingImage(false);
       }
 
+      // Clear saved draft on successful submission
+      clearDraft();
+      
       if (onComplete) {
         onComplete(profile);
       } else {
@@ -671,10 +664,10 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
   const renderStepContent = () => {
     switch (activeStep) {
-      case 0: // Profile & Photo
+      case 0: // Profile & Verification
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Profile Picture Section - Compact horizontal layout */}
+            {/* Profile Picture Section */}
             <Box sx={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -753,13 +746,13 @@ const AdvisorOnboarding = ({ onComplete }) => {
             
             <TextField
               label="Bio *"
-              placeholder="Share your journey: What drives you? Key achievements? How do you help founders succeed? Include specific examples of startups you've helped..."
+              placeholder="Share your journey: What drives you? Key achievements? How do you help founders succeed?"
               value={formData.bio}
               onChange={(e) => handleChange('bio', e.target.value)}
               required
               multiline
-              rows={5}
-              helperText={`${formData.bio.length}/100 characters minimum. Be specific about your expertise and how you help founders.`}
+              rows={4}
+              helperText={`${formData.bio.length}/100 characters minimum`}
               fullWidth
               error={formData.bio.length > 0 && formData.bio.length < 100}
             />
@@ -798,7 +791,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
             {/* LinkedIn Verification */}
             <Box sx={{ 
-              p: 2.5, 
+              p: 2, 
               bgcolor: linkedinStatus.linkedin_verified ? '#ecfdf5' : '#f8fafc', 
               borderRadius: 2,
               border: '2px solid',
@@ -807,108 +800,106 @@ const AdvisorOnboarding = ({ onComplete }) => {
               {linkedinStatus.linkedin_verified ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Box sx={{ 
-                    width: 40, height: 40, borderRadius: '50%', 
+                    width: 36, height: 36, borderRadius: '50%', 
                     bgcolor: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' 
                   }}>
-                    <CheckCircle sx={{ color: 'white', fontSize: 24 }} />
+                    <CheckCircle sx={{ color: 'white', fontSize: 20 }} />
                   </Box>
                   <Box>
-                    <Typography variant="body1" fontWeight={600} color="#10b981">
+                    <Typography variant="body2" fontWeight={600} color="#10b981">
                       LinkedIn Connected
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary">
                       Verified as {linkedinStatus.linkedin_name || 'LinkedIn User'}
                     </Typography>
                   </Box>
                 </Box>
               ) : (
                 <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                     <Box sx={{ 
-                      width: 40, height: 40, borderRadius: '50%', 
+                      width: 36, height: 36, borderRadius: '50%', 
                       bgcolor: '#0077b5', display: 'flex', alignItems: 'center', justifyContent: 'center' 
                     }}>
-                      <LinkedIn sx={{ color: 'white', fontSize: 24 }} />
+                      <LinkedIn sx={{ color: 'white', fontSize: 20 }} />
                     </Box>
                     <Box>
-                      <Typography variant="body1" fontWeight={600}>
-                        Connect LinkedIn *
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Required to verify your professional identity
-                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>Connect LinkedIn *</Typography>
+                      <Typography variant="caption" color="text.secondary">Required for verification</Typography>
                     </Box>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    We'll verify your identity and pull your profile information.
-                    Advisors with verified LinkedIn get 3x more consultation bookings.
-                  </Typography>
                   {linkedinStatus.linkedin_configured !== false ? (
                     <Button
                       variant="contained"
-                      startIcon={connectingLinkedin ? <CircularProgress size={16} color="inherit" /> : <LinkedIn />}
+                      size="small"
+                      startIcon={connectingLinkedin ? <CircularProgress size={14} color="inherit" /> : <LinkedIn />}
                       onClick={handleConnectLinkedin}
                       disabled={connectingLinkedin}
-                      sx={{
-                        bgcolor: '#0077b5',
-                        '&:hover': { bgcolor: '#005582' },
-                        textTransform: 'none',
-                        fontWeight: 600,
-                      }}
+                      sx={{ bgcolor: '#0077b5', '&:hover': { bgcolor: '#005582' }, textTransform: 'none' }}
                     >
-                      {connectingLinkedin ? 'Connecting...' : 'Connect with LinkedIn'}
+                      {connectingLinkedin ? 'Connecting...' : 'Connect LinkedIn'}
                     </Button>
                   ) : (
-                    <Alert severity="info" sx={{ mt: 1 }}>
-                      LinkedIn verification is being set up. Please check back later.
-                    </Alert>
+                    <Alert severity="info" sx={{ mt: 1 }}>LinkedIn verification being set up.</Alert>
                   )}
                 </Box>
               )}
             </Box>
 
             <TextField
-              label="Twitter/X URL"
+              label="Twitter/X URL (Optional)"
               placeholder="https://twitter.com/yourhandle"
               value={formData.twitter_url}
               onChange={(e) => handleChange('twitter_url', e.target.value)}
               fullWidth
-              helperText="Optional"
+              size="small"
             />
           </Box>
         );
 
-      case 1: // Professional Background
+      case 1: // Experience & Expertise (Combined)
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography variant="subtitle1" fontWeight={600} color="primary">
-              Tell us about your professional experience
-            </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Professional Background */}
+            <Typography variant="subtitle1" fontWeight={600} color="primary">Professional Background</Typography>
 
-            {/* Years of Experience */}
-            <FormControl fullWidth required>
-              <InputLabel>Total Years of Professional Experience *</InputLabel>
-              <Select
-                value={formData.professional_background.years_experience}
-                onChange={(e) => handleChange('professional_background.years_experience', e.target.value)}
-                label="Total Years of Professional Experience *"
-              >
-                {YEARS_EXPERIENCE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl fullWidth required size="small">
+                <InputLabel>Years of Experience *</InputLabel>
+                <Select
+                  value={formData.professional_background.years_experience}
+                  onChange={(e) => handleChange('professional_background.years_experience', e.target.value)}
+                  label="Years of Experience *"
+                >
+                  {YEARS_EXPERIENCE_OPTIONS.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth required size="small">
+                <InputLabel>Startups Advised *</InputLabel>
+                <Select
+                  value={formData.professional_background.startups_advised_count}
+                  onChange={(e) => handleChange('professional_background.startups_advised_count', e.target.value)}
+                  label="Startups Advised *"
+                >
+                  {STARTUPS_ADVISED_OPTIONS.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
             {/* Current Role */}
-            <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
-              <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0' }}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <WorkHistory fontSize="small" color="primary" />
-                Current or Most Recent Role *
+                Current Role *
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
                 <TextField
-                  label="Job Title"
-                  placeholder="e.g., CEO, CTO, VP of Engineering, Founder"
+                  label="Title"
+                  placeholder="e.g., CEO, CTO, Founder"
                   value={formData.professional_background.current_role.title}
                   onChange={(e) => handleChange('professional_background.current_role.title', e.target.value)}
                   required
@@ -916,22 +907,22 @@ const AdvisorOnboarding = ({ onComplete }) => {
                   size="small"
                 />
                 <TextField
-                  label="Company Name"
-                  placeholder="e.g., Google, Stripe, Your Startup Name"
+                  label="Company"
+                  placeholder="e.g., Google, Your Startup"
                   value={formData.professional_background.current_role.company}
                   onChange={(e) => handleChange('professional_background.current_role.company', e.target.value)}
                   required
                   fullWidth
                   size="small"
                 />
-                <FormControl size="small" sx={{ width: 150 }}>
-                  <InputLabel>Start Year</InputLabel>
+                <FormControl size="small" sx={{ minWidth: 100 }}>
+                  <InputLabel>Since</InputLabel>
                   <Select
                     value={formData.professional_background.current_role.start_year}
                     onChange={(e) => handleChange('professional_background.current_role.start_year', e.target.value)}
-                    label="Start Year"
+                    label="Since"
                   >
-                    {YEAR_OPTIONS.map((year) => (
+                    {YEAR_OPTIONS.slice(0, 20).map((year) => (
                       <MenuItem key={year} value={year}>{year}</MenuItem>
                     ))}
                   </Select>
@@ -942,148 +933,67 @@ const AdvisorOnboarding = ({ onComplete }) => {
             {/* Previous Roles */}
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Previous Roles (Optional but recommended)
-                </Typography>
-                <Button
-                  size="small"
-                  startIcon={<Add />}
-                  onClick={addPreviousRole}
-                  disabled={formData.professional_background.previous_roles.length >= 5}
-                >
-                  Add Role
+                <Typography variant="body2" fontWeight={600}>Previous Roles (Optional)</Typography>
+                <Button size="small" startIcon={<Add />} onClick={addPreviousRole} disabled={formData.professional_background.previous_roles.length >= 3}>
+                  Add
                 </Button>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                Adding 2+ roles earns you the "Extensive Background" badge
-              </Typography>
-              
               {formData.professional_background.previous_roles.map((role, index) => (
-                <Paper key={index} elevation={0} sx={{ p: 2, mb: 2, border: '1px solid #e2e8f0', borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">Role {index + 1}</Typography>
-                    <IconButton size="small" onClick={() => removePreviousRole(index)} color="error">
-                      <Delete fontSize="small" />
-                    </IconButton>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                      <TextField
-                        label="Title"
-                        size="small"
-                        fullWidth
-                        value={role.title}
-                        onChange={(e) => updatePreviousRole(index, 'title', e.target.value)}
-                      />
-                      <TextField
-                        label="Company"
-                        size="small"
-                        fullWidth
-                        value={role.company}
-                        onChange={(e) => updatePreviousRole(index, 'company', e.target.value)}
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 1.5 }}>
-                      <FormControl size="small" sx={{ width: 120 }}>
-                        <InputLabel>From</InputLabel>
-                        <Select
-                          value={role.start_year}
-                          onChange={(e) => updatePreviousRole(index, 'start_year', e.target.value)}
-                          label="From"
-                        >
-                          {YEAR_OPTIONS.map((year) => (
-                            <MenuItem key={year} value={year}>{year}</MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <FormControl size="small" sx={{ width: 120 }}>
-                        <InputLabel>To</InputLabel>
-                        <Select
-                          value={role.end_year}
-                          onChange={(e) => updatePreviousRole(index, 'end_year', e.target.value)}
-                          label="To"
-                        >
-                          <MenuItem value="present">Present</MenuItem>
-                          {YEAR_OPTIONS.map((year) => (
-                            <MenuItem key={year} value={year}>{year}</MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
+                <Paper key={index} elevation={0} sx={{ p: 1.5, mb: 1, border: '1px solid #e2e8f0', borderRadius: 1.5 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField label="Title" size="small" value={role.title} onChange={(e) => updatePreviousRole(index, 'title', e.target.value)} sx={{ flex: 1 }} />
+                    <TextField label="Company" size="small" value={role.company} onChange={(e) => updatePreviousRole(index, 'company', e.target.value)} sx={{ flex: 1 }} />
+                    <IconButton size="small" onClick={() => removePreviousRole(index)} color="error"><Delete fontSize="small" /></IconButton>
                   </Box>
                 </Paper>
               ))}
             </Box>
 
-            {/* Startups Advised */}
-            <FormControl fullWidth required>
-              <InputLabel>Number of Startups You've Advised *</InputLabel>
-              <Select
-                value={formData.professional_background.startups_advised_count}
-                onChange={(e) => handleChange('professional_background.startups_advised_count', e.target.value)}
-                label="Number of Startups You've Advised *"
-              >
-                {STARTUPS_ADVISED_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
             {/* Notable Achievements */}
             <TextField
               label="Notable Achievements (Optional)"
-              placeholder="e.g., Led company to $50M exit, Helped 3 portfolio companies raise Series A, Built engineering team from 5 to 100..."
+              placeholder="e.g., Led company to $50M exit, Helped 3 startups raise Series A..."
               value={formData.professional_background.notable_achievements}
               onChange={(e) => handleChange('professional_background.notable_achievements', e.target.value)}
               multiline
+              rows={2}
+              fullWidth
+              size="small"
+            />
+
+            {/* Success Story - NEW */}
+            <TextField
+              label="Success Story - Describe a startup you helped"
+              placeholder="Share a specific example: What was the startup? What was the challenge? How did you help? What was the outcome?"
+              value={formData.professional_background.success_story}
+              onChange={(e) => handleChange('professional_background.success_story', e.target.value)}
+              multiline
               rows={3}
               fullWidth
-              helperText="Exits, funding rounds you helped with, teams you built, etc."
+              helperText="Specific examples build trust with founders"
             />
-          </Box>
-        );
 
-      case 2: // Expertise & Advisory
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Type of Advisory */}
+            {/* Expertise Section */}
+            <Typography variant="subtitle1" fontWeight={600} color="primary" sx={{ mt: 1 }}>Your Expertise</Typography>
+
+            {/* Advisory Types */}
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                What type of advisory do you provide? *
-              </FormLabel>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
-                Select all that apply - this helps founders understand how you can help
-              </Typography>
+              <FormLabel component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>What type of advisory do you provide? *</FormLabel>
               <FormGroup>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   {ADVISORY_TYPES.map((type) => (
-                    <Paper
+                    <Chip
                       key={type.value}
-                      elevation={0}
+                      label={type.label}
+                      onClick={() => handleArrayChange('advisory_types', type.value, !formData.advisory_types.includes(type.value))}
                       sx={{
-                        p: 1.5,
+                        bgcolor: formData.advisory_types.includes(type.value) ? '#0d9488' : 'transparent',
+                        color: formData.advisory_types.includes(type.value) ? 'white' : 'text.primary',
                         border: '1px solid',
                         borderColor: formData.advisory_types.includes(type.value) ? '#0d9488' : 'divider',
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        bgcolor: formData.advisory_types.includes(type.value) ? 'rgba(13, 148, 136, 0.08)' : 'transparent',
-                        '&:hover': { borderColor: '#0d9488', bgcolor: 'rgba(13, 148, 136, 0.04)' },
+                        '&:hover': { bgcolor: formData.advisory_types.includes(type.value) ? '#0f766e' : 'action.hover' },
                       }}
-                      onClick={() => handleArrayChange('advisory_types', type.value, !formData.advisory_types.includes(type.value))}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Checkbox
-                          checked={formData.advisory_types.includes(type.value)}
-                          size="small"
-                          sx={{ '&.Mui-checked': { color: '#0d9488' } }}
-                        />
-                        <Box>
-                          <Typography variant="body2" fontWeight={600}>{type.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">{type.description}</Typography>
-                        </Box>
-                      </Box>
-                    </Paper>
+                    />
                   ))}
                 </Box>
               </FormGroup>
@@ -1091,23 +1001,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
             {/* Preferred Stages */}
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                Startup stages you prefer to advise *
-              </FormLabel>
+              <FormLabel component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Preferred startup stages *</FormLabel>
               <FormGroup>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   {STAGES.map((stage) => (
                     <Chip
                       key={stage}
                       label={stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
                       onClick={() => handleArrayChange('preferred_stages', stage, !formData.preferred_stages.includes(stage))}
-                      sx={{
-                        bgcolor: formData.preferred_stages.includes(stage) ? '#0d9488' : 'transparent',
-                        color: formData.preferred_stages.includes(stage) ? 'white' : 'text.primary',
-                        border: '1px solid',
-                        borderColor: formData.preferred_stages.includes(stage) ? '#0d9488' : 'divider',
-                        '&:hover': { bgcolor: formData.preferred_stages.includes(stage) ? '#0f766e' : 'action.hover' },
-                      }}
+                      color={formData.preferred_stages.includes(stage) ? 'primary' : 'default'}
+                      variant={formData.preferred_stages.includes(stage) ? 'filled' : 'outlined'}
+                      size="small"
                     />
                   ))}
                 </Box>
@@ -1116,9 +1020,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
             {/* Domains */}
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>Domains/Industries you specialize in *</FormLabel>
+              <FormLabel component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Industries you specialize in *</FormLabel>
               <FormGroup>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   {DOMAINS.map((domain) => (
                     <Chip
                       key={domain}
@@ -1126,6 +1030,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
                       onClick={() => handleArrayChange('domains', domain, !formData.domains.includes(domain))}
                       color={formData.domains.includes(domain) ? 'primary' : 'default'}
                       variant={formData.domains.includes(domain) ? 'filled' : 'outlined'}
+                      size="small"
                     />
                   ))}
                 </Box>
@@ -1134,9 +1039,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
             {/* Languages */}
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>Languages you can advise in</FormLabel>
+              <FormLabel component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Languages</FormLabel>
               <FormGroup>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   {LANGUAGES.map((lang) => (
                     <Chip
                       key={lang}
@@ -1150,151 +1055,18 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 </Box>
               </FormGroup>
             </FormControl>
-
-            {/* What makes you unique */}
-            <TextField
-              label="What makes you unique as an advisor?"
-              placeholder="What specific value do you bring? What's your advisory style? What should founders expect from working with you?"
-              value={formData.questionnaire_data.what_makes_you_unique}
-              onChange={(e) => handleChange('questionnaire_data.what_makes_you_unique', e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-            />
           </Box>
         );
 
-      case 3: // Portfolio & Links
+      case 2: // Consultation Setup
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} color="primary" sx={{ mb: 0.5 }}>
-                Showcase Your Work
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Adding portfolio links helps founders verify your background and increases trust.
-                Profiles with portfolio links get 2x more consultation bookings.
-              </Typography>
-            </Box>
-
-            <TextField
-              label="Personal Website / Portfolio"
-              placeholder="https://yourname.com"
-              value={formData.portfolio.personal_website}
-              onChange={(e) => handleChange('portfolio.personal_website', e.target.value)}
-              fullWidth
-              InputProps={{ startAdornment: <LinkIcon sx={{ mr: 1, color: 'text.secondary' }} /> }}
-              helperText="Your personal site, blog, or portfolio"
-            />
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Crunchbase Profile"
-                placeholder="https://crunchbase.com/person/..."
-                value={formData.portfolio.crunchbase_url}
-                onChange={(e) => handleChange('portfolio.crunchbase_url', e.target.value)}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="AngelList Profile"
-                placeholder="https://angel.co/u/..."
-                value={formData.portfolio.angellist_url}
-                onChange={(e) => handleChange('portfolio.angellist_url', e.target.value)}
-                fullWidth
-                size="small"
-              />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Medium / Substack"
-                placeholder="https://medium.com/@yourname"
-                value={formData.portfolio.medium_url}
-                onChange={(e) => handleChange('portfolio.medium_url', e.target.value)}
-                fullWidth
-                size="small"
-                helperText="Your blog or newsletter"
-              />
-              <TextField
-                label="YouTube Channel"
-                placeholder="https://youtube.com/@yourchannel"
-                value={formData.portfolio.youtube_url}
-                onChange={(e) => handleChange('portfolio.youtube_url', e.target.value)}
-                fullWidth
-                size="small"
-                helperText="Talks, interviews, tutorials"
-              />
-            </Box>
-
-            {/* Additional Links */}
-            <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2" fontWeight={600}>
-                  Additional Links
-                </Typography>
-                <Button
-                  size="small"
-                  startIcon={<Add />}
-                  onClick={addPortfolioLink}
-                  disabled={formData.portfolio.other_links.length >= 5}
-                >
-                  Add Link
-                </Button>
-              </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                Podcast appearances, conference talks, press mentions, etc.
-              </Typography>
-              
-              {formData.portfolio.other_links.map((link, index) => (
-                <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-                  <TextField
-                    label="Label"
-                    placeholder="e.g., TechCrunch Interview"
-                    size="small"
-                    value={link.label}
-                    onChange={(e) => updatePortfolioLink(index, 'label', e.target.value)}
-                    sx={{ width: '35%' }}
-                  />
-                  <TextField
-                    label="URL"
-                    placeholder="https://..."
-                    size="small"
-                    fullWidth
-                    value={link.url}
-                    onChange={(e) => updatePortfolioLink(index, 'url', e.target.value)}
-                  />
-                  <IconButton size="small" onClick={() => removePortfolioLink(index)} color="error">
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
-
-            {/* How you help */}
-            <TextField
-              label="How do you typically help founders?"
-              placeholder="Describe your advisory style. Do you prefer hands-on involvement or high-level guidance? How often do you like to meet? What's your communication style?"
-              value={formData.questionnaire_data.how_you_help_founders}
-              onChange={(e) => handleChange('questionnaire_data.how_you_help_founders', e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-            />
-          </Box>
-        );
-
-      case 4: // Consultation Setup
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography variant="subtitle1" fontWeight={600} color="primary">
-              Set up your consultation availability
-            </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <Typography variant="subtitle1" fontWeight={600} color="primary">Availability & Pricing</Typography>
 
             {/* Hours Per Week */}
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ mb: 1, fontWeight: 600 }}>
-                Hours available per week for advising *
+              <FormLabel component="legend" sx={{ fontSize: '0.875rem', fontWeight: 600, mb: 1 }}>
+                Hours available per week *
               </FormLabel>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {HOURS_PER_WEEK_OPTIONS.map((option) => (
@@ -1302,20 +1074,20 @@ const AdvisorOnboarding = ({ onComplete }) => {
                     key={option.value}
                     elevation={0}
                     sx={{
-                      p: 2,
+                      p: 1.5,
                       border: '2px solid',
                       borderColor: formData.availability_hours_per_week === option.value ? '#0d9488' : 'divider',
-                      borderRadius: 2,
+                      borderRadius: 1.5,
                       cursor: 'pointer',
                       bgcolor: formData.availability_hours_per_week === option.value ? 'rgba(13, 148, 136, 0.08)' : 'transparent',
                       '&:hover': { borderColor: '#0d9488' },
                     }}
                     onClick={() => handleChange('availability_hours_per_week', option.value)}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box
                         sx={{
-                          width: 20, height: 20, borderRadius: '50%',
+                          width: 18, height: 18, borderRadius: '50%',
                           border: '2px solid',
                           borderColor: formData.availability_hours_per_week === option.value ? '#0d9488' : 'divider',
                           bgcolor: formData.availability_hours_per_week === option.value ? '#0d9488' : 'transparent',
@@ -1323,11 +1095,11 @@ const AdvisorOnboarding = ({ onComplete }) => {
                         }}
                       >
                         {formData.availability_hours_per_week === option.value && (
-                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'white' }} />
+                          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'white' }} />
                         )}
                       </Box>
                       <Box>
-                        <Typography variant="body1" fontWeight={600}>{option.label}</Typography>
+                        <Typography variant="body2" fontWeight={600}>{option.label}</Typography>
                         <Typography variant="caption" color="text.secondary">{option.description}</Typography>
                       </Box>
                     </Box>
@@ -1336,60 +1108,36 @@ const AdvisorOnboarding = ({ onComplete }) => {
               </Box>
             </FormControl>
 
-            {/* Max Active Workspaces */}
-            <Box>
-              <Typography gutterBottom fontWeight={500}>
-                Maximum Active Startups: {formData.max_active_workspaces}
-              </Typography>
-              <Slider
-                value={formData.max_active_workspaces}
-                onChange={(e, value) => handleChange('max_active_workspaces', value)}
-                min={1} max={10} marks step={1}
-                sx={{ '& .MuiSlider-thumb': { bgcolor: '#0d9488' }, '& .MuiSlider-track': { bgcolor: '#0d9488' } }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                How many startups can you actively advise at once?
-              </Typography>
-            </Box>
-
             {/* Consultation Pricing */}
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
-                Consultation Pricing (Optional)
-              </Typography>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>Consultation Pricing (Optional)</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                Founders pay you directly — Guild Space doesn't process payment. You can set this up later.
+                Founders pay you directly — set this up later if you prefer.
               </Typography>
 
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <TextField
-                  label="30-min rate"
+                  label="30-min rate ($)"
                   type="number"
                   fullWidth size="small"
                   value={formData.consultation_rate_30min_usd}
                   onChange={(e) => handleChange('consultation_rate_30min_usd', e.target.value)}
                   inputProps={{ min: 0, step: 5 }}
-                  InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>$</Typography> }}
-                  helperText="Leave blank if not offered"
                 />
                 <TextField
-                  label="60-min rate"
+                  label="60-min rate ($)"
                   type="number"
                   fullWidth size="small"
                   value={formData.consultation_rate_60min_usd}
                   onChange={(e) => handleChange('consultation_rate_60min_usd', e.target.value)}
                   inputProps={{ min: 0, step: 5 }}
-                  InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>$</Typography> }}
-                  helperText="Leave blank if not offered"
                 />
               </Box>
 
-              <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 2, mb: 1 }}>
-                Payment Methods
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Payment Methods</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <TextField
-                  label="UPI ID (for India)"
+                  label="UPI ID (India)"
                   size="small" fullWidth
                   value={formData.payment_methods.upi_id}
                   onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, upi_id: e.target.value })}
@@ -1402,52 +1150,65 @@ const AdvisorOnboarding = ({ onComplete }) => {
                   onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, paypal_url: e.target.value })}
                   placeholder="https://paypal.me/yourname"
                 />
-                <TextField
-                  label="Razorpay link"
-                  size="small" fullWidth
-                  value={formData.payment_methods.razorpay_link}
-                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, razorpay_link: e.target.value })}
-                  placeholder="https://razorpay.me/@yourname"
-                />
-                <TextField
-                  label="Bank details"
-                  size="small" fullWidth multiline minRows={2}
-                  value={formData.payment_methods.bank_details}
-                  onChange={(e) => handleChange('payment_methods', { ...formData.payment_methods, bank_details: e.target.value })}
-                  placeholder="Account + IFSC + Name"
-                />
               </Box>
             </Box>
+
+            {/* Portfolio - Simplified */}
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Portfolio Links (Optional)</Typography>
+              <TextField
+                label="Personal Website"
+                placeholder="https://yourname.com"
+                value={formData.portfolio.personal_website}
+                onChange={(e) => handleChange('portfolio.personal_website', e.target.value)}
+                fullWidth
+                size="small"
+                sx={{ mb: 1.5 }}
+              />
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="caption" color="text.secondary">Additional links</Typography>
+                <Button size="small" startIcon={<Add />} onClick={addPortfolioLink} disabled={formData.portfolio.other_links.length >= 3}>
+                  Add
+                </Button>
+              </Box>
+              {formData.portfolio.other_links.map((link, index) => (
+                <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                  <TextField label="Label" size="small" value={link.label} onChange={(e) => updatePortfolioLink(index, 'label', e.target.value)} sx={{ width: '30%' }} />
+                  <TextField label="URL" size="small" fullWidth value={link.url} onChange={(e) => updatePortfolioLink(index, 'url', e.target.value)} />
+                  <IconButton size="small" onClick={() => removePortfolioLink(index)} color="error"><Delete fontSize="small" /></IconButton>
+                </Box>
+              ))}
+            </Box>
+
+            {/* How you help - Combined question */}
+            <TextField
+              label="How do you typically help founders?"
+              placeholder="Describe your advisory style. What should founders expect from working with you?"
+              value={formData.questionnaire_data.how_you_help_founders}
+              onChange={(e) => handleChange('questionnaire_data.how_you_help_founders', e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
+            />
           </Box>
         );
 
-      case 5: // Review & Submit
+      case 3: // Review & Submit
         const badges = getBadgesEarned();
         const score = getCompletionScore();
         
-        // Get list of incomplete steps
         const incompleteSteps = [];
-        if (!isStepComplete(0)) incompleteSteps.push({ index: 0, name: 'Profile & Photo' });
-        if (!isStepComplete(1)) incompleteSteps.push({ index: 1, name: 'Professional Background' });
-        if (!isStepComplete(2)) incompleteSteps.push({ index: 2, name: 'Expertise & Advisory' });
-        if (!isStepComplete(3)) incompleteSteps.push({ index: 3, name: 'Portfolio & Links' });
-        if (!isStepComplete(4)) incompleteSteps.push({ index: 4, name: 'Consultation Setup' });
+        if (!isStepComplete(0)) incompleteSteps.push({ index: 0, name: 'Profile & Verification' });
+        if (!isStepComplete(1)) incompleteSteps.push({ index: 1, name: 'Experience & Expertise' });
+        if (!isStepComplete(2)) incompleteSteps.push({ index: 2, name: 'Consultation Setup' });
         
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Incomplete Sections Warning */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Incomplete Warning */}
             {incompleteSteps.length > 0 && (
-              <Alert 
-                severity="warning" 
-                sx={{ 
-                  bgcolor: '#fef3c7', 
-                  '& .MuiAlert-icon': { color: '#d97706' },
-                  '& .MuiAlert-message': { width: '100%' }
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
-                  Complete these sections to submit:
-                </Typography>
+              <Alert severity="warning" sx={{ bgcolor: '#fef3c7', '& .MuiAlert-icon': { color: '#d97706' } }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Complete these sections to submit:</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {incompleteSteps.map((step) => (
                     <Chip
@@ -1455,13 +1216,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
                       label={step.name}
                       size="small"
                       onClick={() => handleStepClick(step.index)}
-                      sx={{ 
-                        cursor: 'pointer',
-                        bgcolor: '#fff',
-                        border: '1px solid #d97706',
-                        color: '#92400e',
-                        '&:hover': { bgcolor: '#fef3c7' }
-                      }}
+                      sx={{ cursor: 'pointer', bgcolor: '#fff', border: '1px solid #d97706', color: '#92400e' }}
                     />
                   ))}
                 </Box>
@@ -1469,10 +1224,10 @@ const AdvisorOnboarding = ({ onComplete }) => {
             )}
 
             {/* Completion Score */}
-            <Box sx={{ p: 3, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+            <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" fontWeight={600}>Profile Completeness</Typography>
-                <Typography variant="h5" fontWeight={700} color={score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444'}>
+                <Typography variant="body2" fontWeight={600}>Profile Completeness</Typography>
+                <Typography variant="h6" fontWeight={700} color={score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444'}>
                   {score}%
                 </Typography>
               </Box>
@@ -1480,27 +1235,19 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 variant="determinate"
                 value={score}
                 sx={{
-                  height: 8, borderRadius: 4,
-                  bgcolor: '#e2e8f0',
+                  height: 6, borderRadius: 3, bgcolor: '#e2e8f0',
                   '& .MuiLinearProgress-bar': {
                     bgcolor: score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444',
-                    borderRadius: 4,
+                    borderRadius: 3,
                   }
                 }}
               />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                {score >= 80 ? 'Excellent! Your profile is well-optimized.' :
-                 score >= 50 ? 'Good start! Consider adding more details.' :
-                 'Add more information to increase visibility.'}
-              </Typography>
             </Box>
 
-            {/* Badges Earned */}
+            {/* Badges */}
             {badges.length > 0 && (
               <Box>
-                <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5 }}>
-                  Badges You'll Earn
-                </Typography>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Badges You'll Earn</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {badges.map((badge) => (
                     <Chip
@@ -1515,41 +1262,31 @@ const AdvisorOnboarding = ({ onComplete }) => {
               </Box>
             )}
 
-            {/* Profile Summary */}
+            {/* Summary */}
             <Box sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: 2 }}>
-              <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>Profile Summary</Typography>
-              
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5 }}>Profile Summary</Typography>
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Avatar src={profileImage?.preview || existingImageUrl || user?.imageUrl} sx={{ width: 64, height: 64 }} />
+                <Avatar src={profileImage?.preview || existingImageUrl || user?.imageUrl} sx={{ width: 56, height: 56 }} />
                 <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>{user?.fullName || 'Your Name'}</Typography>
+                  <Typography variant="body1" fontWeight={600}>{user?.fullName || 'Your Name'}</Typography>
                   <Typography variant="body2" color="text.secondary">{formData.headline || 'No headline'}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {formData.professional_background.years_experience || '?'} years experience • 
-                    {formData.professional_background.startups_advised_count || '?'} startups advised
+                    {formData.professional_background.years_experience || '?'} years • {formData.professional_background.startups_advised_count || '?'} startups advised
                   </Typography>
                 </Box>
               </Box>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {formData.advisory_types.map((type) => (
                   <Chip key={type} label={ADVISORY_TYPES.find(t => t.value === type)?.label || type} size="small" variant="outlined" />
                 ))}
               </Box>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {formData.domains.slice(0, 5).map((domain) => (
-                  <Chip key={domain} label={domain} size="small" sx={{ bgcolor: '#f1f5f9' }} />
-                ))}
-              </Box>
             </Box>
 
-            {/* What happens next */}
+            {/* What's next */}
             <Alert severity="info" sx={{ bgcolor: '#eff6ff', '& .MuiAlert-icon': { color: '#3b82f6' } }}>
-              <Typography variant="subtitle2" fontWeight={600}>What happens next?</Typography>
-              <Typography variant="body2">
-                Your profile will be reviewed by our team (usually within 24-48 hours).
-                Once approved, you'll appear in the advisor marketplace and founders can book consultations with you.
+              <Typography variant="body2" fontWeight={600}>What happens next?</Typography>
+              <Typography variant="caption">
+                Your profile will be reviewed (usually 24-48 hours). Once approved, founders can book consultations with you.
               </Typography>
             </Alert>
           </Box>
@@ -1560,92 +1297,26 @@ const AdvisorOnboarding = ({ onComplete }) => {
     }
   };
 
-  // Show loading while checking for existing profile
   if (checkingProfile) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
-          minHeight: 400,
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box 
-      sx={{ 
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        height: '100%',
-        p: { xs: 2, sm: 3 },
-        overflow: 'auto',
-      }}
-    >
-      <Paper 
-        sx={{ 
-          width: '100%',
-          maxWidth: { xs: '100%', sm: '90%', md: 800, lg: 900 },
-          maxHeight: { xs: 'none', sm: 650, md: 700 },
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: { xs: 1, sm: 2 },
-          boxShadow: 3,
-          overflow: 'hidden'
-        }}
-      >
-        {/* Fixed Header */}
-        <Box sx={{ 
-          p: { xs: 2, sm: 2.5 }, 
-          borderBottom: 1, 
-          borderColor: 'divider', 
-          bgcolor: 'white',
-          flexShrink: 0
-        }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              fontWeight: 700, 
-              mb: 2,
-              fontSize: { xs: '1.25rem', sm: '1.5rem' }
-            }}
-          >
-            Become an Advisor
-          </Typography>
-          
-          <Stepper 
-            activeStep={activeStep}
-            nonLinear
-            alternativeLabel
-            sx={{ 
-              '& .MuiStepLabel-label': {
-                fontSize: { xs: '0.6rem', sm: '0.75rem' }
-              },
-              '& .MuiStepButton-root': {
-                py: 0.5,
-              }
-            }}
-          >
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', height: '100%', p: { xs: 2, sm: 3 }, overflow: 'auto' }}>
+      <Paper sx={{ width: '100%', maxWidth: { xs: '100%', sm: '90%', md: 850, lg: 950 }, maxHeight: { xs: 'none', sm: 680 }, display: 'flex', flexDirection: 'column', borderRadius: 2, boxShadow: 3, overflow: 'hidden' }}>
+        {/* Header */}
+        <Box sx={{ p: { xs: 2, sm: 2.5 }, borderBottom: 1, borderColor: 'divider', bgcolor: 'white', flexShrink: 0 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Become an Advisor</Typography>
+          <Stepper activeStep={activeStep} nonLinear alternativeLabel sx={{ '& .MuiStepLabel-label': { fontSize: '0.7rem' } }}>
             {steps.map((label, index) => {
               const stepComplete = isStepComplete(index);
               return (
                 <Step key={label} completed={stepComplete}>
-                  <StepButton 
-                    onClick={() => handleStepClick(index)}
-                    optional={
-                      index < 5 && !stepComplete ? (
-                        <Typography variant="caption" color="error" sx={{ fontSize: '0.6rem' }}>
-                          Required
-                        </Typography>
-                      ) : null
-                    }
-                  >
+                  <StepButton onClick={() => handleStepClick(index)}>
                     {label}
                   </StepButton>
                 </Step>
@@ -1654,58 +1325,19 @@ const AdvisorOnboarding = ({ onComplete }) => {
           </Stepper>
         </Box>
 
-        {/* Scrollable Content Area */}
-        <Box 
-          sx={{ 
-            flex: 1,
-            overflowY: 'auto',
-            p: { xs: 2, sm: 2.5 },
-            bgcolor: 'white',
-            minHeight: 0
-          }}
-        >
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
+        {/* Content */}
+        <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 2, sm: 2.5 }, bgcolor: 'white', minHeight: 0 }}>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           {renderStepContent()}
         </Box>
 
-        {/* Fixed Footer */}
-        <Box 
-          sx={{ 
-            p: { xs: 1.5, sm: 2 }, 
-            borderTop: 1, 
-            borderColor: 'divider',
-            bgcolor: 'white',
-            display: 'flex',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-          }}
-        >
-          <Button
-            disabled={activeStep === 0 || loading}
-            onClick={handleBack}
-            variant="outlined"
-            size="small"
-          >
+        {/* Footer */}
+        <Box sx={{ p: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider', bgcolor: 'white', display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+          <Button disabled={activeStep === 0 || loading} onClick={handleBack} variant="outlined" size="small">
             Back
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            disabled={!validateStep() || loading}
-            size="small"
-          >
-            {loading ? (
-              <CircularProgress size={20} />
-            ) : activeStep === steps.length - 1 ? (
-              'Submit'
-            ) : (
-              'Next'
-            )}
+          <Button variant="contained" onClick={handleNext} disabled={!validateStep() || loading} size="small">
+            {loading ? <CircularProgress size={20} /> : activeStep === steps.length - 1 ? 'Submit' : 'Next'}
           </Button>
         </Box>
       </Paper>
