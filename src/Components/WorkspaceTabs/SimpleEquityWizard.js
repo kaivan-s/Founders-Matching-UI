@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import {
   Box,
@@ -33,6 +33,8 @@ import {
   Download,
   Description,
   Gavel,
+  Add,
+  History,
 } from '@mui/icons-material';
 import { API_BASE } from '../../config/api';
 
@@ -111,15 +113,39 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
   const [createdScenario, setCreatedScenario] = useState(null);
   const [generatedDocument, setGeneratedDocument] = useState(null);
   const [generatingDoc, setGeneratingDoc] = useState(false);
+  const [allDocuments, setAllDocuments] = useState([]);
+  const [allScenarios, setAllScenarios] = useState([]);
   
   // Show advanced options
   const [showAdvanced, setShowAdvanced] = useState(false);
   
-  // Founders
-  const foundersFromParticipants = (participants || []).filter(p => p.role !== 'ADVISOR');
-  const founderA = foundersFromParticipants?.[0];
-  const founderB = foundersFromParticipants?.[1];
+  // Founders - match with scenario's founder_a_id/founder_b_id if available
+  const foundersFromParticipants = useMemo(() => 
+    (participants || []).filter(p => p.role !== 'ADVISOR'),
+    [participants]
+  );
   const currentUserId = user?.id;
+  
+  // Determine founder A and B based on scenario data (if exists) or fall back to array order
+  const { founderA, founderB } = useMemo(() => {
+    let fA = foundersFromParticipants?.[0];
+    let fB = foundersFromParticipants?.[1];
+    
+    // If scenario exists, match founders by their IDs stored in the scenario
+    // API returns founder_a and founder_b as nested objects with id inside
+    const scenarioFounderAId = createdScenario?.founder_a?.id || createdScenario?.founder_a_id;
+    const scenarioFounderBId = createdScenario?.founder_b?.id || createdScenario?.founder_b_id;
+    
+    if (scenarioFounderAId && scenarioFounderBId) {
+      const scenarioFounderA = foundersFromParticipants.find(p => p.user_id === scenarioFounderAId);
+      const scenarioFounderB = foundersFromParticipants.find(p => p.user_id === scenarioFounderBId);
+      if (scenarioFounderA) fA = scenarioFounderA;
+      if (scenarioFounderB) fB = scenarioFounderB;
+    }
+    
+    return { founderA: fA, founderB: fB };
+  }, [foundersFromParticipants, createdScenario]);
+  
   const isFounderA = founderA?.user?.clerk_user_id === currentUserId;
   const isFounderB = founderB?.user?.clerk_user_id === currentUserId;
   
@@ -137,6 +163,18 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
       if (scenariosRes.ok) {
         const data = await scenariosRes.json();
         const scenariosList = data.scenarios || [];
+        setAllScenarios(scenariosList);
+        
+        // Fetch all documents
+        let allDocs = [];
+        const docsRes = await fetch(`${API_BASE}/workspaces/${workspaceId}/equity/documents`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        if (docsRes.ok) {
+          const docsData = await docsRes.json();
+          allDocs = docsData.documents || docsData || [];
+          setAllDocuments(allDocs);
+        }
         
         // Check for fully approved scenario (both founders approved)
         const approvedScenario = scenariosList.find(s => 
@@ -148,16 +186,10 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
           setStep(3);
           setApprovalStatus({ a: true, b: true });
           
-          // Check for existing document
-          const docsRes = await fetch(`${API_BASE}/workspaces/${workspaceId}/equity/documents`, {
-            headers: { 'X-Clerk-User-Id': user.id },
-          });
-          if (docsRes.ok) {
-            const docs = await docsRes.json();
-            const approvedDoc = docs.find(d => d.scenario_id === approvedScenario.id);
-            if (approvedDoc) {
-              setGeneratedDocument(approvedDoc);
-            }
+          // Check for existing document for this scenario
+          const approvedDoc = allDocs.find(d => d.scenario_id === approvedScenario.id);
+          if (approvedDoc) {
+            setGeneratedDocument(approvedDoc);
           }
         } else if (scenariosList.length > 0) {
           // There's a pending scenario (not yet fully approved)
@@ -355,9 +387,8 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
       
       const document = await response.json();
       setGeneratedDocument(document);
+      setAllDocuments(prev => [document, ...prev]);
       setSuccess('Agreement generated successfully!');
-      
-      if (onComplete) onComplete();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -395,6 +426,40 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
   const getSplit = () => {
     if (selectedTemplate === 'custom') return customSplit;
     return EQUITY_TEMPLATES.find(t => t.id === selectedTemplate)?.split || { a: 50, b: 50 };
+  };
+  
+  const handleStartNewScenario = () => {
+    setStep(1);
+    setCreatedScenario(null);
+    setGeneratedDocument(null);
+    setApprovalStatus({ a: false, b: false });
+    setSelectedTemplate(null);
+    setCustomSplit({ a: 50, b: 50 });
+    setSuccess(null);
+    setError(null);
+  };
+  
+  const handleDownloadDocument = async (doc, fileType) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/workspaces/${workspaceId}/equity/documents/${doc.id}/download/${fileType}`,
+        { headers: { 'X-Clerk-User-Id': user.id } }
+      );
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `founders-agreement-v${doc.version || 1}.${fileType}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (err) {
+      setError(`Failed to download ${fileType.toUpperCase()}`);
+    }
   };
   
   const bothApproved = approvalStatus.a && approvalStatus.b;
@@ -860,7 +925,66 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
             </Button>
           )}
           
-          {/* Generate Document */}
+          {/* All Generated Documents */}
+          {allDocuments.length > 0 && (
+            <Paper elevation={0} sx={{ p: 3, bgcolor: alpha('#10b981', 0.05), borderRadius: 2, border: '1px solid', borderColor: 'success.main', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <History sx={{ color: 'success.main' }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  Generated Documents ({allDocuments.length})
+                </Typography>
+              </Box>
+              <Typography variant="caption" color="warning.main" sx={{ mb: 2, display: 'block', fontStyle: 'italic' }}>
+                ⚠️ These are drafts — please have them reviewed by a qualified lawyer before signing.
+              </Typography>
+              <Stack spacing={2}>
+                {allDocuments.map((doc, idx) => (
+                  <Box key={doc.id} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    p: 2,
+                    bgcolor: 'background.paper',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Description sx={{ color: 'text.secondary', fontSize: 20 }} />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          Founders' Agreement v{doc.version || idx + 1}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(doc.generated_at).toLocaleDateString()} at {new Date(doc.generated_at).toLocaleTimeString()}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<Download />}
+                        onClick={() => handleDownloadDocument(doc, 'pdf')}
+                      >
+                        PDF
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<Download />}
+                        onClick={() => handleDownloadDocument(doc, 'docx')}
+                      >
+                        DOCX
+                      </Button>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
+          
+          {/* Generate Document Button */}
           {bothApproved && !generatedDocument && (
             <Button
               variant="contained"
@@ -875,38 +999,17 @@ const SimpleEquityWizard = ({ workspaceId, participants, onComplete, onSwitchToA
             </Button>
           )}
           
-          {/* Download Document */}
-          {generatedDocument && (
-            <Paper elevation={0} sx={{ p: 3, bgcolor: alpha('#10b981', 0.05), borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Description sx={{ color: 'success.main' }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  Draft Template Ready
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Your Founders' Agreement template has been generated. Download it below.
-              </Typography>
-              <Typography variant="caption" color="warning.main" sx={{ mb: 2, display: 'block', fontStyle: 'italic' }}>
-                ⚠️ This is a draft — please have it reviewed by a qualified lawyer in your jurisdiction before signing.
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<Download />}
-                  onClick={() => handleDownload('pdf')}
-                >
-                  Download PDF
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Download />}
-                  onClick={() => handleDownload('docx')}
-                >
-                  Download DOCX
-                </Button>
-              </Box>
-            </Paper>
+          {/* Create New Scenario Button */}
+          {bothApproved && (
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={handleStartNewScenario}
+              startIcon={<Add />}
+              sx={{ mb: 3 }}
+            >
+              Create New Equity Scenario
+            </Button>
           )}
           
           {/* Waiting for other founder */}

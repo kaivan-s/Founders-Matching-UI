@@ -1045,7 +1045,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
       </Grid>
 
       {/* Right Column: Roles & Responsibilities */}
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={6} id="roles-section">
         <Card sx={{ border: '1px solid #e2e8f0', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column' }}>
           <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Header */}

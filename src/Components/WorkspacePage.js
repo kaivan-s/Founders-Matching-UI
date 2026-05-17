@@ -33,8 +33,9 @@ import {
   Link as LinkIcon,
   Dashboard,
   ChatBubbleOutline,
+  InfoOutlined,
 } from '@mui/icons-material';
-import { useWorkspace, useWorkspaceParticipants } from '../hooks/useWorkspace';
+import { useWorkspace, useWorkspaceParticipants, useWorkspaceRoles } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
@@ -42,7 +43,6 @@ import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
 import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
 import WorkspaceChat from './WorkspaceChat';
-import WorkspaceOnboarding from './WorkspaceOnboarding';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
 
@@ -52,10 +52,10 @@ const WorkspacePage = () => {
   const { user } = useUser();
   const { workspace, loading, error, updateWorkspace } = useWorkspace(workspaceId);
   const { participants } = useWorkspaceParticipants(workspaceId);
+  const { roles } = useWorkspaceRoles(workspaceId);
   const [workspacePlan, setWorkspacePlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [setupBannerDismissed, setSetupBannerDismissed] = useState(false);
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
@@ -76,27 +76,39 @@ const WorkspacePage = () => {
     return 0; // Default to overview
   }, [overviewMatch, chatMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
 
-  // Check onboarding status
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      if (!user?.id || !workspaceId) return;
-      try {
-        const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/onboarding`, {
-          headers: { 'X-Clerk-User-Id': user.id },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setShowOnboarding(!data.completed);
-        }
-      } catch (err) {
-        // If onboarding check fails, don't block the workspace
-        console.error('Error checking onboarding:', err);
-      } finally {
-        setOnboardingChecked(true);
-      }
+  // Check what setup items are incomplete
+  const setupStatus = useMemo(() => {
+    if (!participants || participants.length === 0 || !user?.id) return null;
+    
+    // Find current user's participant record (match by clerk_user_id)
+    const currentUserParticipant = participants.find(p => 
+      p.user?.clerk_user_id === user.id || p.clerk_user_id === user.id
+    );
+    
+    if (!currentUserParticipant) return null;
+    
+    // Skip for advisors
+    if (currentUserParticipant.role === 'ADVISOR') return null;
+    
+    const items = [];
+    
+    // Check if current user has set their profile (commitment hours, role, etc.)
+    const currentUserRole = roles?.find(r => r.user_id === currentUserParticipant.user_id);
+    const hasFilledProfile = currentUserParticipant.weekly_commitment_hours || currentUserRole?.role_title;
+    
+    if (!hasFilledProfile) {
+      items.push({ 
+        label: 'Complete your profile', 
+        tab: 0, 
+        section: 'founders-section' 
+      });
+    }
+    
+    return {
+      isComplete: items.length === 0,
+      items,
     };
-    checkOnboarding();
-  }, [user?.id, workspaceId]);
+  }, [participants, roles, user?.id]);
 
   // Fetch workspace plan tier
   useEffect(() => {
@@ -168,6 +180,20 @@ const WorkspacePage = () => {
     }
   };
 
+  const handleSetupItemClick = (item) => {
+    // Navigate to the correct tab
+    const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+    navigate(`/workspaces/${workspaceId}/${routes[item.tab]}`);
+    
+    // Scroll to the section after a short delay to allow navigation
+    setTimeout(() => {
+      const section = document.getElementById(item.section);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
   const getLastUpdated = () => {
     if (!workspace?.updated_at) return '';
     const updated = new Date(workspace.updated_at);
@@ -227,34 +253,6 @@ const WorkspacePage = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
         <Typography>Workspace not found</Typography>
-      </Box>
-    );
-  }
-
-  // Show onboarding wizard for new users
-  if (onboardingChecked && showOnboarding) {
-    return (
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-        <Box sx={{ 
-          bgcolor: '#ffffff',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          px: 3,
-          py: 2,
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {workspace.title || 'New Workspace'}
-          </Typography>
-        </Box>
-        <Box sx={{ flex: 1, overflow: 'auto', py: 4 }}>
-          <WorkspaceOnboarding
-            workspaceId={workspaceId}
-            workspace={workspace}
-            participants={participants}
-            onComplete={() => setShowOnboarding(false)}
-            onSkip={() => setShowOnboarding(false)}
-          />
-        </Box>
       </Box>
     );
   }
@@ -546,6 +544,54 @@ const WorkspacePage = () => {
           />
         </Tabs>
       </Box>
+
+      {/* Setup Completion Banner */}
+      {setupStatus && !setupStatus.isComplete && !setupBannerDismissed && (
+        <Box sx={{ 
+          bgcolor: '#fffbeb',
+          borderBottom: '1px solid #fcd34d',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          flexWrap: 'wrap',
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+            <InfoOutlined sx={{ color: '#d97706', fontSize: 20 }} />
+            <Typography variant="body2" sx={{ color: '#92400e', fontWeight: 500 }}>
+              Complete your workspace setup:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {setupStatus.items.map((item, idx) => (
+                <Chip
+                  key={idx}
+                  label={item.label}
+                  size="small"
+                  onClick={() => handleSetupItemClick(item)}
+                  sx={{
+                    bgcolor: '#fef3c7',
+                    color: '#92400e',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      bgcolor: '#fde68a',
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+          <IconButton 
+            size="small" 
+            onClick={() => setSetupBannerDismissed(true)}
+            sx={{ color: '#92400e' }}
+          >
+            <Typography sx={{ fontSize: 16, fontWeight: 'bold' }}>×</Typography>
+          </IconButton>
+        </Box>
+      )}
 
       {/* Content Area with smooth transitions */}
       <Box sx={{ 

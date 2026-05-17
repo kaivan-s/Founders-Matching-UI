@@ -75,10 +75,10 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   
   const participants = allParticipants?.filter(p => p.role !== 'ADVISOR') || [];
   const { equity, loading: equityLoading } = useWorkspaceEquity(workspaceId);
-  const { roles, loading: rolesLoading } = useWorkspaceRoles(workspaceId);
+  const { roles, loading: rolesLoading, upsertRole } = useWorkspaceRoles(workspaceId);
   const { checkins, loading: checkinsLoading } = useWorkspaceCheckins(workspaceId, 10);
   const [editingParticipant, setEditingParticipant] = useState(null);
-  const [editForm, setEditForm] = useState({ weekly_commitment_hours: '', timezone: '' });
+  const [editForm, setEditForm] = useState({ weekly_commitment_hours: '', timezone: '', role_title: '', responsibilities: '' });
   const [compatibilityDrawerOpen, setCompatibilityDrawerOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   
@@ -107,64 +107,8 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
     cofounder_shoutout: '',
   });
   
-  // Founder Date state
-  const [founderDates, setFounderDates] = useState([]);
-  const [founderDatesLoading, setFounderDatesLoading] = useState(true);
-  const [startingFounderDate, setStartingFounderDate] = useState(false);
-  
-  // Fetch founder dates
-  useEffect(() => {
-    const fetchFounderDates = async () => {
-      if (!user?.id) return;
-      try {
-        const res = await fetch(`${API_BASE}/founder-dates`, {
-          headers: { 'X-Clerk-User-Id': user.id },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setFounderDates(data.founder_dates || []);
-        }
-      } catch (err) {
-        console.error('Error fetching founder dates:', err);
-      } finally {
-        setFounderDatesLoading(false);
-      }
-    };
-    fetchFounderDates();
-  }, [user?.id]);
-  
-  // Start a founder date
-  const handleStartFounderDate = async () => {
-    if (!user?.id || !workspace?.match_id) return;
-    
-    const otherParticipant = participants.find(p => p.user?.clerk_user_id !== user.id);
-    if (!otherParticipant) return;
-    
-    setStartingFounderDate(true);
-    try {
-      const res = await fetch(`${API_BASE}/founder-dates`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Clerk-User-Id': user.id,
-        },
-        body: JSON.stringify({
-          other_founder_id: otherParticipant.user_id,
-          match_id: workspace.match_id,
-          project_id: workspace.project_id,
-        }),
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        navigate(`/founder-dates/${data.id}`);
-      }
-    } catch (err) {
-      console.error('Error starting founder date:', err);
-    } finally {
-      setStartingFounderDate(false);
-    }
-  };
+  // Founder Date state - DISABLED (using chat instead for co-founder evaluation)
+  // Keeping code commented for potential future use
   
   const handleDissolvePartnership = async () => {
     if (!workspace?.match_id) {
@@ -361,19 +305,35 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   };
 
   const handleEditParticipant = (participant) => {
+    const participantRole = roles?.find(r => r.user_id === participant.user_id);
     setEditForm({
       weekly_commitment_hours: participant.weekly_commitment_hours || '',
       timezone: participant.timezone || '',
+      role_title: participantRole?.role_title || '',
+      responsibilities: participantRole?.responsibilities || '',
     });
     setEditingParticipant(participant.user_id);
   };
 
   const handleSaveParticipant = async () => {
     try {
-      await updateParticipant(editingParticipant, editForm);
+      // Save participant data (commitment hours, timezone)
+      await updateParticipant(editingParticipant, {
+        weekly_commitment_hours: editForm.weekly_commitment_hours,
+        timezone: editForm.timezone,
+      });
+      
+      // Save role data if role_title is provided
+      if (editForm.role_title?.trim()) {
+        await upsertRole(editingParticipant, {
+          role_title: editForm.role_title.trim(),
+          responsibilities: editForm.responsibilities?.trim() || '',
+        });
+      }
+      
       setEditingParticipant(null);
     } catch (err) {
-      // Error updating participant
+      // Error updating participant or role
     }
   };
 
@@ -659,110 +619,8 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         </Grid>
       </Grid>
 
-      {/* Founder Date Card */}
-      {(() => {
-        const activeFounderDate = founderDates.find(fd => fd.overall_status === 'IN_PROGRESS');
-        const otherParticipant = participants.find(p => p.user?.clerk_user_id !== user?.id);
-        
-        if (founderDatesLoading) return null;
-        
-        return (
-          <Box sx={{
-            mb: 3,
-            p: 2.5,
-            bgcolor: activeFounderDate ? alpha('#6366f1', 0.08) : '#fff',
-            border: '1px solid',
-            borderColor: activeFounderDate ? alpha('#6366f1', 0.2) : SLATE_200,
-            borderRadius: 2,
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 2,
-                  bgcolor: alpha('#6366f1', 0.1),
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Event sx={{ fontSize: 24, color: '#6366f1' }} />
-                </Box>
-                <Box>
-                  {activeFounderDate ? (
-                    <>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                        Founder Date in Progress
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                        Stage {activeFounderDate.current_stage}/3 with {activeFounderDate.other_founder?.name?.split(' ')[0]}
-                      </Typography>
-                    </>
-                  ) : (
-                    <>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                        Founder Date
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                        Evaluate fit with structured milestones — schedule on Cal.com
-                      </Typography>
-                    </>
-                  )}
-                </Box>
-              </Box>
-              
-              {activeFounderDate ? (
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<PlayArrow />}
-                  onClick={() => navigate(`/founder-dates/${activeFounderDate.id}`)}
-                  sx={{
-                    textTransform: 'none',
-                    bgcolor: '#6366f1',
-                    '&:hover': { bgcolor: '#5558dd' },
-                  }}
-                >
-                  Continue
-                </Button>
-              ) : otherParticipant ? (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={startingFounderDate ? <CircularProgress size={16} /> : <Event />}
-                  onClick={handleStartFounderDate}
-                  disabled={startingFounderDate}
-                  sx={{
-                    textTransform: 'none',
-                    borderColor: '#6366f1',
-                    color: '#6366f1',
-                    '&:hover': { borderColor: '#5558dd', bgcolor: alpha('#6366f1', 0.05) },
-                  }}
-                >
-                  Start
-                </Button>
-              ) : null}
-            </Box>
-            
-            {activeFounderDate?.next_action && (
-              <Box sx={{
-                mt: 2,
-                pt: 2,
-                borderTop: '1px solid',
-                borderColor: 'divider',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}>
-                <Schedule sx={{ fontSize: 16, color: '#f59e0b' }} />
-                <Typography variant="body2" sx={{ color: SLATE_500 }}>
-                  Next: {activeFounderDate.next_action.message || activeFounderDate.next_action.description}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        );
-      })()}
+      {/* Founder Date Card - DISABLED (using chat instead) */}
+      {/* Keeping code for potential future use */}
 
       {/* Main Content */}
       <Grid container spacing={3}>
@@ -996,7 +854,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         </Grid>
 
         {/* Founders */}
-        <Grid item xs={12} lg={8}>
+        <Grid item xs={12} lg={8} id="founders-section">
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
               <Groups sx={{ color: TEAL, fontSize: 24 }} />
@@ -1075,6 +933,20 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
                         {editingParticipant === participant.user_id ? (
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 2 }}>
+                            <TextField
+                              size="small"
+                              placeholder="Role (e.g., CEO, CTO)"
+                              value={editForm.role_title}
+                              onChange={(e) => setEditForm({ ...editForm, role_title: e.target.value })}
+                            />
+                            <TextField
+                              size="small"
+                              placeholder="Responsibilities (optional)"
+                              value={editForm.responsibilities}
+                              onChange={(e) => setEditForm({ ...editForm, responsibilities: e.target.value })}
+                              multiline
+                              rows={2}
+                            />
                             <TextField
                               size="small"
                               type="number"
@@ -1164,7 +1036,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                               )}
                               {!role?.role_title && !participant.weekly_commitment_hours && !participant.timezone && (
                                 <Typography variant="caption" sx={{ color: SLATE_400, fontStyle: 'italic' }}>
-                                  Add commitment hours and timezone to complete your profile. Define roles in Equity & Roles tab.
+                                  Click edit to add role, commitment hours, and timezone.
                                 </Typography>
                               )}
                             </Box>
