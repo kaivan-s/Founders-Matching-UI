@@ -46,6 +46,8 @@ import {
   Search,
   AutoAwesome,
   LightbulbOutlined,
+  DeleteForever,
+  ManageAccounts,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
@@ -55,9 +57,11 @@ const NAVY = '#1e3a8a';
 const TEAL = '#0d9488';
 const TEAL_LIGHT = '#14b8a6';
 const SLATE_900 = '#0f172a';
+const SLATE_600 = '#475569';
 const SLATE_500 = '#64748b';
 const SLATE_400 = '#94a3b8';
 const SLATE_200 = '#e2e8f0';
+const SLATE_50 = '#f8fafc';
 const BG = '#f8fafc';
 
 const ProfilePage = () => {
@@ -74,6 +78,11 @@ const ProfilePage = () => {
   const [skillInput, setSkillInput] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   
+  // Delete account state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  
   // Bio templates
   const [bioTemplates, setBioTemplates] = useState([]);
   const [bioTemplateMenuAnchor, setBioTemplateMenuAnchor] = useState(null);
@@ -88,6 +97,7 @@ const ProfilePage = () => {
     { label: 'Preferences', icon: <Settings fontSize="small" /> },
     { label: 'Links', icon: <LinkIcon fontSize="small" /> },
     { label: 'Verification', icon: <CheckCircle fontSize="small" /> },
+    { label: 'Account', icon: <ManageAccounts fontSize="small" /> },
   ];
   
   // Handle URL tab parameter (e.g., /profile?tab=verification)
@@ -1146,6 +1156,88 @@ const ProfilePage = () => {
     </Box>
   );
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    
+    setDeleting(true);
+    try {
+      const response = await fetch(`${API_BASE}/account/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user?.id,
+        },
+      });
+      
+      if (response.ok) {
+        setSnackbar({ open: true, message: 'Account deleted successfully. You will be signed out...', severity: 'success' });
+        // Sign out and redirect after a short delay
+        setTimeout(() => {
+          window.location.href = '/sign-out';
+        }, 2000);
+      } else {
+        const data = await response.json();
+        setSnackbar({ open: true, message: data.error || 'Failed to delete account', severity: 'error' });
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Error deleting account', severity: 'error' });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeleteConfirmText('');
+    }
+  };
+
+  const renderAccount = () => (
+    <Box>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, mb: 3 }}>
+        Account Settings
+      </Typography>
+      
+      {/* Account Info */}
+      <Box sx={{ mb: 4, p: 3, bgcolor: SLATE_50, borderRadius: 2 }}>
+        <Typography variant="subtitle2" sx={{ color: SLATE_500, mb: 1 }}>
+          Email
+        </Typography>
+        <Typography variant="body1" sx={{ color: SLATE_900, fontWeight: 500 }}>
+          {profile.email || user?.primaryEmailAddress?.emailAddress || 'Not set'}
+        </Typography>
+      </Box>
+      
+      {/* Danger Zone */}
+      <Box sx={{ 
+        p: 3, 
+        border: '1px solid #fecaca', 
+        borderRadius: 2, 
+        bgcolor: '#fef2f2' 
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#dc2626', mb: 1 }}>
+          Danger Zone
+        </Typography>
+        <Typography variant="body2" sx={{ color: SLATE_600, mb: 3 }}>
+          Once you delete your account, there is no going back. This will permanently delete your profile, projects, messages, applications, and remove you from all workspaces.
+        </Typography>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteForever />}
+          onClick={() => setDeleteDialogOpen(true)}
+          sx={{
+            borderColor: '#dc2626',
+            color: '#dc2626',
+            fontWeight: 600,
+            '&:hover': {
+              borderColor: '#b91c1c',
+              bgcolor: 'rgba(220, 38, 38, 0.05)',
+            },
+          }}
+        >
+          Delete Account
+        </Button>
+      </Box>
+    </Box>
+  );
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 0: return renderBasicInfo();
@@ -1155,6 +1247,7 @@ const ProfilePage = () => {
       case 4: return renderPreferences();
       case 5: return renderLinks();
       case 6: return renderVerification();
+      case 7: return renderAccount();
       default: return renderBasicInfo();
     }
   };
@@ -1424,6 +1517,73 @@ const ProfilePage = () => {
             }}
           >
             Use Example
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setDeleteConfirmText('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: '#dc2626', fontWeight: 700 }}>
+          Delete Your Account
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            This action cannot be undone. All your data will be permanently deleted.
+          </Alert>
+          <Typography variant="body2" sx={{ color: SLATE_600, mb: 2 }}>
+            This will permanently delete:
+          </Typography>
+          <Box component="ul" sx={{ color: SLATE_600, mb: 3, pl: 2 }}>
+            <li>Your profile and all personal data</li>
+            <li>All your projects and applications</li>
+            <li>All your messages and matches</li>
+            <li>Your participation in all workspaces</li>
+          </Box>
+          <Typography variant="body2" sx={{ color: SLATE_900, fontWeight: 600, mb: 1 }}>
+            Type DELETE to confirm:
+          </Typography>
+          <TextField
+            fullWidth
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder="DELETE"
+            sx={{ 
+              '& .MuiOutlinedInput-root': { 
+                borderRadius: '10px',
+                '&.Mui-focused fieldset': { borderColor: '#dc2626' },
+              } 
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button 
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setDeleteConfirmText('');
+            }}
+            sx={{ color: SLATE_500 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleDeleteAccount}
+            disabled={deleteConfirmText !== 'DELETE' || deleting}
+            sx={{
+              bgcolor: '#dc2626',
+              '&:hover': { bgcolor: '#b91c1c' },
+              '&.Mui-disabled': { bgcolor: '#fca5a5' },
+            }}
+          >
+            {deleting ? <CircularProgress size={20} color="inherit" /> : 'Delete My Account'}
           </Button>
         </DialogActions>
       </Dialog>
