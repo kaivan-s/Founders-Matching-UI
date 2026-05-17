@@ -13,8 +13,10 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Typography,
   alpha,
 } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import {
   Menu as MenuIcon,
   Add,
@@ -41,6 +43,14 @@ const AppLayout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
+  const [promoBannerDismissed, setPromoBannerDismissed] = useState(
+    () => sessionStorage.getItem('promoBannerDismissed') === 'true'
+  );
+
+  const handleDismissPromoBanner = () => {
+    setPromoBannerDismissed(true);
+    sessionStorage.setItem('promoBannerDismissed', 'true');
+  };
 
   const isAdmin =
     user?.publicMetadata?.role === 'admin' ||
@@ -91,6 +101,97 @@ const AppLayout = ({ children }) => {
           transition: 'width 0.2s ease',
         }}
       >
+        {/* Promo Banner with Marquee */}
+        {!promoBannerDismissed && (
+          <Box
+            sx={{
+              bgcolor: '#0d9488',
+              color: '#fff',
+              py: 0.75,
+              px: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                animation: 'marquee 45s linear infinite',
+                whiteSpace: 'nowrap',
+                '@keyframes marquee': {
+                  '0%': { transform: 'translateX(100%)' },
+                  '100%': { transform: 'translateX(-100%)' },
+                },
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🔥 Limited Time: Pro Plan <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>$12</span> → <span style={{ fontWeight: 800 }}>$5/mo</span> (58% OFF)
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                ✨ 15 Curated Projects Daily
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🚀 Unlimited Applications
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🎯 Advisor Marketplace Access
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🔥 Limited Time: Pro Plan <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>$12</span> → <span style={{ fontWeight: 800 }}>$5/mo</span> (58% OFF)
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                ✨ 15 Curated Projects Daily
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🚀 Unlimited Applications
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                🎯 Advisor Marketplace Access
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              onClick={() => navigate('/pricing')}
+              sx={{
+                bgcolor: '#fff',
+                color: '#0d9488',
+                fontWeight: 700,
+                fontSize: '0.75rem',
+                px: 1.5,
+                py: 0.25,
+                minHeight: 0,
+                position: 'absolute',
+                right: 40,
+                zIndex: 1,
+                '&:hover': { bgcolor: '#f0fdfa' },
+              }}
+            >
+              Upgrade
+            </Button>
+            <IconButton
+              size="small"
+              onClick={handleDismissPromoBanner}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                color: '#fff',
+                opacity: 0.7,
+                p: 0.25,
+                zIndex: 1,
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+
         <SignedIn>
           <Box
             sx={{
