@@ -82,6 +82,11 @@ const AdminAdvisors = () => {
   const [detailProfile, setDetailProfile] = useState(null);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
 
+  // Rejection dialog states
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectAdvisorId, setRejectAdvisorId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+
   // Feedback states
   const [feedbackList, setFeedbackList] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -203,16 +208,30 @@ const AdminAdvisors = () => {
     }
   };
 
-  const handleReject = async (advisorId) => {
-    setActioning(advisorId);
+  const handleReject = (advisorId) => {
+    setRejectAdvisorId(advisorId);
+    setRejectReason('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectAdvisorId) return;
+    setActioning(rejectAdvisorId);
     try {
-      const res = await fetch(`${API_BASE}/admin/advisors/${advisorId}/reject`, {
+      const res = await fetch(`${API_BASE}/admin/advisors/${rejectAdvisorId}/reject`, {
         method: 'POST',
-        headers: { 'X-Clerk-User-Id': user.id },
+        headers: { 
+          'X-Clerk-User-Id': user.id,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: rejectReason.trim() || null }),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Failed');
-      setAdvisors((prev) => prev.filter((a) => a.id !== advisorId));
+      setAdvisors((prev) => prev.filter((a) => a.id !== rejectAdvisorId));
       setDetailOpen(false);
+      setRejectDialogOpen(false);
+      setRejectAdvisorId(null);
+      setRejectReason('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -865,6 +884,64 @@ const AdminAdvisors = () => {
             />
           )}
         </Box>
+      </Dialog>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog
+        open={rejectDialogOpen}
+        onClose={() => {
+          setRejectDialogOpen(false);
+          setRejectAdvisorId(null);
+          setRejectReason('');
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6" fontWeight={600}>Reject Advisor Application</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Provide feedback to help the advisor improve their profile
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <TextField
+            label="Rejection Reason (Optional)"
+            placeholder="e.g., Incomplete profile information, need more details about experience..."
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            multiline
+            rows={4}
+            fullWidth
+            helperText="This feedback will be sent to the advisor via email"
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setRejectDialogOpen(false);
+              setRejectAdvisorId(null);
+              setRejectReason('');
+            }}
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleRejectConfirm}
+            disabled={!!actioning}
+            startIcon={actioning === rejectAdvisorId ? <CircularProgress size={16} color="inherit" /> : <Cancel />}
+            sx={{
+              textTransform: 'none',
+              bgcolor: '#ef4444',
+              '&:hover': { bgcolor: '#dc2626' },
+            }}
+          >
+            Reject Application
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

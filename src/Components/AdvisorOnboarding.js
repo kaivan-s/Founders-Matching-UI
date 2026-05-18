@@ -601,7 +601,68 @@ const AdvisorOnboarding = ({ onComplete }) => {
     return badges;
   };
 
+  const validateForm = () => {
+    const errors = [];
+    
+    // Step 1: Profile & Verification
+    if (!hasValidProfilePicture()) {
+      errors.push('Profile picture is required');
+    }
+    if (!formData.headline || formData.headline.length < 10) {
+      errors.push('Professional headline is required (minimum 10 characters)');
+    }
+    if (!formData.bio || formData.bio.length < 100) {
+      errors.push('Bio is required (minimum 100 characters)');
+    }
+    if (!formData.contact_email) {
+      errors.push('Contact email is required');
+    }
+    
+    // Step 2: Experience & Expertise
+    if (!formData.professional_background.years_experience) {
+      errors.push('Years of experience is required');
+    }
+    if (!formData.professional_background.startups_advised_count) {
+      errors.push('Number of startups advised is required');
+    }
+    if (!formData.professional_background.current_role.title) {
+      errors.push('Current role title is required');
+    }
+    if (!formData.professional_background.current_role.company) {
+      errors.push('Current company is required');
+    }
+    if (!formData.expertise_areas || formData.expertise_areas.length === 0) {
+      errors.push('Please select at least one area of expertise');
+    }
+    if (!formData.how_you_help_founders || formData.how_you_help_founders.length < 50) {
+      errors.push('Please describe how you help founders (minimum 50 characters)');
+    }
+    
+    // Step 3: Consultation Setup
+    if (!formData.consultation_rate_30min_usd && !formData.consultation_rate_60min_usd) {
+      errors.push('Please set at least one consultation rate (30 min or 60 min)');
+    }
+    if (!formData.availability_hours_per_week) {
+      errors.push('Please specify your weekly availability');
+    }
+    
+    // Check if at least one payment method is provided
+    const hasPaymentMethod = Object.values(formData.payment_methods || {}).some(v => v && v.trim());
+    if (!hasPaymentMethod) {
+      errors.push('Please provide at least one payment method');
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async () => {
+    // Validate form before submission
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('\n'));
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -1327,7 +1388,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
 
         {/* Content */}
         <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 2, sm: 2.5 }, bgcolor: 'white', minHeight: 0 }}>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error.includes('\n') ? (
+                <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                  {error.split('\n').map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </Box>
+              ) : error}
+            </Alert>
+          )}
           {renderStepContent()}
         </Box>
 
