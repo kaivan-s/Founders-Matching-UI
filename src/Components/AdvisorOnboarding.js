@@ -159,6 +159,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
     contact_note: '',
     linkedin_url: '',
     twitter_url: '',
+    name: user?.fullName || user?.firstName || '',
     
     // Professional Background
     professional_background: {
@@ -253,6 +254,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
             if (!savedDraft) {
               setFormData(prev => ({
                 ...prev,
+                name: profileData.user?.name || profileData.name || prev.name,
                 headline: profileData.headline || prev.headline,
                 bio: profileData.bio || prev.bio,
                 timezone: profileData.timezone || prev.timezone,
@@ -511,6 +513,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
     switch (stepIndex) {
       case 0: // Profile & Verification
         return (
+          formData.name && formData.name.trim().length >= 2 &&
           hasValidProfilePicture() &&
           formData.headline.length >= 10 &&
           formData.bio.length >= 100 &&
@@ -605,6 +608,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
     const errors = [];
     
     // Step 1: Profile & Verification
+    if (!formData.name || formData.name.trim().length < 2) {
+      errors.push('Full name is required (minimum 2 characters)');
+    }
     if (!hasValidProfilePicture()) {
       errors.push('Profile picture is required');
     }
@@ -673,7 +679,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
           'Content-Type': 'application/json',
           'X-Clerk-User-Id': user.id,
           'X-User-Email': user.emailAddresses?.[0]?.emailAddress || '',
-          'X-User-Name': user.fullName || user.firstName || '',
+          'X-User-Name': formData.name.trim(),
         },
         body: JSON.stringify(formData),
       });
@@ -793,6 +799,17 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 </Box>
               )}
             </Box>
+
+            <TextField
+              label="Full Name *"
+              placeholder="e.g., John Smith"
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              required
+              helperText="Your name as it will appear to founders"
+              fullWidth
+              error={formData.name.length > 0 && formData.name.trim().length < 2}
+            />
 
             <TextField
               label="Professional Headline *"
@@ -1329,7 +1346,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <Avatar src={profileImage?.preview || existingImageUrl || user?.imageUrl} sx={{ width: 56, height: 56 }} />
                 <Box>
-                  <Typography variant="body1" fontWeight={600}>{user?.fullName || 'Your Name'}</Typography>
+                  <Typography variant="body1" fontWeight={600}>{formData.name || 'Your Name'}</Typography>
                   <Typography variant="body2" color="text.secondary">{formData.headline || 'No headline'}</Typography>
                   <Typography variant="caption" color="text.secondary">
                     {formData.professional_background.years_experience || '?'} years • {formData.professional_background.startups_advised_count || '?'} startups advised
