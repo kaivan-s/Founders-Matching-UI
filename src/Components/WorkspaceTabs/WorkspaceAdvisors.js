@@ -16,7 +16,7 @@ import AdvisorBrowseMarketplace from '../AdvisorBrowseMarketplace';
 
 const TEAL = '#0d9488';
 
-const WorkspaceAccountability = ({ workspaceId }) => {
+const WorkspaceAdvisors = ({ workspaceId }) => {
   const { user } = useUser();
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
   const [plan, setPlan] = useState(null);
@@ -106,17 +106,19 @@ const WorkspaceAccountability = ({ workspaceId }) => {
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => setMarketplaceOpen(true)}
-          disabled={!canAccessAdvisors}
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}
-        >
-          Browse Advisor Marketplace
-        </Button>
-      </Box>
+      {/* Only show button for Pro/Pro+ users */}
+      {!loading && canAccessAdvisors && (
+        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setMarketplaceOpen(true)}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}
+          >
+            Browse Advisor Marketplace
+          </Button>
+        </Box>
+      )}
 
       <Card variant="outlined" sx={{ mb: 4 }}>
         <CardContent>
@@ -129,12 +131,14 @@ const WorkspaceAccountability = ({ workspaceId }) => {
               that fit your schedule. Get personalized guidance on strategy, technical decisions, 
               fundraising, and more.
             </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => setMarketplaceOpen(true)}
-            >
-              Find an Advisor
-            </Button>
+            {canAccessAdvisors && (
+              <Button
+                variant="outlined"
+                onClick={() => setMarketplaceOpen(true)}
+              >
+                Find an Advisor
+              </Button>
+            )}
           </Box>
         </CardContent>
       </Card>
@@ -167,4 +171,4 @@ const WorkspaceAccountability = ({ workspaceId }) => {
   );
 };
 
-export default WorkspaceAccountability;
+export default WorkspaceAdvisors;

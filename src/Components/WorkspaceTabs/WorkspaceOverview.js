@@ -49,6 +49,7 @@ import {
   Create,
   Event,
   PlayArrow,
+  History,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
@@ -56,6 +57,7 @@ import { useWorkspaceParticipants } from '../../hooks/useWorkspace';
 import { useWorkspaceEquity } from '../../hooks/useWorkspace';
 import { useWorkspaceRoles } from '../../hooks/useWorkspace';
 import { useWorkspaceCheckins } from '../../hooks/useWorkspace';
+import { useWorkspaceActivity } from '../../hooks/useWorkspace';
 import { API_BASE } from '../../config/api';
 
 const NAVY = '#1e3a8a';
@@ -77,6 +79,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   const { equity, loading: equityLoading } = useWorkspaceEquity(workspaceId);
   const { roles, loading: rolesLoading, upsertRole } = useWorkspaceRoles(workspaceId);
   const { checkins, loading: checkinsLoading } = useWorkspaceCheckins(workspaceId, 10);
+  const { activity, loading: activityLoading } = useWorkspaceActivity(workspaceId, 8);
   const [editingParticipant, setEditingParticipant] = useState(null);
   const [editForm, setEditForm] = useState({ weekly_commitment_hours: '', timezone: '', role_title: '', responsibilities: '' });
   const [compatibilityDrawerOpen, setCompatibilityDrawerOpen] = useState(false);
@@ -1254,9 +1257,83 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         </Grid>
       </Grid>
 
+      {/* Recent Activity */}
+      <Box sx={{ 
+        mt: 4, 
+        p: 3, 
+        borderRadius: 3, 
+        border: '1px solid', 
+        borderColor: SLATE_200,
+        bgcolor: '#fff',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+          <History sx={{ color: TEAL, fontSize: 24 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+            Recent Activity
+          </Typography>
+        </Box>
+        
+        {activityLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} sx={{ color: TEAL }} />
+          </Box>
+        ) : activity && activity.length > 0 ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {activity.map((item) => {
+              const timeAgo = item.created_at ? (() => {
+                const diff = Date.now() - new Date(item.created_at).getTime();
+                const mins = Math.floor(diff / 60000);
+                if (mins < 60) return `${mins}m ago`;
+                const hours = Math.floor(mins / 60);
+                if (hours < 24) return `${hours}h ago`;
+                const days = Math.floor(hours / 24);
+                if (days < 7) return `${days}d ago`;
+                return new Date(item.created_at).toLocaleDateString();
+              })() : '';
+              
+              return (
+                <Box 
+                  key={item.id} 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5,
+                    p: 1.5,
+                    borderRadius: 2,
+                    bgcolor: BG,
+                    border: '1px solid',
+                    borderColor: SLATE_200,
+                  }}
+                >
+                  <Avatar 
+                    src={item.user?.profile_picture_url}
+                    sx={{ width: 32, height: 32, bgcolor: alpha(TEAL, 0.1), color: TEAL, fontSize: '0.875rem' }}
+                  >
+                    {item.user?.name?.[0] || '?'}
+                  </Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                      <strong>{item.user?.name || 'Someone'}</strong>{' '}
+                      <span style={{ color: SLATE_500 }}>{item.action_text}</span>
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: SLATE_400, whiteSpace: 'nowrap' }}>
+                    {timeAgo}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        ) : (
+          <Typography variant="body2" sx={{ color: SLATE_400, fontStyle: 'italic', textAlign: 'center', py: 2 }}>
+            No recent activity
+          </Typography>
+        )}
+      </Box>
+
       {/* Danger Zone - Dissolve Partnership */}
       <Box sx={{ 
-        mt: 6, 
+        mt: 4, 
         p: 3, 
         borderRadius: 3, 
         border: '1px solid', 

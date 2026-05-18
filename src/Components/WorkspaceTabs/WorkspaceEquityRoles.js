@@ -1044,96 +1044,66 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
         </Card>
       </Grid>
 
-      {/* Right Column: Roles & Responsibilities */}
+      {/* Right Column: Roles & Responsibilities (View Only) */}
       <Grid item xs={12} md={6} id="roles-section">
         <Card sx={{ border: '1px solid #e2e8f0', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
-            <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+            <Box sx={{ mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0f172a', letterSpacing: '-0.01em' }}>
-              Roles & Responsibilities
-            </Typography>
+                Roles & Responsibilities
+              </Typography>
               <Typography variant="body2" sx={{ color: '#64748b' }}>
-              Capture who owns what. This feeds your agreement doc.
-            </Typography>
+                Current roles assigned. Edit in the Home tab.
+              </Typography>
             </Box>
 
-            {/* Tabs - One for each founder */}
+            {/* Roles List */}
             {participants && participants.length > 0 ? (
-              <>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-                  <Tabs 
-                    value={activeRoleTab >= 0 ? activeRoleTab : 0} 
-                    onChange={(e, newValue) => setActiveRoleTab(newValue)}
-                    variant={participants.length > 2 ? "scrollable" : "standard"}
-                    scrollButtons="auto"
-                  >
-                    {participants.map((participant, index) => (
-                      <Tab 
-                        key={participant.user_id} 
-                        label={participant.user?.name || `Founder ${index + 1}`}
-                      />
-                    ))}
-                  </Tabs>
-                </Box>
-
-                {/* Tab Content */}
-                <Box sx={{ p: 3, flex: 1, overflow: 'auto' }}>
-                  {participants.map((participant, tabIndex) => {
-                    if (tabIndex !== activeRoleTab) return null;
-                    
-              const existingRole = getParticipantRole(participant.user_id);
-              const editing = editingRoles[participant.user_id];
-              const roleData = editing || existingRole || { role_title: '', responsibilities: '' };
-
-              return (
-                      <Box key={participant.user_id}>
-                <Card
-                  sx={{
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                            p: 3,
-                  }}
-                >
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Role Title"
-                    placeholder="e.g., CEO, CTO, CMO"
-                    value={roleData.role_title || ''}
-                    onChange={(e) => handleRoleChange(participant.user_id, 'role_title', e.target.value)}
-                    sx={{ mb: 2 }}
-                  />
-                  
-                  <TextField
-                    fullWidth
-                    multiline
-                            rows={6}
-                    label="Responsibilities"
-                    placeholder="• Lead product development&#10;• Manage engineering team&#10;• Handle investor relations"
-                    value={roleData.responsibilities || ''}
-                    onChange={(e) => handleRoleChange(participant.user_id, 'responsibilities', e.target.value)}
-                    sx={{ mb: 2 }}
-                  />
-                  
-                  <Button
-                            fullWidth
-                    variant="contained"
-                    onClick={() => handleSaveRole(participant.user_id)}
-                    disabled={!roleData.role_title?.trim()}
-                    sx={{
-                      bgcolor: '#0ea5e9',
-                      '&:hover': { bgcolor: '#0284c7' },
-                    }}
-                  >
-                    {existingRole ? 'Update Role' : 'Save Role'}
-                  </Button>
-                </Card>
-                      </Box>
-              );
-            })}
-                </Box>
-              </>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+                {participants.map((participant) => {
+                  const existingRole = getParticipantRole(participant.user_id);
+                  return (
+                    <Box 
+                      key={participant.user_id}
+                      sx={{
+                        p: 2.5,
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        bgcolor: existingRole?.role_title ? '#f8fafc' : '#fff',
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#0f172a', mb: 1 }}>
+                        {participant.user?.name || 'Founder'}
+                      </Typography>
+                      {existingRole?.role_title ? (
+                        <>
+                          <Chip
+                            label={existingRole.role_title}
+                            size="small"
+                            sx={{ 
+                              bgcolor: '#0ea5e9', 
+                              color: '#fff', 
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              mb: 1,
+                            }}
+                          />
+                          {existingRole.responsibilities && (
+                            <Typography variant="body2" sx={{ color: '#64748b', mt: 1, whiteSpace: 'pre-line' }}>
+                              {existingRole.responsibilities}
+                            </Typography>
+                          )}
+                        </>
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                          No role defined yet
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
             ) : (
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">

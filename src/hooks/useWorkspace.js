@@ -432,3 +432,36 @@ export const useWorkspaceParticipants = (workspaceId) => {
     updateParticipant,
   };
 };
+
+export const useWorkspaceActivity = (workspaceId, limit = 10) => {
+  const { user } = useUser();
+  const [activity, setActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchActivity = useCallback(async () => {
+    if (!user?.id || !workspaceId) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/activity?limit=${limit}`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setActivity(data);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, workspaceId, limit]);
+
+  useEffect(() => {
+    fetchActivity();
+  }, [fetchActivity]);
+
+  return { activity, loading, error, refetch: fetchActivity };
+};

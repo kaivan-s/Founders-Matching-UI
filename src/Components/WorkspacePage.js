@@ -39,7 +39,7 @@ import { useWorkspace, useWorkspaceParticipants, useWorkspaceRoles } from '../ho
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
 import WorkspaceOverview from './WorkspaceTabs/WorkspaceOverview';
 import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
-import WorkspaceAccountability from './WorkspaceTabs/WorkspaceAccountability';
+import WorkspaceAdvisors from './WorkspaceTabs/WorkspaceAdvisors';
 import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
 import WorkspaceChat from './WorkspaceChat';
@@ -61,7 +61,7 @@ const WorkspacePage = () => {
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
   const chatMatch = useMatch(`/workspaces/${workspaceId}/chat`);
   const equityRolesMatch = useMatch(`/workspaces/${workspaceId}/equity-roles`);
-  const accountabilityMatch = useMatch(`/workspaces/${workspaceId}/accountability`);
+  const advisorsMatch = useMatch(`/workspaces/${workspaceId}/advisors`);
   const summaryMatch = useMatch(`/workspaces/${workspaceId}/summary`);
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
   
@@ -71,10 +71,10 @@ const WorkspacePage = () => {
     if (overviewMatch || summaryMatch) return 0; // Summary merged into Overview
     if (chatMatch) return 1;
     if (equityRolesMatch) return 2;
-    if (accountabilityMatch) return 3;
+    if (advisorsMatch) return 3;
     if (integrationsMatch) return 4;
     return 0; // Default to overview
-  }, [overviewMatch, chatMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
+  }, [overviewMatch, chatMatch, equityRolesMatch, advisorsMatch, summaryMatch, integrationsMatch]);
 
   // Check what setup items are incomplete
   const setupStatus = useMemo(() => {
@@ -143,7 +143,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -178,7 +178,7 @@ const WorkspacePage = () => {
 
   const handleSetupItemClick = (item) => {
     // Navigate to the correct tab
-    const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
     navigate(`/workspaces/${workspaceId}/${routes[item.tab]}`);
     
     // Scroll to the section after a short delay to allow navigation
@@ -593,7 +593,7 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+                const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
               <Route path="chat" element={
@@ -605,15 +605,19 @@ const WorkspacePage = () => {
                     />
                   </Box>
                 ) : (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">
-                      Chat is only available for workspaces created from a match.
+                  <Box sx={{ p: 6, textAlign: 'center', maxWidth: 400, mx: 'auto' }}>
+                    <ChatBubbleOutline sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e3a8a', mb: 1 }}>
+                      Chat with your co-founder
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Once you're matched with a co-founder, you'll be able to chat here directly.
                     </Typography>
                   </Box>
                 )
               } />
               <Route path="equity-roles" element={<WorkspaceEquityRoles workspaceId={workspaceId} />} />
-              <Route path="accountability" element={<WorkspaceAccountability workspaceId={workspaceId} />} />
+              <Route path="advisors" element={<WorkspaceAdvisors workspaceId={workspaceId} />} />
               <Route path="summary" element={<Navigate to="overview" replace />} />
               <Route path="integrations" element={<WorkspaceIntegrations workspaceId={workspaceId} />} />
               <Route index element={<Navigate to="overview" replace />} />
