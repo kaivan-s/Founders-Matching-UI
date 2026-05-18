@@ -43,6 +43,7 @@ import {
   AllInclusive,
   Lock,
   InfoOutlined,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -128,6 +129,8 @@ const SeekerDiscovery = () => {
   // Application dialog
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [upgradeLimitDialogOpen, setUpgradeLimitDialogOpen] = useState(false);
+  const [upgradeLimitType, setUpgradeLimitType] = useState('application'); // 'application' or 'filters'
   const [applicationData, setApplicationData] = useState({
     interest_reason: '',
     value_proposition: '',
@@ -148,6 +151,9 @@ const SeekerDiscovery = () => {
   const [skippedProjects, setSkippedProjects] = useState([]);
   const [canViewSkipped, setCanViewSkipped] = useState(false);
   const [loadingSkipped, setLoadingSkipped] = useState(false);
+  
+  // Info dialog for preference updates
+  const [prefsInfoDialogOpen, setPrefsInfoDialogOpen] = useState(false);
   const [normalMatches, setNormalMatches] = useState([]); // Store normal matches when viewing skipped
 
   // Check profile completeness
@@ -180,18 +186,22 @@ const SeekerDiscovery = () => {
       if (view !== 'results' || matches.length === 0) return;
       if (applyDialogOpen || projectDetailOpen) return;
       
+      // Account for upgrade card at the end
+      const hasUpgradeCard = discoveryMeta?.has_more;
+      const totalCards = matches.length + (hasUpgradeCard ? 1 : 0);
+      
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         setCurrentCardIndex(prev => Math.max(0, prev - 1));
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setCurrentCardIndex(prev => Math.min(matches.length - 1, prev + 1));
+        setCurrentCardIndex(prev => Math.min(totalCards - 1, prev + 1));
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [view, matches.length, applyDialogOpen, projectDetailOpen]);
+  }, [view, matches.length, applyDialogOpen, projectDetailOpen, discoveryMeta?.has_more]);
 
   // Load saved preferences from backend on mount
   useEffect(() => {
@@ -298,9 +308,19 @@ const SeekerDiscovery = () => {
   };
 
   const handleUpdatePreferences = () => {
+    // FREE users with cached results: show info dialog before allowing edit
+    if (discoveryMeta?.user_plan === 'FREE' && discoveryMeta?.results_cached) {
+      setPrefsInfoDialogOpen(true);
+      return;
+    }
+    
+    proceedToEditPreferences();
+  };
+  
+  const proceedToEditPreferences = () => {
+    setPrefsInfoDialogOpen(false);
     setView('questionnaire');
     setQuestionnaireScreen(0);
-    setDiscoveryMeta(null);
     // Reset skipped view
     if (viewingSkipped) {
       setViewingSkipped(false);
@@ -361,7 +381,8 @@ const SeekerDiscovery = () => {
         setViewingSkipped(true);
         setCurrentCardIndex(0);
       } else if (data && !data.can_view_skipped) {
-        setError('Upgrade to Pro to view skipped projects');
+        setUpgradeLimitType('skipped');
+        setUpgradeLimitDialogOpen(true);
       } else if (data && data.matches?.length === 0) {
         setSuccess('No skipped projects to show');
       }
@@ -386,7 +407,17 @@ const SeekerDiscovery = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to apply');
+        const errorMsg = errorData.error || 'Failed to apply';
+        
+        // Check if it's a daily limit error - show upgrade dialog instead
+        if (errorMsg.includes('1 application per day') || errorMsg.includes('Daily application limit')) {
+          setApplyDialogOpen(false);
+          setUpgradeLimitType('application');
+          setUpgradeLimitDialogOpen(true);
+          return;
+        }
+        
+        throw new Error(errorMsg);
       }
       
       setSuccess(`Application submitted to ${selectedProject.title}!`);
@@ -670,11 +701,14 @@ const SeekerDiscovery = () => {
       );
     }
 
-    // Ensure currentCardIndex is valid
-    const safeIndex = Math.min(currentCardIndex, matches.length - 1);
-    const project = matches[safeIndex];
+    // Ensure currentCardIndex is valid (account for upgrade card if present)
+    const hasUpgradeCard = discoveryMeta?.has_more;
+    const totalCards = matches.length + (hasUpgradeCard ? 1 : 0);
+    const safeIndex = Math.min(currentCardIndex, totalCards - 1);
+    const isOnUpgradeCard = hasUpgradeCard && safeIndex === matches.length;
+    const project = isOnUpgradeCard ? null : matches[safeIndex];
     const isFirst = safeIndex === 0;
-    const isLast = safeIndex === matches.length - 1;
+    const isLast = safeIndex === totalCards - 1;
 
     const handleNext = () => {
       if (!isLast) setCurrentCardIndex(safeIndex + 1);
@@ -766,7 +800,7 @@ const SeekerDiscovery = () => {
           mx: { xs: -2, sm: -3, md: -4 },
         }}>
           {/* Left Navigation Arrow */}
-          {matches.length > 1 && (
+          {totalCards > 1 && (
             <IconButton
               onClick={handlePrev}
               disabled={isFirst}
@@ -797,7 +831,7 @@ const SeekerDiscovery = () => {
           )}
 
           {/* Right Navigation Arrow */}
-          {matches.length > 1 && (
+          {totalCards > 1 && (
             <IconButton
               onClick={handleNext}
               disabled={isLast}
@@ -829,32 +863,139 @@ const SeekerDiscovery = () => {
 
           <AnimatePresence initial={false}>
             {(() => {
+              // Add upgrade card as last item if there are more projects available
+              const hasUpgradeCard = discoveryMeta?.has_more;
+              const totalCards = matches.length + (hasUpgradeCard ? 1 : 0);
+              
               const cardsToShow = [];
               const maxVisible = 3; // Show 3 cards (1 left, 1 center, 1 right) - cleaner look
               const sideCards = Math.floor(maxVisible / 2);
               
               for (let offset = -sideCards; offset <= sideCards; offset++) {
                 const idx = safeIndex + offset;
-                if (idx >= 0 && idx < matches.length) {
-                  cardsToShow.push({ index: idx, offset, project: matches[idx] });
+                if (idx >= 0 && idx < totalCards) {
+                  const isUpgradeCard = idx === matches.length;
+                  cardsToShow.push({ 
+                    index: idx, 
+                    offset, 
+                    project: isUpgradeCard ? null : matches[idx],
+                    isUpgradeCard,
+                  });
                 }
               }
               
-              // Get unlocked count from discovery meta (FREE=5, PRO/PRO+=15)
-              const unlockedCount = discoveryMeta?.unlocked_count ?? matches.length;
-              
-              return cardsToShow.map(({ index: cardIdx, offset, project: cardProject }) => {
+              return cardsToShow.map(({ index: cardIdx, offset, project: cardProject, isUpgradeCard }) => {
                 const isCenter = offset === 0;
                 const absOffset = Math.abs(offset);
-                const isLocked = cardIdx >= unlockedCount;
                 
                 // Card positioning - center card takes most width, side cards peek in
-                const cardWidth = 500;
+                const cardWidth = 650;
                 const cardGap = 20;
                 const horizontalPos = offset * (cardWidth * 0.55 + cardGap);
                 const scale = isCenter ? 1.0 : Math.max(0.6, 0.75 - (absOffset * 0.08));
                 const cardOpacity = isCenter ? 1 : Math.max(0.4, 0.65 - (absOffset * 0.12));
                 const zIdx = isCenter ? 20 : 10 - absOffset;
+                
+                // Render upgrade card
+                if (isUpgradeCard) {
+                  const moreCount = discoveryMeta?.total_available - matches.length;
+                  return (
+                    <motion.div
+                      key="upgrade-card"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{
+                        x: horizontalPos,
+                        scale: scale,
+                        opacity: cardOpacity,
+                        rotateY: isCenter ? 0 : offset > 0 ? -5 : 5,
+                      }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      onClick={() => {
+                        if (!isCenter) {
+                          setCurrentCardIndex(cardIdx);
+                        }
+                      }}
+                      style={{
+                        position: 'absolute',
+                        width: cardWidth,
+                        zIndex: zIdx,
+                        cursor: 'pointer',
+                        pointerEvents: 'auto',
+                      }}
+                      whileHover={!isCenter ? { scale: scale * 1.05, opacity: 1 } : {}}
+                    >
+                      <Card
+                        sx={{
+                          border: '2px dashed',
+                          borderColor: TEAL,
+                          boxShadow: isCenter 
+                            ? `0 8px 24px ${alpha(TEAL, 0.2)}` 
+                            : `0 4px 12px ${alpha(SLATE_900, 0.06)}`,
+                          bgcolor: alpha(TEAL, 0.02),
+                          height: '100%',
+                          minHeight: 420,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                          <Box
+                            sx={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: '50%',
+                              bgcolor: alpha(TEAL, 0.1),
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              mx: 'auto',
+                              mb: 2,
+                            }}
+                          >
+                            <RocketLaunch sx={{ fontSize: 36, color: TEAL }} />
+                          </Box>
+                          <Typography variant="h4" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+                            {discoveryMeta?.results_cached 
+                              ? "Today's results locked" 
+                              : `${moreCount}+ More Ideas`
+                            }
+                          </Typography>
+                          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3, maxWidth: 300, mx: 'auto' }}>
+                            {discoveryMeta?.results_cached 
+                              ? "Upgrade to refresh and see 5x more" 
+                              : "Your next big opportunity awaits"
+                            }
+                          </Typography>
+                          {isCenter && (
+                            <Button
+                              variant="contained"
+                              size="large"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/pricing');
+                              }}
+                              sx={{
+                                bgcolor: TEAL,
+                                color: '#fff',
+                                fontWeight: 600,
+                                px: 4,
+                                py: 1.5,
+                                '&:hover': { bgcolor: TEAL_LIGHT },
+                              }}
+                            >
+                              Unlock for $5/mo
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                }
+                
+                const founderPlan = cardProject.founder?.plan || 'FREE';
                 
                 return (
                   <motion.div
@@ -869,7 +1010,7 @@ const SeekerDiscovery = () => {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     onClick={() => {
-                      if (!isCenter && !isLocked) {
+                      if (!isCenter) {
                         setCurrentCardIndex(cardIdx);
                       }
                     }}
@@ -877,17 +1018,13 @@ const SeekerDiscovery = () => {
                       position: 'absolute',
                       width: cardWidth,
                       zIndex: zIdx,
-                      cursor: isLocked ? 'default' : 'pointer',
+                      cursor: 'pointer',
                       pointerEvents: 'auto',
                     }}
-                    whileHover={!isCenter && !isLocked ? { scale: scale * 1.05, opacity: 1 } : {}}
+                    whileHover={!isCenter ? { scale: scale * 1.05, opacity: 1 } : {}}
                   >
                     <Card
                       onClick={(e) => {
-                        if (isLocked) {
-                          e.stopPropagation();
-                          return;
-                        }
                         if (isCenter) {
                           setDetailProject(cardProject);
                           setDetailTab(0);
@@ -899,15 +1036,15 @@ const SeekerDiscovery = () => {
                       }}
                       sx={{
                         border: '1px solid',
-                        borderColor: isLocked ? SLATE_200 : isCenter ? TEAL : SLATE_200,
+                        borderColor: isCenter ? TEAL : SLATE_200,
                         boxShadow: isCenter 
                           ? `0 8px 24px ${alpha(SLATE_900, 0.12)}` 
                           : `0 4px 12px ${alpha(SLATE_900, 0.06)}`,
-                        cursor: isLocked ? 'default' : 'pointer',
+                        cursor: 'pointer',
                         transition: 'all 0.2s',
                         position: 'relative',
                         overflow: 'hidden',
-                        '&:hover': isLocked ? {} : isCenter ? {
+                        '&:hover': isCenter ? {
                           borderColor: TEAL,
                           boxShadow: `0 12px 32px ${alpha(SLATE_900, 0.15)}`,
                         } : {
@@ -915,69 +1052,7 @@ const SeekerDiscovery = () => {
                         },
                       }}
                     >
-                      {/* Locked overlay */}
-                      {isLocked && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            bgcolor: alpha(SLATE_900, 0.92),
-                            zIndex: 10,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            p: 3,
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 64,
-                              height: 64,
-                              borderRadius: '50%',
-                              bgcolor: alpha('#fff', 0.1),
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              mb: 2,
-                            }}
-                          >
-                            <Lock sx={{ fontSize: 32, color: '#fff' }} />
-                          </Box>
-                          <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
-                            Project Locked
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: alpha('#fff', 0.7), mb: 3, maxWidth: 280 }}>
-                            Upgrade to Pro to unlock all 15 curated projects daily
-                          </Typography>
-                          <Button
-                            variant="contained"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate('/pricing');
-                            }}
-                            sx={{
-                              bgcolor: TEAL,
-                              color: '#fff',
-                              fontWeight: 600,
-                              px: 4,
-                              py: 1.5,
-                              '&:hover': { bgcolor: TEAL_LIGHT },
-                            }}
-                          >
-                            Upgrade to Pro
-                          </Button>
-                          <Typography variant="caption" sx={{ color: alpha('#fff', 0.5), mt: 2 }}>
-                            {matches.length - unlockedCount} more projects available with Pro
-                          </Typography>
-                        </Box>
-                      )}
-                      
-                      <CardContent sx={{ p: 3, filter: isLocked ? 'blur(8px)' : 'none' }}>
+                      <CardContent sx={{ p: 3 }}>
                         {/* Header with match score */}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                           <Box sx={{ flex: 1 }}>
@@ -1067,12 +1142,25 @@ const SeekerDiscovery = () => {
                               {cardProject.founder.name?.split(' ').map(n => n[0]).join('')}
                             </Avatar>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                                 <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
                                   {cardProject.founder.name}
                                 </Typography>
                                 {cardProject.founder.verification?.tier !== 'UNVERIFIED' && (
                                   <Verified sx={{ fontSize: 14, color: TEAL }} />
+                                )}
+                                {['PRO', 'PRO_PLUS'].includes(founderPlan) && (
+                                  <Chip 
+                                    label={founderPlan === 'PRO_PLUS' ? 'Pro+' : 'Pro'} 
+                                    size="small" 
+                                    sx={{ 
+                                      height: 18, 
+                                      fontSize: '0.65rem', 
+                                      fontWeight: 700,
+                                      bgcolor: alpha(NAVY, 0.1), 
+                                      color: NAVY,
+                                    }} 
+                                  />
                                 )}
                               </Box>
                               <Typography variant="caption" sx={{ color: SLATE_500, display: 'block' }}>
@@ -1082,8 +1170,8 @@ const SeekerDiscovery = () => {
                           </Box>
                         )}
 
-                        {/* Action buttons - only on center card and not locked */}
-                        {isCenter && !isLocked && (
+                        {/* Action buttons - only on center card */}
+                        {isCenter && (
                           <Box sx={{ display: 'flex', gap: 2 }}>
                             <Button
                               variant="outlined"
@@ -1133,54 +1221,16 @@ const SeekerDiscovery = () => {
 
         {/* Footer with project counter */}
         <Box sx={{ mt: 0, textAlign: 'center' }}>
-          {(() => {
-            const unlockedCount = discoveryMeta?.unlocked_count ?? matches.length;
-            const lockedCount = Math.max(0, matches.length - unlockedCount);
-            return (
-              <>
-                <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 600 }}>
-                  {safeIndex + 1} of {matches.length} projects
-                  {lockedCount > 0 && (
-                    <Typography component="span" sx={{ color: SLATE_400, fontWeight: 400 }}>
-                      {' '}({unlockedCount} unlocked, {lockedCount} locked)
-                    </Typography>
-                  )}
-                </Typography>
-                <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, mt: 0.5 }}>
-                  Use arrow keys or click side cards to navigate
-                </Typography>
-              </>
-            );
-          })()}
+          <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 600 }}>
+            {isOnUpgradeCard 
+              ? `${matches.length} of ${matches.length} projects`
+              : `${safeIndex + 1} of ${matches.length} projects`
+            }
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, mt: 0.5 }}>
+            Use arrow keys or click side cards to navigate
+          </Typography>
         </Box>
-
-        {/* End of results message */}
-        {isLast && (
-          <Box sx={{ textAlign: 'center', mt: 4, p: 3, bgcolor: alpha(SLATE_200, 0.3), borderRadius: 2 }}>
-            <Typography variant="body1" sx={{ color: SLATE_500, mb: 2 }}>
-              That's all for now! Want to see more?
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                startIcon={<Refresh />}
-                onClick={() => { setCurrentCardIndex(0); searchWithPrefs(answers); }}
-                disabled={loading}
-                sx={{ borderColor: SLATE_200, color: SLATE_500 }}
-              >
-                Refresh
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Edit />}
-                onClick={handleUpdatePreferences}
-                sx={{ borderColor: TEAL, color: TEAL }}
-              >
-                Broaden filters
-              </Button>
-            </Box>
-          </Box>
-        )}
       </Box>
     );
   };
@@ -1198,7 +1248,7 @@ const SeekerDiscovery = () => {
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
       <Box sx={{ 
-        maxWidth: view === 'results' ? 1200 : 700, 
+        maxWidth: view === 'results' ? 1400 : 700, 
         mx: 'auto', 
         width: '100%', 
         p: { xs: 2, sm: 3, md: 4 },
@@ -1696,6 +1746,123 @@ const SeekerDiscovery = () => {
             Apply to Join
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Upgrade Limit Dialog */}
+      <Dialog
+        open={upgradeLimitDialogOpen}
+        onClose={() => setUpgradeLimitDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
+          <Box
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              bgcolor: alpha(TEAL, 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2,
+            }}
+          >
+            <RocketLaunch sx={{ fontSize: 36, color: TEAL }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+            {upgradeLimitType === 'filters' 
+              ? "Preferences locked for today" 
+              : upgradeLimitType === 'skipped'
+              ? "Revisit skipped opportunities"
+              : "You've used today's application"
+            }
+          </Typography>
+          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3 }}>
+            {upgradeLimitType === 'filters'
+              ? "Upgrade to Pro to change preferences anytime and discover 5x more opportunities"
+              : upgradeLimitType === 'skipped'
+              ? "Upgrade to Pro to view and reconsider opportunities you previously passed on"
+              : "Upgrade to Pro to apply without daily limits and discover 5x more opportunities"
+            }
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            onClick={() => {
+              setUpgradeLimitDialogOpen(false);
+              navigate('/pricing');
+            }}
+            sx={{
+              bgcolor: TEAL,
+              color: '#fff',
+              fontWeight: 600,
+              py: 1.5,
+              mb: 1.5,
+              '&:hover': { bgcolor: TEAL_LIGHT },
+            }}
+          >
+            Upgrade to Pro — $5/mo
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => setUpgradeLimitDialogOpen(false)}
+            sx={{ color: SLATE_500 }}
+          >
+            Maybe later
+          </Button>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Preferences Info Dialog */}
+      <Dialog
+        open={prefsInfoDialogOpen}
+        onClose={() => setPrefsInfoDialogOpen(false)}
+        PaperProps={{
+          sx: { borderRadius: 3, maxWidth: 400, mx: 2 }
+        }}
+      >
+        <DialogContent sx={{ textAlign: 'center', pt: 4, pb: 3, px: 4 }}>
+          <Box sx={{ 
+            width: 56, height: 56, borderRadius: '50%', 
+            bgcolor: alpha(TEAL, 0.1), display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 
+          }}>
+            <InfoOutlined sx={{ fontSize: 28, color: TEAL }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+            Today's matches are set
+          </Typography>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
+            Your new preferences will take effect tomorrow with fresh opportunities. Want to continue editing?
+          </Typography>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={proceedToEditPreferences}
+            sx={{ 
+              bgcolor: TEAL, 
+              fontWeight: 600,
+              py: 1.25,
+              mb: 1.5,
+              '&:hover': { bgcolor: TEAL_LIGHT } 
+            }}
+          >
+            Continue to Edit
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => setPrefsInfoDialogOpen(false)}
+            sx={{ color: SLATE_500 }}
+          >
+            Stay on current matches
+          </Button>
+        </DialogContent>
       </Dialog>
     </Box>
   );

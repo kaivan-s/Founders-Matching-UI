@@ -172,18 +172,18 @@ const LandingPage = () => {
     { 
       icon: <Bolt />, 
       title: 'Smart Discovery', 
-      tagline: '15 AI-matched projects daily',
+      tagline: 'Personalized opportunities',
       preview: {
         items: ['92% match', '87% match', '78% match'],
-        label: 'AI-ranked daily batches'
+        label: 'AI-ranked by compatibility'
       }
     },
     { 
       icon: <MarkEmailUnread />, 
       title: 'Email Notifications', 
-      tagline: 'Never miss a match',
+      tagline: 'Never miss an opportunity',
       preview: {
-        items: ['New matches ready!', 'Daily digest', 'Application updates'],
+        items: ['New opportunities!', 'Application updates', 'Partner messages'],
         label: 'Stay in the loop'
       }
     },
@@ -229,31 +229,29 @@ const LandingPage = () => {
     {
       name: 'Free', price: '$0', popular: false,
       features: [
-        '5 unlocked projects/day',
-        '10 more locked (upgrade to view)',
+        '5 personalized opportunities',
         '1 application per day',
         '1 project & 1 workspace',
         'All workspace tools',
-        'See Free founders only',
       ],
     },
     {
       name: 'Pro', price: '$5/mo', originalPrice: '$12/mo', popular: true,
       features: [
-        '15 curated projects/day (all unlocked)',
+        '25 personalized opportunities (5x more)',
         'Unlimited applications',
         'Up to 3 projects',
         'Unlimited workspaces',
-        'See Free + Pro founders',
+        'Revisit passed opportunities',
         'Advisor marketplace',
       ],
     },
     {
       name: 'Pro+', price: '$29/mo', popular: false,
       features: [
-        '15 curated projects/day (all unlocked)',
-        'See all founders (Free, Pro, Pro+)',
+        '50 personalized opportunities (10x more)',
         '30-day post-match support',
+        'Priority support',
         'Everything in Pro',
       ],
     },
@@ -499,7 +497,7 @@ const LandingPage = () => {
                       {index === 1 && (
                         /* Email Notifications - Inbox Preview */
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          {['New matches ready!', 'Daily digest sent', 'App accepted'].map((msg, i) => (
+                          {['New opportunities!', 'Application update', 'Partner message'].map((msg, i) => (
                             <Box key={i} sx={{ 
                               p: 0.75, borderRadius: 1, bgcolor: i === 0 ? alpha(TEAL, 0.1) : alpha(TEAL, 0.03),
                               border: `1px solid ${i === 0 ? TEAL : SLATE_200}`,
@@ -606,7 +604,7 @@ const LandingPage = () => {
             Home to match, workspace to build
           </Typography>
           <Typography variant="body2" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Preview home, curated discovery, workspace chat, first-match coaching, and what opens after you connect—equity, check-ins, integrations, and advisors.
+            Preview home, personalized discovery, workspace chat, first-match coaching, and what opens after you connect—equity, check-ins, integrations, and advisors.
           </Typography>
         </Box>
 
@@ -631,11 +629,11 @@ const LandingPage = () => {
                 <Bolt sx={{ fontSize: 20 }} />
               </Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900 }}>
-                Curated project discovery
+                Personalized discovery
               </Typography>
             </Box>
             <Typography variant="body2" sx={{ color: SLATE_500, mb: 2.5 }}>
-              Glide through curated projects ranked for your questionnaire answers. Peek at compatibility detail, skim founder answers, open the full breakdown, then skip or dive into an apply flow.
+              Browse opportunities ranked by your preferences and skills. See compatibility scores, review founder profiles, and apply to ideas that match what you're looking for.
             </Typography>
             {/* Mini questionnaire / intent cues */}
             <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
@@ -1319,15 +1317,15 @@ const LandingPage = () => {
             fontWeight: 700, mt: 1.5, color: SLATE_900,
             fontSize: { xs: '1.85rem', md: '2.5rem' }, letterSpacing: '-0.02em',
           }}>
-            Three paths on home, curated discovery afterward
+            Three paths on home, personalized discovery afterward
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
             { step: '1', title: 'Choose why you landed here', desc: 'Sign in, land on Home, and pick Join a Project, Create a Project, or Join as an Advisor—that choice routes you instantly while the sidebar keeps workspaces, payouts, advisors, and more one click away.' },
-            { step: '2', title: 'Lock in curated discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Saving keeps your intent attached to your account so carousel rankings, compatibility detail, quick applies, and project deep-dives reflect what you said.' },
-            { step: '3', title: 'Review fresh batches & build the partnership', desc: 'Each day surfaces a pacing-friendly set of curated projects—we can ping you when the digest goes out. Apply with context, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
+            { step: '2', title: 'Set your discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Your preferences power the matching algorithm so you see opportunities ranked by compatibility, skills, and what matters to you.' },
+            { step: '3', title: 'Browse opportunities & build partnerships', desc: 'Explore personalized opportunities ranked by your preferences. Apply with context, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
           ].map((s, idx) => (
             <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
@@ -1445,7 +1443,7 @@ const LandingPage = () => {
             Simple subscription plans
           </Typography>
           <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
-            All workspace features included in every plan. Upgrade for more projects, unlimited applications, and access to the advisor marketplace.
+            All workspace features included in every plan. Upgrade for more opportunities, unlimited applications, and access to the advisor marketplace.
           </Typography>
         </Box>
 
@@ -1525,8 +1523,7 @@ const LandingPage = () => {
         {/* Key differentiator note */}
         <Box sx={{ maxWidth: 700, mx: 'auto', p: 3, borderRadius: 3, bgcolor: alpha(TEAL, 0.04), border: '1px solid', borderColor: alpha(TEAL, 0.15), textAlign: 'center' }}>
           <Typography variant="body2" sx={{ color: SLATE_500 }}>
-            <strong>Tier-based discovery:</strong> Free users see only Free founders' projects. Pro users see Free + Pro. Pro+ sees everyone.
-            This ensures aligned commitment levels when forming partnerships.
+            <strong>Personalized matching:</strong> All users see opportunities ranked by compatibility. Upgrade to see more opportunities and apply without daily limits.
           </Typography>
         </Box>
       </Container>
@@ -1699,7 +1696,7 @@ const LandingPage = () => {
           Ready to find your people?
         </Typography>
         <Typography variant="body1" sx={{ color: SLATE_500, mb: 4, maxWidth: 440, mx: 'auto' }}>
-          Jump into curated discovery after you choose join, create, or advise—then collaborate with founders who lined up expectations first.
+          Discover personalized opportunities after you choose join, create, or advise—then collaborate with founders who share your vision.
         </Typography>
         {isSignedIn ? (
           <Button variant="contained" endIcon={<ArrowForward />} onClick={() => navigate('/home')} sx={{

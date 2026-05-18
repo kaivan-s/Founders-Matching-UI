@@ -28,6 +28,7 @@ import {
 import Sidebar, { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from './Sidebar';
 import NewProjectDialog from './NewProjectDialog';
 import FounderPlanNavTag from './FounderPlanNavTag';
+import { useFounderPlan } from '../hooks/useFounderPlan';
 
 const TEAL = '#0d9488';
 const SLATE_200 = '#e2e8f0';
@@ -38,18 +39,27 @@ const AppLayout = ({ children }) => {
   const { user } = useUser();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { planId } = useFounderPlan(user?.id);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
-  const [promoBannerDismissed, setPromoBannerDismissed] = useState(
-    () => sessionStorage.getItem('promoBannerDismissed') === 'true'
-  );
+  const [promoBannerDismissed, setPromoBannerDismissed] = useState(false);
+
+  // Update banner dismissed state when plan changes
+  useEffect(() => {
+    if (planId) {
+      const isDismissed = sessionStorage.getItem(`promoBannerDismissed_${planId}`) === 'true';
+      setPromoBannerDismissed(isDismissed);
+    }
+  }, [planId]);
 
   const handleDismissPromoBanner = () => {
     setPromoBannerDismissed(true);
-    sessionStorage.setItem('promoBannerDismissed', 'true');
+    if (planId) {
+      sessionStorage.setItem(`promoBannerDismissed_${planId}`, 'true');
+    }
   };
 
   const isAdmin =
@@ -101,11 +111,11 @@ const AppLayout = ({ children }) => {
           transition: 'width 0.2s ease',
         }}
       >
-        {/* Promo Banner with Marquee */}
+        {/* Promo Banner with Marquee - Tier-specific content */}
         {!promoBannerDismissed && (
           <Box
             sx={{
-              bgcolor: '#0d9488',
+              bgcolor: planId === 'PRO_PLUS' ? '#1e3a8a' : '#0d9488',
               color: '#fff',
               py: 0.75,
               px: 2,
@@ -122,58 +132,150 @@ const AppLayout = ({ children }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
-                animation: 'marquee 45s linear infinite',
+                animation: planId === 'PRO_PLUS' ? 'none' : 'marquee 45s linear infinite',
                 whiteSpace: 'nowrap',
+                justifyContent: planId === 'PRO_PLUS' ? 'center' : 'flex-start',
                 '@keyframes marquee': {
                   '0%': { transform: 'translateX(100%)' },
                   '100%': { transform: 'translateX(-100%)' },
                 },
               }}
             >
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🔥 Limited Time: Pro Plan <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>$12</span> → <span style={{ fontWeight: 800 }}>$5/mo</span> (58% OFF)
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                ✨ 15 Curated Projects Daily
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🚀 Unlimited Applications
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🎯 Advisor Marketplace Access
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🔥 Limited Time: Pro Plan <span style={{ textDecoration: 'line-through', opacity: 0.7 }}>$12</span> → <span style={{ fontWeight: 800 }}>$5/mo</span> (58% OFF)
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                ✨ 15 Curated Projects Daily
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🚀 Unlimited Applications
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                🎯 Advisor Marketplace Access
-              </Typography>
+              {planId === 'PRO_PLUS' ? (
+                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Investor Marketplace — Coming soon for Pro+ members
+                </Typography>
+              ) : planId === 'PRO' ? (
+                <>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Unlock Pro+
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    2x more curated opportunities
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Dedicated support
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    First access to new features
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Unlock Pro+
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    2x more curated opportunities
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Dedicated support
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    First access to new features
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Pro at <span style={{ fontWeight: 800 }}>$5/mo</span> — Save 58%
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    5x more personalized opportunities
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Instant preference updates
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Apply without daily limits
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Revisit passed opportunities
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Pro at <span style={{ fontWeight: 800 }}>$5/mo</span> — Save 58%
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    5x more personalized opportunities
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Instant preference updates
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Apply without daily limits
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Revisit passed opportunities
+                  </Typography>
+                </>
+              )}
             </Box>
-            <Button
-              size="small"
-              onClick={() => navigate('/pricing')}
-              sx={{
-                bgcolor: '#fff',
-                color: '#0d9488',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                px: 1.5,
-                py: 0.25,
-                minHeight: 0,
-                position: 'absolute',
-                right: 40,
-                zIndex: 1,
-                '&:hover': { bgcolor: '#f0fdfa' },
-              }}
-            >
-              Upgrade
-            </Button>
+            {planId !== 'PRO_PLUS' && (
+              <Button
+                size="small"
+                onClick={() => navigate('/pricing')}
+                sx={{
+                  bgcolor: '#fff',
+                  color: planId === 'PRO' ? '#1e3a8a' : '#0d9488',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  px: 1.5,
+                  py: 0.25,
+                  minHeight: 0,
+                  position: 'absolute',
+                  right: 40,
+                  zIndex: 1,
+                  '&:hover': { bgcolor: '#f0fdfa' },
+                }}
+              >
+                Upgrade
+              </Button>
+            )}
             <IconButton
               size="small"
               onClick={handleDismissPromoBanner}

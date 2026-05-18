@@ -302,26 +302,25 @@ const PricingPage = () => {
 
   const planFeatures = {
     FREE: [
-      { icon: <TrendingUp />, text: '5 unlocked projects per day' },
-      { icon: <Star />, text: '10 more locked (upgrade to unlock)' },
+      { icon: <TrendingUp />, text: '5 personalized opportunities' },
       { icon: <People />, text: '1 application per day' },
       { icon: <Rocket />, text: '1 project' },
       { icon: <Business />, text: '1 workspace' },
       { icon: <Check />, text: 'All workspace tools included' },
-      { icon: <Close color="disabled" />, text: 'Can only see Free projects', muted: true },
     ],
     PRO: [
-      { icon: <TrendingUp />, text: '15 curated projects per day (all unlocked)' },
+      { icon: <TrendingUp />, text: '25 personalized opportunities (5x more)' },
       { icon: <People />, text: 'Unlimited applications' },
       { icon: <Rocket />, text: 'Up to 3 projects' },
       { icon: <Business />, text: 'Unlimited workspaces' },
-      { icon: <Star />, text: 'See Free + Pro projects' },
+      { icon: <Star />, text: 'Revisit passed opportunities' },
       { icon: <Star />, text: 'Advisor marketplace access' },
     ],
     PRO_PLUS: [
-      { icon: <TrendingUp />, text: '15 curated projects per day (all unlocked)' },
-      { icon: <Star />, text: 'See all projects (Free, Pro, Pro+)' },
+      { icon: <TrendingUp />, text: '50 personalized opportunities (10x more)' },
+      { icon: <People />, text: 'Unlimited applications' },
       { icon: <Star />, text: 'Post-match support (30 days)' },
+      { icon: <Star />, text: 'Priority support' },
       { icon: <Check />, text: 'Everything in Pro' },
     ],
   };
@@ -438,7 +437,7 @@ const PricingPage = () => {
                   <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a' }}> {/* Navy */}
                     {plan.id === 'FREE' ? 'Free' : plan.id === 'PRO' ? 'Pro' : 'Pro+'}
                   </Typography>
-                  <Box sx={{ mb: 3 }}>
+                  <Box sx={{ mb: 3, minHeight: 95 }}>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
                       {/* Show original price with strikethrough for Pro plan */}
                       {plan.id === 'PRO' && (

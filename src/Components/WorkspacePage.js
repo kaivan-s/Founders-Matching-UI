@@ -66,13 +66,13 @@ const WorkspacePage = () => {
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
   
   // Determine active tab based on route matches
-  // Tabs: 0=Overview, 1=Equity & Roles, 2=Advisors, 3=Integrations (Chat is now a quick action)
+  // Tabs: 0=Overview, 1=Chat, 2=Equity & Roles, 3=Advisors, 4=Integrations
   const activeTab = useMemo(() => {
     if (overviewMatch || summaryMatch) return 0; // Summary merged into Overview
-    if (chatMatch) return -1; // Chat is handled separately
-    if (equityRolesMatch) return 1;
-    if (accountabilityMatch) return 2;
-    if (integrationsMatch) return 3;
+    if (chatMatch) return 1;
+    if (equityRolesMatch) return 2;
+    if (accountabilityMatch) return 3;
+    if (integrationsMatch) return 4;
     return 0; // Default to overview
   }, [overviewMatch, chatMatch, equityRolesMatch, accountabilityMatch, summaryMatch, integrationsMatch]);
 
@@ -143,13 +143,9 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'equity-roles', 'accountability', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'accountability', 'integrations'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
-  };
-
-  const handleOpenChat = () => {
-    navigate(`/workspaces/${workspaceId}/chat`);
   };
 
   const handleEditTitle = () => {
@@ -226,6 +222,7 @@ const WorkspacePage = () => {
 
   const tabIcons = [
     <TrendingUp fontSize="small" />,
+    <ChatBubbleOutline fontSize="small" />,
     <Groups fontSize="small" />,
     <Handshake fontSize="small" />,
     <LinkIcon fontSize="small" />,
@@ -436,30 +433,6 @@ const WorkspacePage = () => {
                         }}
                       />
                     )}
-                    <Tooltip title="Message your co-founder">
-                      <Chip
-                        icon={<ChatBubbleOutline sx={{ fontSize: 16, color: chatMatch ? '#fff' : '#0d9488' }} />}
-                        label="Chat"
-                        size="small"
-                        onClick={handleOpenChat}
-                        sx={{
-                          bgcolor: chatMatch ? '#0d9488' : 'transparent',
-                          color: chatMatch ? '#fff' : '#0d9488',
-                          border: chatMatch ? '1px solid #0d9488' : '1px solid rgba(13, 148, 136, 0.5)',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          '& .MuiChip-icon': {
-                            color: chatMatch ? '#fff' : '#0d9488',
-                          },
-                          '&:hover': {
-                            bgcolor: chatMatch ? '#0f766e' : 'rgba(13, 148, 136, 0.08)',
-                            borderColor: '#0d9488',
-                          },
-                        }}
-                      />
-                    </Tooltip>
                     <Typography 
                       variant="caption" 
                       sx={{ 
@@ -522,7 +495,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[1]}
-                <span>Equity & Roles</span>
+                <span>Chat</span>
               </Box>
             }
           />
@@ -530,7 +503,7 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[2]}
-                <span>Advisors</span>
+                <span>Equity & Roles</span>
               </Box>
             }
           />
@@ -538,6 +511,14 @@ const WorkspacePage = () => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 {tabIcons[3]}
+                <span>Advisors</span>
+              </Box>
+            }
+          />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                {tabIcons[4]}
                 <span>Integrations</span>
               </Box>
             }
