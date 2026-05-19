@@ -16,7 +16,7 @@ import WorkspacePage from './Components/WorkspacePage';
 import WorkspacesList from './Components/WorkspacesList';
 import MyProjects from './Components/MyProjects';
 import OnboardingDialog from './Components/OnboardingDialog';
-import AdvisorOnboarding from './Components/AdvisorOnboarding';
+import AdvisorOnboarding from './Components/AdvisorOnboardingQuick';
 import AdvisorDashboard from './Components/AdvisorDashboard';
 // AdvisorWorkspaceView removed - advisors no longer join workspaces
 import UserFlowSelector from './Components/UserFlowSelector';

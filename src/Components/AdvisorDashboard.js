@@ -29,6 +29,12 @@ import {
   TextField,
   InputAdornment,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  OutlinedInput,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import {
@@ -64,6 +70,36 @@ import {
 import { useUser } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../config/supabase';
+
+// Constants for advisor profile fields
+const ADVISORY_TYPES = [
+  { value: 'strategic', label: 'Strategy & Business' },
+  { value: 'technical', label: 'Technical / Engineering' },
+  { value: 'fundraising', label: 'Fundraising & Investors' },
+  { value: 'gtm', label: 'Sales & Go-to-Market' },
+  { value: 'operations', label: 'Operations & Scaling' },
+  { value: 'product', label: 'Product & Design' },
+];
+
+const STAGES = [
+  { value: 'idea', label: 'Idea Stage' },
+  { value: 'pre-seed', label: 'Pre-Seed' },
+  { value: 'seed', label: 'Seed' },
+  { value: 'series-a', label: 'Series A' },
+  { value: 'series-b-plus', label: 'Series B+' },
+];
+
+const DOMAINS = [
+  'SaaS', 'E-commerce', 'FinTech', 'HealthTech', 'EdTech', 'AI/ML',
+  'Marketplace', 'Consumer', 'B2B', 'Hardware', 'Other'
+];
+
+const AVAILABILITY_OPTIONS = [
+  { value: '1-2', label: '1-2 hours/week' },
+  { value: '2-5', label: '2-5 hours/week' },
+  { value: '5-10', label: '5-10 hours/week' },
+  { value: '10+', label: '10+ hours/week' },
+];
 
 // Stat card component
 const StatCard = ({ icon: Icon, value, label, color }) => (
@@ -359,6 +395,7 @@ const AdvisorDashboard = () => {
   const [calcomBanner, setCalcomBanner] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState(null);
+  const [editTabIndex, setEditTabIndex] = useState(0);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState(null);
   const [editProfileImage, setEditProfileImage] = useState(null); // { preview: dataURL, file: File }
@@ -446,11 +483,17 @@ const AdvisorDashboard = () => {
   };
 
   // Edit profile handlers
-  const handleOpenEditDialog = () => {
+  const handleOpenEditDialog = (initialTab = 0) => {
     if (!profile) return;
     setEditFormData({
       headline: profile.headline || '',
       bio: profile.bio || '',
+      linkedin_url: profile.linkedin_url || '',
+      advisory_types: profile.advisory_types || [],
+      preferred_stages: profile.preferred_stages || [],
+      domains: profile.domains || [],
+      availability_hours_per_week: profile.availability_hours_per_week || '',
+      calcom_booking_url: profile.calcom_booking_url || '',
       consultation_rate_30min_usd: profile.consultation_rate_30min_usd ?? '',
       consultation_rate_60min_usd: profile.consultation_rate_60min_usd ?? '',
       payment_methods: {
@@ -462,6 +505,7 @@ const AdvisorDashboard = () => {
     });
     setEditError(null);
     setEditProfileImage(null);
+    setEditTabIndex(initialTab);
     setEditDialogOpen(true);
   };
 
@@ -829,116 +873,25 @@ const AdvisorDashboard = () => {
   const SLATE_200 = '#e2e8f0';
   const BG = '#f8fafc';
 
-  // Pending status
-  if (status === 'PENDING') {
-    return (
-      <Box sx={{ minHeight: '100%', bgcolor: BG, py: 6, pb: 8 }}>
-        <Box sx={{ maxWidth: 600, mx: 'auto', px: 3 }}>
-          <Box
-            sx={{
-              p: 4,
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: SLATE_200,
-              bgcolor: '#fff',
-              textAlign: 'center',
-              mb: 3,
-              transition: 'all 0.25s ease',
-              '&:hover': { borderColor: alpha(TEAL, 0.3), boxShadow: `0 8px 24px ${alpha(TEAL, 0.06)}` },
-            }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: 2,
-                bgcolor: alpha(TEAL, 0.08),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-              }}
-            >
-              <Pending sx={{ fontSize: 32, color: TEAL }} />
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: '1.35rem' }}>
-              Application Under Review
-            </Typography>
-            <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, lineHeight: 1.6 }}>
-              We'll notify you via email once your advisor application is approved.
-            </Typography>
-            <Button
-              variant="outlined"
-              startIcon={<Edit />}
-              onClick={() => navigate('/advisor/onboarding')}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: SLATE_200,
-                color: SLATE_900,
-                '&:hover': { borderColor: TEAL, color: TEAL, bgcolor: alpha(TEAL, 0.04) },
-              }}
-            >
-              Edit Application
-            </Button>
-          </Box>
+  // Calculate profile completion for PENDING status banner
+  const getProfileCompletion = () => {
+    const checklistItems = [
+      { id: 'headline', label: 'Headline', done: !!profile?.headline?.trim() },
+      { id: 'bio', label: 'Bio', done: (profile?.bio?.length || 0) >= 100 },
+      { id: 'photo', label: 'Photo', done: !!profile?.profile_image_url },
+      { id: 'linkedin', label: 'LinkedIn', done: !!profile?.linkedin_url },
+      { id: 'expertise', label: 'Expertise', done: (profile?.advisory_types?.length || 0) > 0 },
+      { id: 'stages', label: 'Stages', done: (profile?.preferred_stages?.length || 0) > 0 },
+      { id: 'domains', label: 'Industries', done: (profile?.domains?.length || 0) > 0 },
+      { id: 'availability', label: 'Availability', done: !!profile?.availability_hours_per_week },
+    ];
+    const completedCount = checklistItems.filter(item => item.done).length;
+    const percent = Math.round((completedCount / checklistItems.length) * 100);
+    const missing = checklistItems.filter(item => !item.done).map(i => i.label);
+    return { percent, isComplete: percent === 100, missing, items: checklistItems };
+  };
 
-          <Box
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: SLATE_200,
-              bgcolor: '#fff',
-              transition: 'all 0.25s ease',
-              '&:hover': { borderColor: alpha(SKY, 0.3), boxShadow: `0 8px 24px ${alpha(SKY, 0.06)}` },
-            }}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 2.5, fontSize: '1rem' }}>
-              Application Summary
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              <Box>
-                <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 0.5 }}>
-                  Headline
-                </Typography>
-                <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6 }}>
-                  {profile?.headline || 'Not set'}
-                </Typography>
-              </Box>
-              {profile?.bio && (
-                <Box>
-                  <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 0.5 }}>
-                    Bio
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6 }}>
-                    {profile.bio}
-                  </Typography>
-                </Box>
-              )}
-              {(profile?.expertise_stages?.length > 0 || profile?.domains?.length > 0) && (
-                <Box>
-                  <Typography variant="caption" sx={{ color: SLATE_400, textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 600, display: 'block', mb: 1 }}>
-                    Expertise
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                    {profile?.expertise_stages?.map((s, i) => (
-                      <Chip key={i} label={s} size="small" sx={{ fontSize: '0.75rem', fontWeight: 500, bgcolor: alpha(SKY, 0.1), color: SKY, border: 'none' }} />
-                    ))}
-                    {profile?.domains?.map((d, i) => (
-                      <Chip key={i} label={d} size="small" sx={{ fontSize: '0.75rem', fontWeight: 500, bgcolor: alpha(TEAL, 0.1), color: TEAL, border: 'none' }} />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    );
-  }
+  const profileCompletion = status === 'PENDING' ? getProfileCompletion() : null;
 
   // Rejected status
   if (status === 'REJECTED') {
@@ -1023,66 +976,106 @@ const AdvisorDashboard = () => {
               </Button>
             </Box>
 
-            {/* LinkedIn Verification */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                mb: 4,
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: linkedinStatus.linkedin_verified ? 'success.main' : 'divider',
-                bgcolor: linkedinStatus.linkedin_verified ? alpha('#10b981', 0.04) : 'background.paper',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <LinkedIn sx={{ color: '#0A66C2', fontSize: 28 }} />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      LinkedIn Verification
-                      {linkedinStatus.linkedin_verified && (
-                        <Chip
-                          icon={<CheckCircle sx={{ fontSize: 14 }} />}
-                          label="Verified"
+            {/* Profile Completion Banner for PENDING users */}
+            {status === 'PENDING' && profileCompletion && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2.5,
+                  mb: 3,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: profileCompletion.isComplete ? alpha('#3b82f6', 0.3) : alpha('#f59e0b', 0.3),
+                  bgcolor: profileCompletion.isComplete ? alpha('#3b82f6', 0.04) : alpha('#f59e0b', 0.04),
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Box sx={{ flex: 1, minWidth: 280 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                      {profileCompletion.isComplete ? (
+                        <Schedule sx={{ color: '#3b82f6', fontSize: 22 }} />
+                      ) : (
+                        <Pending sx={{ color: '#f59e0b', fontSize: 22 }} />
+                      )}
+                      <Typography variant="subtitle1" sx={{ 
+                        fontWeight: 600, 
+                        color: profileCompletion.isComplete ? '#1d4ed8' : '#b45309'
+                      }}>
+                        {profileCompletion.isComplete ? 'Profile Under Review' : 'Complete Your Profile'}
+                      </Typography>
+                      {!profileCompletion.isComplete && (
+                        <Chip 
+                          label={`${profileCompletion.percent}%`}
                           size="small"
-                          color="success"
-                          sx={{ ml: 1, height: 22, fontSize: '0.7rem' }}
+                          sx={{ 
+                            bgcolor: '#f59e0b',
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            height: 24,
+                          }}
                         />
                       )}
-                    </Typography>
+                    </Box>
+                    {!profileCompletion.isComplete && (
+                      <LinearProgress
+                        variant="determinate"
+                        value={profileCompletion.percent}
+                        sx={{
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: alpha('#f59e0b', 0.2),
+                          mb: 1,
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: '#f59e0b',
+                            borderRadius: 3,
+                          },
+                        }}
+                      />
+                    )}
                     <Typography variant="caption" color="text.secondary">
-                      {linkedinStatus.linkedin_verified
-                        ? `Verified as ${linkedinStatus.linkedin_name || 'LinkedIn User'}`
-                        : 'Verify your identity with LinkedIn to build trust with founders'}
+                      {profileCompletion.isComplete 
+                        ? "Your profile is complete. We'll review and approve it within 24-48 hours."
+                        : `Missing: ${profileCompletion.missing.join(', ')}`}
                     </Typography>
                   </Box>
-                </Box>
-                {!linkedinStatus.linkedin_verified && (
                   <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleLinkedInConnect}
-                    disabled={linkedinLoading || !linkedinStatus.linkedin_configured}
-                    startIcon={linkedinLoading ? <CircularProgress size={16} /> : <LinkedIn />}
-                    sx={{
-                      borderColor: '#0A66C2',
-                      color: '#0A66C2',
+                    variant={profileCompletion.isComplete ? "outlined" : "contained"}
+                    startIcon={<Edit />}
+                    onClick={() => handleOpenEditDialog(0)}
+                    sx={profileCompletion.isComplete ? {
+                      borderColor: '#3b82f6',
+                      color: '#3b82f6',
                       textTransform: 'none',
-                      fontWeight: 500,
-                      '&:hover': { borderColor: '#004182', bgcolor: alpha('#0A66C2', 0.04) },
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      px: 3,
+                      '&:hover': { borderColor: '#1d4ed8', bgcolor: alpha('#3b82f6', 0.04) },
+                    } : {
+                      bgcolor: '#f59e0b',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      px: 3,
+                      '&:hover': { bgcolor: '#d97706' },
                     }}
                   >
-                    {linkedinLoading ? 'Connecting...' : 'Verify with LinkedIn'}
+                    {profileCompletion.isComplete ? 'Edit Profile' : 'Complete Profile'}
                   </Button>
-                )}
-              </Box>
-              {!linkedinStatus.linkedin_configured && !linkedinStatus.linkedin_verified && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  LinkedIn verification coming soon
-                </Typography>
-              )}
-            </Paper>
+                </Box>
+              </Paper>
+            )}
+
+            {/* Blurred overlay for PENDING users - dashboard content below is locked */}
+            <Box sx={{ 
+              position: 'relative',
+              ...(status === 'PENDING' && {
+                filter: 'blur(4px)',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                opacity: 0.6,
+              }),
+            }}>
 
             {/* Cal.com reminder banner when not set up */}
             {(!profile?.calcom_booking_url || !String(profile.calcom_booking_url).trim()) && (
@@ -1469,17 +1462,40 @@ const AdvisorDashboard = () => {
                 </>
               );
             })()}
+
+            </Box>
+            {/* End of blurred content wrapper for PENDING users */}
+
+            {/* Locked content message for PENDING users */}
+            {status === 'PENDING' && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mt: -4,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: alpha('#64748b', 0.2),
+                  bgcolor: 'white',
+                  textAlign: 'center',
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Complete your profile above to unlock your full advisor dashboard
+                </Typography>
+              </Paper>
+            )}
       </Box>
 
-      {/* Edit Profile Dialog */}
+      {/* Edit Profile Dialog - Tabbed View */}
       <Dialog
         open={editDialogOpen}
         onClose={editSaving ? undefined : () => setEditDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        PaperProps={{ sx: { borderRadius: 3, maxHeight: '90vh' } }}
       >
-        <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 2 }}>
+        <DialogTitle sx={{ pb: 0, pt: 2, px: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Settings sx={{ color: '#0d9488' }} />
@@ -1489,176 +1505,395 @@ const AdvisorDashboard = () => {
               <Close />
             </IconButton>
           </Box>
+          <Tabs
+            value={editTabIndex}
+            onChange={(_, v) => setEditTabIndex(v)}
+            sx={{
+              mt: 2,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 500,
+                minWidth: 100,
+                '&.Mui-selected': { color: '#0d9488', fontWeight: 600 },
+              },
+              '& .MuiTabs-indicator': { bgcolor: '#0d9488' },
+            }}
+          >
+            <Tab label="Profile" />
+            <Tab label="Expertise" />
+            <Tab label="Booking Setup" />
+          </Tabs>
         </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ p: 0, minHeight: 420, maxHeight: 420, overflow: 'auto' }}>
           {editFormData && (
-            <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ p: 3, minHeight: 380 }}>
               {editError && (
-                <Alert severity="error" sx={{ borderRadius: 2 }}>{editError}</Alert>
+                <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>{editError}</Alert>
               )}
 
-              {/* Profile Picture */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ position: 'relative' }}>
-                  <Avatar
-                    src={editProfileImage?.preview || profile?.profile_image_url}
-                    sx={{ width: 80, height: 80, border: '3px solid white', boxShadow: 1 }}
-                  >
-                    {profile?.user?.name?.[0]?.toUpperCase() || 'A'}
-                  </Avatar>
-                  <input
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    style={{ display: 'none' }}
-                    id="edit-profile-image-upload"
-                    type="file"
-                    onChange={handleEditImageSelect}
-                  />
-                  <label htmlFor="edit-profile-image-upload">
-                    <IconButton
-                      component="span"
-                      sx={{
-                        position: 'absolute',
-                        bottom: -4,
-                        right: -4,
-                        bgcolor: '#0d9488',
-                        color: 'white',
-                        '&:hover': { bgcolor: '#0f766e' },
-                        width: 28,
-                        height: 28,
-                      }}
-                    >
-                      <PhotoCamera sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </label>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#334155' }}>
-                    Profile Picture
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Click the camera icon to update your photo
-                  </Typography>
-                </Box>
-              </Box>
+              {/* Tab 0: Profile */}
+              {editTabIndex === 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {/* Profile Picture */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ position: 'relative' }}>
+                      <Avatar
+                        src={editProfileImage?.preview || profile?.profile_image_url}
+                        sx={{ width: 80, height: 80, border: '3px solid white', boxShadow: 1 }}
+                      >
+                        {profile?.user?.name?.[0]?.toUpperCase() || 'A'}
+                      </Avatar>
+                      <input
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        style={{ display: 'none' }}
+                        id="edit-profile-image-upload"
+                        type="file"
+                        onChange={handleEditImageSelect}
+                      />
+                      <label htmlFor="edit-profile-image-upload">
+                        <IconButton
+                          component="span"
+                          sx={{
+                            position: 'absolute',
+                            bottom: -4,
+                            right: -4,
+                            bgcolor: '#0d9488',
+                            color: 'white',
+                            '&:hover': { bgcolor: '#0f766e' },
+                            width: 28,
+                            height: 28,
+                          }}
+                        >
+                          <PhotoCamera sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </label>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#334155' }}>
+                        Profile Picture
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Click the camera icon to upload a photo
+                      </Typography>
+                    </Box>
+                  </Box>
 
-              <Divider />
-
-              {/* Basic Info */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: '#64748b' }}>
-                  Basic Info
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="Headline"
-                  value={editFormData.headline}
-                  onChange={(e) => handleEditFormChange('headline', e.target.value)}
-                  placeholder="e.g., Serial Entrepreneur & Startup Advisor"
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  fullWidth
-                  label="Bio"
-                  value={editFormData.bio}
-                  onChange={(e) => handleEditFormChange('bio', e.target.value)}
-                  multiline
-                  rows={3}
-                  placeholder="Tell founders about your experience..."
-                />
-              </Box>
-
-              <Divider />
-
-              {/* Consultation Rates */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#64748b' }}>
-                  Consultation Rates
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-                  Founders pay you directly via your payment methods below
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="30-min rate"
-                      type="number"
-                      value={editFormData.consultation_rate_30min_usd}
-                      onChange={(e) => handleEditFormChange('consultation_rate_30min_usd', e.target.value)}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                      }}
-                      placeholder="e.g., 50"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="60-min rate"
-                      type="number"
-                      value={editFormData.consultation_rate_60min_usd}
-                      onChange={(e) => handleEditFormChange('consultation_rate_60min_usd', e.target.value)}
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                      }}
-                      placeholder="e.g., 90"
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Divider />
-
-              {/* Payment Methods */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#64748b' }}>
-                  Payment Methods
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-                  Add at least one way for founders to pay you directly
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <TextField
                     fullWidth
-                    label="UPI ID"
-                    value={editFormData.payment_methods.upi_id}
-                    onChange={(e) => handleEditFormChange('payment_methods.upi_id', e.target.value)}
-                    placeholder="e.g., yourname@upi"
-                    size="small"
+                    label="Headline"
+                    value={editFormData.headline}
+                    onChange={(e) => handleEditFormChange('headline', e.target.value)}
+                    placeholder="e.g., Serial Entrepreneur & Startup Advisor"
+                    helperText="A short tagline that describes your expertise"
                   />
+
                   <TextField
                     fullWidth
-                    label="PayPal URL"
-                    value={editFormData.payment_methods.paypal_url}
-                    onChange={(e) => handleEditFormChange('payment_methods.paypal_url', e.target.value)}
-                    placeholder="e.g., https://paypal.me/yourname"
-                    size="small"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Razorpay Link"
-                    value={editFormData.payment_methods.razorpay_link}
-                    onChange={(e) => handleEditFormChange('payment_methods.razorpay_link', e.target.value)}
-                    placeholder="e.g., https://rzp.io/..."
-                    size="small"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Bank Details"
-                    value={editFormData.payment_methods.bank_details}
-                    onChange={(e) => handleEditFormChange('payment_methods.bank_details', e.target.value)}
-                    placeholder="Account number, IFSC, etc."
-                    size="small"
+                    label="Bio"
+                    value={editFormData.bio}
+                    onChange={(e) => handleEditFormChange('bio', e.target.value)}
                     multiline
-                    rows={2}
+                    rows={4}
+                    placeholder="Tell founders about your experience, background, and what you can help with..."
+                    helperText={`${editFormData.bio?.length || 0}/100 characters (minimum 100 required)`}
+                    error={editFormData.bio && editFormData.bio.length > 0 && editFormData.bio.length < 100}
                   />
-                </Box>
-              </Box>
 
+                  <TextField
+                    fullWidth
+                    label="LinkedIn Profile URL"
+                    value={editFormData.linkedin_url}
+                    onChange={(e) => handleEditFormChange('linkedin_url', e.target.value)}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><LinkedIn sx={{ color: '#0A66C2' }} /></InputAdornment>,
+                    }}
+                  />
+
+                  {/* LinkedIn Verification */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: linkedinStatus.linkedin_verified ? 'success.main' : 'divider',
+                      bgcolor: linkedinStatus.linkedin_verified ? alpha('#10b981', 0.04) : alpha('#f8fafc', 0.5),
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <LinkedIn sx={{ color: '#0A66C2', fontSize: 24 }} />
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            LinkedIn Verification
+                            {linkedinStatus.linkedin_verified && (
+                              <Chip
+                                icon={<CheckCircle sx={{ fontSize: 14 }} />}
+                                label="Verified"
+                                size="small"
+                                color="success"
+                                sx={{ height: 22, fontSize: '0.7rem' }}
+                              />
+                            )}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {linkedinStatus.linkedin_verified
+                              ? `Verified as ${linkedinStatus.linkedin_name || 'LinkedIn User'}`
+                              : 'Build trust with founders by verifying your identity'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      {!linkedinStatus.linkedin_verified && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={handleLinkedInConnect}
+                          disabled={linkedinLoading || !linkedinStatus.linkedin_configured}
+                          startIcon={linkedinLoading ? <CircularProgress size={14} /> : <LinkedIn />}
+                          sx={{
+                            borderColor: '#0A66C2',
+                            color: '#0A66C2',
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            fontSize: '0.8rem',
+                            '&:hover': { borderColor: '#004182', bgcolor: alpha('#0A66C2', 0.04) },
+                          }}
+                        >
+                          {linkedinLoading ? 'Connecting...' : 'Verify'}
+                        </Button>
+                      )}
+                    </Box>
+                    {!linkedinStatus.linkedin_configured && !linkedinStatus.linkedin_verified && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        LinkedIn verification coming soon
+                      </Typography>
+                    )}
+                  </Paper>
+                </Box>
+              )}
+
+              {/* Tab 1: Expertise */}
+              {editTabIndex === 1 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Areas of Expertise</InputLabel>
+                    <Select
+                      multiple
+                      value={editFormData.advisory_types || []}
+                      onChange={(e) => handleEditFormChange('advisory_types', e.target.value)}
+                      input={<OutlinedInput label="Areas of Expertise" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip 
+                              key={value} 
+                              label={ADVISORY_TYPES.find(t => t.value === value)?.label || value}
+                              size="small"
+                              sx={{ bgcolor: alpha('#0d9488', 0.1), color: '#0d9488' }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {ADVISORY_TYPES.map((type) => (
+                        <MenuItem key={type.value} value={type.value}>
+                          <Checkbox checked={(editFormData.advisory_types || []).includes(type.value)} />
+                          <ListItemText primary={type.label} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel>Preferred Startup Stages</InputLabel>
+                    <Select
+                      multiple
+                      value={editFormData.preferred_stages || []}
+                      onChange={(e) => handleEditFormChange('preferred_stages', e.target.value)}
+                      input={<OutlinedInput label="Preferred Startup Stages" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip 
+                              key={value} 
+                              label={STAGES.find(s => s.value === value)?.label || value}
+                              size="small"
+                              sx={{ bgcolor: alpha('#0ea5e9', 0.1), color: '#0ea5e9' }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {STAGES.map((stage) => (
+                        <MenuItem key={stage.value} value={stage.value}>
+                          <Checkbox checked={(editFormData.preferred_stages || []).includes(stage.value)} />
+                          <ListItemText primary={stage.label} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth>
+                    <InputLabel>Industries / Domains</InputLabel>
+                    <Select
+                      multiple
+                      value={editFormData.domains || []}
+                      onChange={(e) => handleEditFormChange('domains', e.target.value)}
+                      input={<OutlinedInput label="Industries / Domains" />}
+                      renderValue={(selected) => (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                          {selected.map((value) => (
+                            <Chip 
+                              key={value} 
+                              label={value}
+                              size="small"
+                              sx={{ bgcolor: alpha('#8b5cf6', 0.1), color: '#8b5cf6' }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {DOMAINS.map((domain) => (
+                        <MenuItem key={domain} value={domain}>
+                          <Checkbox checked={(editFormData.domains || []).includes(domain)} />
+                          <ListItemText primary={domain} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              {/* Tab 2: Booking Setup */}
+              {editTabIndex === 2 && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Availability</InputLabel>
+                    <Select
+                      value={editFormData.availability_hours_per_week || ''}
+                      onChange={(e) => handleEditFormChange('availability_hours_per_week', e.target.value)}
+                      label="Availability"
+                    >
+                      {AVAILABILITY_OPTIONS.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <TextField
+                    fullWidth
+                    label="Cal.com Booking Link"
+                    value={editFormData.calcom_booking_url}
+                    onChange={(e) => handleEditFormChange('calcom_booking_url', e.target.value)}
+                    placeholder="https://cal.com/yourname"
+                    helperText="Founders will use this to book consultations directly"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Box sx={{ 
+                            width: 20, height: 20, borderRadius: 0.5, bgcolor: '#292929', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', fontSize: '0.5rem', fontWeight: 700,
+                          }}>cal</Box>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
+                    Consultation Rates
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="30-min rate"
+                        type="number"
+                        value={editFormData.consultation_rate_30min_usd}
+                        onChange={(e) => handleEditFormChange('consultation_rate_30min_usd', e.target.value)}
+                        InputProps={{
+                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        }}
+                        placeholder="e.g., 50"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="60-min rate"
+                        type="number"
+                        value={editFormData.consultation_rate_60min_usd}
+                        onChange={(e) => handleEditFormChange('consultation_rate_60min_usd', e.target.value)}
+                        InputProps={{
+                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        }}
+                        placeholder="e.g., 90"
+                      />
+                    </Grid>
+                  </Grid>
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
+                    Payment Methods
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: -1 }}>
+                    Add at least one way for founders to pay you directly
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="UPI ID"
+                        value={editFormData.payment_methods.upi_id}
+                        onChange={(e) => handleEditFormChange('payment_methods.upi_id', e.target.value)}
+                        placeholder="yourname@upi"
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="PayPal URL"
+                        value={editFormData.payment_methods.paypal_url}
+                        onChange={(e) => handleEditFormChange('payment_methods.paypal_url', e.target.value)}
+                        placeholder="paypal.me/yourname"
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Razorpay Link"
+                        value={editFormData.payment_methods.razorpay_link}
+                        onChange={(e) => handleEditFormChange('payment_methods.razorpay_link', e.target.value)}
+                        placeholder="rzp.io/..."
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Bank Details"
+                        value={editFormData.payment_methods.bank_details}
+                        onChange={(e) => handleEditFormChange('payment_methods.bank_details', e.target.value)}
+                        placeholder="Account, IFSC..."
+                        size="small"
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}>
           <Button
             onClick={() => setEditDialogOpen(false)}
             disabled={editSaving}
