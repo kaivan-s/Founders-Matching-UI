@@ -612,13 +612,47 @@ const AdvisorDashboard = () => {
       });
     };
 
-    compressImage(file).then((compressedDataUrl) => {
+    compressImage(file).then(async (compressedDataUrl) => {
       setEditProfileImage({
         preview: compressedDataUrl,
         file: file,
         contentType: 'image/jpeg',
       });
       setEditError(null);
+      
+      // Auto-upload image immediately
+      if (!user?.id) return;
+      setAutoSaveStatus('saving');
+      
+      try {
+        const imageResponse = await fetch(`${API_BASE}/advisors/profile/image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify({
+            image: compressedDataUrl,
+            content_type: 'image/jpeg',
+          }),
+        });
+        
+        if (imageResponse.ok) {
+          const imgData = await imageResponse.json();
+          setProfile(prev => ({ ...prev, profile_image_url: imgData.public_url }));
+          setAutoSaveStatus('saved');
+          setTimeout(() => setAutoSaveStatus(null), 2000);
+        } else {
+          const errData = await imageResponse.json().catch(() => ({}));
+          setEditError(`Image upload failed: ${errData.error || `Server error (${imageResponse.status})`}. Try a smaller image.`);
+          setAutoSaveStatus('error');
+          setEditProfileImage(null); // Clear failed image
+        }
+      } catch (imgErr) {
+        setEditError(`Image upload failed: ${imgErr.message || 'Network error'}. Try a smaller image (under 1MB).`);
+        setAutoSaveStatus('error');
+        setEditProfileImage(null); // Clear failed image
+      }
     });
   };
 
@@ -645,44 +679,10 @@ const AdvisorDashboard = () => {
 
       const updatedProfile = await response.json();
 
-      // Upload image if a new one was selected
-      let imageUploadError = null;
-      if (editProfileImage?.file) {
-        try {
-          const imageResponse = await fetch(`${API_BASE}/advisors/profile/image`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Clerk-User-Id': user.id,
-            },
-            body: JSON.stringify({
-              image: editProfileImage.preview,
-              content_type: editProfileImage.contentType,
-            }),
-          });
-          
-          if (imageResponse.ok) {
-            const imgData = await imageResponse.json();
-            updatedProfile.profile_image_url = imgData.public_url;
-          } else {
-            const errData = await imageResponse.json().catch(() => ({}));
-            imageUploadError = `Image upload failed: ${errData.error || `Server error (${imageResponse.status})`}. Profile saved, but please try a smaller image.`;
-          }
-        } catch (imgErr) {
-          imageUploadError = `Image upload failed: ${imgErr.message || 'Network error'}. Try a smaller image (under 1MB).`;
-        }
-      }
-
+      // Image is auto-uploaded when selected, no need to upload here
       setProfile(prev => ({ ...prev, ...updatedProfile }));
-      
-      if (imageUploadError) {
-        setEditError(imageUploadError);
-        setEditProfileImage(null); // Clear the failed image
-        // Keep dialog open so user sees the error
-      } else {
-        setEditDialogOpen(false);
-        setEditProfileImage(null);
-      }
+      setEditDialogOpen(false);
+      setEditProfileImage(null);
     } catch (err) {
       setEditError(err.message);
     } finally {
