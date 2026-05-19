@@ -1084,6 +1084,60 @@ const AdvisorDashboard = () => {
               )}
             </Paper>
 
+            {/* Cal.com reminder banner when not set up */}
+            {(!profile?.calcom_booking_url || !String(profile.calcom_booking_url).trim()) && (
+              <Alert
+                severity="warning"
+                sx={{ 
+                  mb: 3, 
+                  borderRadius: 2,
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+                icon={
+                  <Box sx={{ 
+                    width: 24, 
+                    height: 24, 
+                    borderRadius: 0.5, 
+                    bgcolor: '#292929', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                  }}>
+                    cal
+                  </Box>
+                }
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+                      Add your scheduling link to get more bookings
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Founders can book directly into your calendar when you connect Cal.com
+                    </Typography>
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ 
+                      textTransform: 'none', 
+                      fontWeight: 600,
+                      bgcolor: '#292929',
+                      '&:hover': { bgcolor: '#000' },
+                    }}
+                    onClick={() => {
+                      document.getElementById('calcom-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Set up now
+                  </Button>
+                </Box>
+              </Alert>
+            )}
+
             {calcomBanner && (
               <Alert
                 severity={calcomBanner.severity}
@@ -1096,6 +1150,7 @@ const AdvisorDashboard = () => {
 
             {/* Cal.com scheduling — paste booking link */}
             <Paper
+              id="calcom-section"
               elevation={0}
               sx={{
                 p: 2,

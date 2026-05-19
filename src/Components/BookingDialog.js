@@ -22,6 +22,8 @@ import {
   CalendarMonth,
   Schedule,
   AttachMoney,
+  InfoOutlined,
+  AccessTime,
 } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import { API_BASE } from '../config/api';
@@ -45,8 +47,9 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
   const [topic, setTopic] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [calcomStatus, setCalcomStatus] = useState({ has_calcom: false, booking_url: null });
+  const [calcomStatus, setCalcomStatus] = useState({ has_calcom: false, booking_url: null, preferred_payment: null });
   const [loadingCalcom, setLoadingCalcom] = useState(false);
+  const [calBookingClicked, setCalBookingClicked] = useState(false);
 
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
 
@@ -64,17 +67,18 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
       setSubmitting(false);
       setTopic('');
       setProposedTime('');
+      setCalBookingClicked(false);
       // Default to whichever duration the advisor has a rate for
       const has30 = advisor?.consultation_rate_30min_usd != null && advisor?.consultation_rate_30min_usd !== '';
       const has60 = advisor?.consultation_rate_60min_usd != null && advisor?.consultation_rate_60min_usd !== '';
       setDuration(has30 ? 30 : has60 ? 60 : 30);
       
-      // Check if advisor has cal.com connected
+      // Check if advisor has cal.com connected and get payment info
       setLoadingCalcom(true);
       fetch(`${API_BASE}/advisors/${advisor.user_id}/booking-link`)
-        .then(r => r.ok ? r.json() : { has_calcom: false })
+        .then(r => r.ok ? r.json() : { has_calcom: false, preferred_payment: null })
         .then(data => setCalcomStatus(data))
-        .catch(() => setCalcomStatus({ has_calcom: false }))
+        .catch(() => setCalcomStatus({ has_calcom: false, preferred_payment: null }))
         .finally(() => setLoadingCalcom(false));
     }
   }, [open, advisor]);
@@ -235,33 +239,85 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                 )}
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                Pay the advisor directly via UPI, PayPal, or their preferred method after booking. No platform fees.
+                Pay the advisor directly{calcomStatus.preferred_payment ? ` via ${calcomStatus.preferred_payment}` : ''} after booking. No platform fees.
               </Typography>
             </Paper>
 
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              href={calcomStatus.booking_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              startIcon={<CalendarMonth />}
-              sx={{ 
-                textTransform: 'none', 
-                fontWeight: 600, 
-                borderRadius: 2,
-                py: 1.5,
-                bgcolor: '#292929',
-                '&:hover': { bgcolor: '#000' },
-              }}
-            >
-              Book on cal.com
-            </Button>
+            {!calBookingClicked ? (
+              <>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  href={calcomStatus.booking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setCalBookingClicked(true)}
+                  startIcon={<CalendarMonth />}
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontWeight: 600, 
+                    borderRadius: 2,
+                    py: 1.5,
+                    bgcolor: '#292929',
+                    '&:hover': { bgcolor: '#000' },
+                  }}
+                >
+                  Book on cal.com
+                </Button>
 
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-              You'll be redirected to cal.com to select a time slot
-            </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
+                  You'll be redirected to cal.com to select a time slot
+                </Typography>
+              </>
+            ) : (
+              <Paper 
+                variant="outlined" 
+                sx={{ 
+                  p: 2.5, 
+                  borderRadius: 2, 
+                  bgcolor: 'rgba(16, 185, 129, 0.04)',
+                  borderColor: 'success.main',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <InfoOutlined sx={{ color: 'success.main', fontSize: 20, mt: 0.25 }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 0.5 }}>
+                      Did you complete the booking?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Once your booking is confirmed on cal.com, {advisorName} will reach out to coordinate payment and share the meeting link.
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={onClose}
+                        sx={{ 
+                          textTransform: 'none', 
+                          fontWeight: 600,
+                          bgcolor: 'success.main',
+                          '&:hover': { bgcolor: 'success.dark' },
+                        }}
+                      >
+                        Yes, I booked
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        href={calcomStatus.booking_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ textTransform: 'none', fontWeight: 500 }}
+                      >
+                        Open cal.com again
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
           </Box>
         ) : (
           <>
@@ -336,10 +392,18 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                 </Typography>
               </Box>
               <Typography variant="caption" color="text.secondary">
-                Payment is sent <strong>directly to the advisor</strong> via UPI, PayPal, or their preferred method
-                after they accept your request. No platform fees.
+                Payment is sent <strong>directly to the advisor</strong>
+                {calcomStatus.preferred_payment ? ` via ${calcomStatus.preferred_payment}` : ' via UPI, PayPal, or their preferred method'} after they accept your request. No platform fees.
               </Typography>
             </Paper>
+
+            {/* Expected response time */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2, px: 0.5 }}>
+              <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary">
+                Advisors typically respond within 24-48 hours
+              </Typography>
+            </Box>
           </>
         )}
 
