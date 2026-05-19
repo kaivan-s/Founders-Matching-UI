@@ -13,7 +13,7 @@ export const initPostHog = () => {
       person_profiles: 'identified_only',
       capture_pageview: true,
       capture_pageleave: true,
-      autocapture: true, // Auto-capture clicks, form submissions, etc.
+      autocapture: true,
       session_recording: {
         maskAllInputs: false,
         maskInputOptions: {
@@ -21,9 +21,6 @@ export const initPostHog = () => {
         },
       },
     });
-    console.log('PostHog initialized');
-  } else {
-    console.warn('PostHog API key not found. Analytics disabled.');
   }
 };
 
