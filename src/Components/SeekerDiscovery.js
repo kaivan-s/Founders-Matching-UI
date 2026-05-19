@@ -428,6 +428,13 @@ const SeekerDiscovery = () => {
       setProjectDetailOpen(false);
       setDetailProject(null);
       
+      // Update remaining applications count
+      setDiscoveryMeta(prev => prev ? {
+        ...prev,
+        applications_remaining: prev.applications_remaining !== -1 ? Math.max(0, prev.applications_remaining - 1) : -1,
+        applications_sent_today: (prev.applications_sent_today || 0) + 1,
+      } : prev);
+      
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message);
@@ -1628,6 +1635,50 @@ const SeekerDiscovery = () => {
           </Box>
         </DialogTitle>
         <DialogContent sx={{ pt: 3 }}>
+          {/* Show remaining applications warning for FREE users */}
+          {discoveryMeta?.user_plan === 'FREE' && discoveryMeta?.applications_remaining !== undefined && discoveryMeta?.applications_remaining !== -1 && (
+            <Alert 
+              severity={discoveryMeta.applications_remaining <= 1 ? "warning" : "info"}
+              sx={{ mt: 1, mb: 3, borderRadius: 2, '& .MuiAlert-message': { width: '100%' } }}
+              icon={<Send sx={{ fontSize: 20 }} />}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {discoveryMeta.applications_remaining === 0 
+                      ? "You've used your daily application"
+                      : `${discoveryMeta.applications_remaining} application remaining today`
+                    }
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {discoveryMeta.applications_remaining === 0 
+                      ? "Upgrade to Pro for unlimited applications"
+                      : "Free plan includes 1 application per day"
+                    }
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    setApplyDialogOpen(false);
+                    navigate('/pricing');
+                  }}
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontWeight: 600,
+                    bgcolor: TEAL,
+                    '&:hover': { bgcolor: TEAL_LIGHT },
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  Upgrade
+                </Button>
+              </Box>
+            </Alert>
+          )}
+          
           {/* If project has custom questions, show only those */}
           {selectedProject?.application_questions?.length > 0 ? (
             <Box>
@@ -1692,13 +1743,14 @@ const SeekerDiscovery = () => {
             onClick={handleApply}
             disabled={
               applying || 
+              (discoveryMeta?.applications_remaining === 0) ||
               (selectedProject?.application_questions?.length > 0 && 
                 !selectedProject.application_questions.every(q => applicationData.question_answers[q]?.trim()))
             }
             startIcon={applying ? <CircularProgress size={16} color="inherit" /> : <Send />}
             sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
           >
-            {applying ? 'Submitting...' : 'Apply'}
+            {applying ? 'Submitting...' : discoveryMeta?.applications_remaining === 0 ? 'Limit reached' : 'Apply'}
           </Button>
         </DialogActions>
       </Dialog>
