@@ -539,16 +539,46 @@ const AdvisorDashboard = () => {
       return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    // Compress image before upload to reduce payload size
+    const compressImage = (imgFile, maxWidth = 400, quality = 0.8) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // Scale down if larger than maxWidth
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to JPEG for better compression
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedDataUrl);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(imgFile);
+      });
+    };
+
+    compressImage(file).then((compressedDataUrl) => {
       setEditProfileImage({
-        preview: e.target.result,
+        preview: compressedDataUrl,
         file: file,
-        contentType: file.type,
+        contentType: 'image/jpeg',
       });
       setEditError(null);
-    };
-    reader.readAsDataURL(file);
+    });
   };
 
   const handleSaveProfile = async () => {
@@ -575,6 +605,7 @@ const AdvisorDashboard = () => {
       const updatedProfile = await response.json();
 
       // Upload image if a new one was selected
+      let imageUploadError = null;
       if (editProfileImage?.file) {
         try {
           const imageResponse = await fetch(`${API_BASE}/advisors/profile/image`, {
@@ -592,15 +623,25 @@ const AdvisorDashboard = () => {
           if (imageResponse.ok) {
             const imgData = await imageResponse.json();
             updatedProfile.profile_image_url = imgData.public_url;
+          } else {
+            const errData = await imageResponse.json().catch(() => ({}));
+            imageUploadError = `Image upload failed: ${errData.error || `Server error (${imageResponse.status})`}. Profile saved, but please try a smaller image.`;
           }
         } catch (imgErr) {
-          console.error('Image upload error:', imgErr);
+          imageUploadError = `Image upload failed: ${imgErr.message || 'Network error'}. Try a smaller image (under 1MB).`;
         }
       }
 
       setProfile(prev => ({ ...prev, ...updatedProfile }));
-      setEditDialogOpen(false);
-      setEditProfileImage(null);
+      
+      if (imageUploadError) {
+        setEditError(imageUploadError);
+        setEditProfileImage(null); // Clear the failed image
+        // Keep dialog open so user sees the error
+      } else {
+        setEditDialogOpen(false);
+        setEditProfileImage(null);
+      }
     } catch (err) {
       setEditError(err.message);
     } finally {
@@ -1572,7 +1613,7 @@ const AdvisorDashboard = () => {
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#334155' }}>
-                        Profile Picture
+                        Profile Picture <Typography component="span" color="error">*</Typography>
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Click the camera icon to upload a photo
@@ -1582,6 +1623,7 @@ const AdvisorDashboard = () => {
 
                   <TextField
                     fullWidth
+                    required
                     label="Headline"
                     value={editFormData.headline}
                     onChange={(e) => handleEditFormChange('headline', e.target.value)}
@@ -1591,6 +1633,7 @@ const AdvisorDashboard = () => {
 
                   <TextField
                     fullWidth
+                    required
                     label="Bio"
                     value={editFormData.bio}
                     onChange={(e) => handleEditFormChange('bio', e.target.value)}
@@ -1603,6 +1646,7 @@ const AdvisorDashboard = () => {
 
                   <TextField
                     fullWidth
+                    required
                     label="LinkedIn Profile URL"
                     value={editFormData.linkedin_url}
                     onChange={(e) => handleEditFormChange('linkedin_url', e.target.value)}
@@ -1678,13 +1722,16 @@ const AdvisorDashboard = () => {
               {/* Tab 1: Expertise */}
               {editTabIndex === 1 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Areas of Expertise</InputLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: -1 }}>
+                    Select all that apply - this helps founders find you based on their needs
+                  </Typography>
+                  <FormControl fullWidth required>
+                    <InputLabel>Areas of Expertise *</InputLabel>
                     <Select
                       multiple
                       value={editFormData.advisory_types || []}
                       onChange={(e) => handleEditFormChange('advisory_types', e.target.value)}
-                      input={<OutlinedInput label="Areas of Expertise" />}
+                      input={<OutlinedInput label="Areas of Expertise *" />}
                       renderValue={(selected) => (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                           {selected.map((value) => (
@@ -1707,13 +1754,13 @@ const AdvisorDashboard = () => {
                     </Select>
                   </FormControl>
 
-                  <FormControl fullWidth>
-                    <InputLabel>Preferred Startup Stages</InputLabel>
+                  <FormControl fullWidth required>
+                    <InputLabel>Preferred Startup Stages *</InputLabel>
                     <Select
                       multiple
                       value={editFormData.preferred_stages || []}
                       onChange={(e) => handleEditFormChange('preferred_stages', e.target.value)}
-                      input={<OutlinedInput label="Preferred Startup Stages" />}
+                      input={<OutlinedInput label="Preferred Startup Stages *" />}
                       renderValue={(selected) => (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                           {selected.map((value) => (
@@ -1736,13 +1783,13 @@ const AdvisorDashboard = () => {
                     </Select>
                   </FormControl>
 
-                  <FormControl fullWidth>
-                    <InputLabel>Industries / Domains</InputLabel>
+                  <FormControl fullWidth required>
+                    <InputLabel>Industries / Domains *</InputLabel>
                     <Select
                       multiple
                       value={editFormData.domains || []}
                       onChange={(e) => handleEditFormChange('domains', e.target.value)}
-                      input={<OutlinedInput label="Industries / Domains" />}
+                      input={<OutlinedInput label="Industries / Domains *" />}
                       renderValue={(selected) => (
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                           {selected.map((value) => (
@@ -1770,13 +1817,20 @@ const AdvisorDashboard = () => {
               {/* Tab 2: Booking Setup */}
               {editTabIndex === 2 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Availability</InputLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: -1 }}>
+                    Set your availability and rates - founders will see this before booking
+                  </Typography>
+                  <FormControl fullWidth required>
+                    <InputLabel>Availability *</InputLabel>
                     <Select
                       value={editFormData.availability_hours_per_week || ''}
                       onChange={(e) => handleEditFormChange('availability_hours_per_week', e.target.value)}
-                      label="Availability"
+                      label="Availability *"
+                      displayEmpty
                     >
+                      <MenuItem value="" disabled sx={{ color: 'text.secondary' }}>
+                        Select your availability
+                      </MenuItem>
                       {AVAILABILITY_OPTIONS.map((opt) => (
                         <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                       ))}
@@ -1840,54 +1894,21 @@ const AdvisorDashboard = () => {
                   <Divider sx={{ my: 1 }} />
 
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
-                    Payment Methods
+                    Payment Link (Optional)
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: -1 }}>
-                    Add at least one way for founders to pay you directly
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: -1, display: 'block', mb: 1 }}>
+                    You can discuss payment details directly with founders during the consultation
                   </Typography>
 
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="UPI ID"
-                        value={editFormData.payment_methods.upi_id}
-                        onChange={(e) => handleEditFormChange('payment_methods.upi_id', e.target.value)}
-                        placeholder="yourname@upi"
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="PayPal URL"
-                        value={editFormData.payment_methods.paypal_url}
-                        onChange={(e) => handleEditFormChange('payment_methods.paypal_url', e.target.value)}
-                        placeholder="paypal.me/yourname"
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Razorpay Link"
-                        value={editFormData.payment_methods.razorpay_link}
-                        onChange={(e) => handleEditFormChange('payment_methods.razorpay_link', e.target.value)}
-                        placeholder="rzp.io/..."
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Bank Details"
-                        value={editFormData.payment_methods.bank_details}
-                        onChange={(e) => handleEditFormChange('payment_methods.bank_details', e.target.value)}
-                        placeholder="Account, IFSC..."
-                        size="small"
-                      />
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    fullWidth
+                    label="PayPal Link"
+                    value={editFormData.payment_methods.paypal_url}
+                    onChange={(e) => handleEditFormChange('payment_methods.paypal_url', e.target.value)}
+                    placeholder="https://paypal.me/yourname"
+                    size="small"
+                    helperText="Optional - founders can pay via this link if you add it"
+                  />
                 </Box>
               )}
             </Box>
