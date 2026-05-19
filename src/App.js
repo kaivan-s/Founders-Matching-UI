@@ -33,6 +33,7 @@ import ConsultationsPage from './Components/ConsultationsPage';
 import CreditsPage from './Components/CreditsPage';
 import AppLayout from './Components/AppLayout';
 import { API_BASE } from './config/api';
+import { identifyUser, resetUser } from './config/posthog';
 import './App.css';
 
 function ScrollToTop() {
@@ -212,6 +213,19 @@ function AppContent() {
       }
     }
   }, [user, location.pathname, navigate]);
+
+  // Identify user with PostHog when logged in
+  useEffect(() => {
+    if (user) {
+      identifyUser(user.id, {
+        email: user.primaryEmailAddress?.emailAddress,
+        name: user.fullName,
+        created_at: user.createdAt,
+      });
+    } else {
+      resetUser();
+    }
+  }, [user]);
 
   const checkUserType = useCallback(async () => {
     try {
