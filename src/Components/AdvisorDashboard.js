@@ -399,6 +399,8 @@ const AdvisorDashboard = () => {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState(null);
   const [editProfileImage, setEditProfileImage] = useState(null); // { preview: dataURL, file: File }
+  const [autoSaveStatus, setAutoSaveStatus] = useState(null); // 'saving', 'saved', 'error'
+  const autoSaveTimerRef = useRef(null);
 
   const fetchLinkedinStatus = useCallback(async () => {
     if (!user?.id) return;
@@ -510,18 +512,57 @@ const AdvisorDashboard = () => {
   };
 
   const handleEditFormChange = (field, value) => {
+    let newFormData;
     if (field.startsWith('payment_methods.')) {
       const paymentField = field.split('.')[1];
-      setEditFormData(prev => ({
-        ...prev,
-        payment_methods: {
-          ...prev.payment_methods,
-          [paymentField]: value,
-        },
-      }));
+      setEditFormData(prev => {
+        newFormData = {
+          ...prev,
+          payment_methods: {
+            ...prev.payment_methods,
+            [paymentField]: value,
+          },
+        };
+        return newFormData;
+      });
     } else {
-      setEditFormData(prev => ({ ...prev, [field]: value }));
+      setEditFormData(prev => {
+        newFormData = { ...prev, [field]: value };
+        return newFormData;
+      });
     }
+    
+    // Debounced auto-save (1.5 seconds after last change)
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    setAutoSaveStatus('saving');
+    
+    autoSaveTimerRef.current = setTimeout(async () => {
+      if (!user?.id) return;
+      try {
+        const response = await fetch(`${API_BASE}/advisors/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Clerk-User-Id': user.id,
+          },
+          body: JSON.stringify(newFormData),
+        });
+        
+        if (response.ok) {
+          const updatedProfile = await response.json();
+          setProfile(prev => ({ ...prev, ...updatedProfile }));
+          setAutoSaveStatus('saved');
+          // Clear "saved" status after 2 seconds
+          setTimeout(() => setAutoSaveStatus(null), 2000);
+        } else {
+          setAutoSaveStatus('error');
+        }
+      } catch (err) {
+        setAutoSaveStatus('error');
+      }
+    }, 1500);
   };
 
   const handleEditImageSelect = (event) => {
@@ -795,6 +836,14 @@ const AdvisorDashboard = () => {
       setCalBookingDraft(String(url).trim());
     }
   }, [profile?.calcom_booking_url]);
+
+  // Cleanup auto-save timer when dialog closes
+  useEffect(() => {
+    if (!editDialogOpen && autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      setAutoSaveStatus(null);
+    }
+  }, [editDialogOpen]);
 
   // Redirect to onboarding if no profile
   useEffect(() => {
@@ -1541,6 +1590,30 @@ const AdvisorDashboard = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Settings sx={{ color: '#0d9488' }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>Edit Profile</Typography>
+              {/* Auto-save status indicator */}
+              {autoSaveStatus && (
+                <Chip
+                  size="small"
+                  label={
+                    autoSaveStatus === 'saving' ? 'Saving...' :
+                    autoSaveStatus === 'saved' ? 'Saved' :
+                    'Save failed'
+                  }
+                  sx={{
+                    ml: 1,
+                    height: 22,
+                    fontSize: '0.7rem',
+                    bgcolor: 
+                      autoSaveStatus === 'saving' ? alpha('#f59e0b', 0.1) :
+                      autoSaveStatus === 'saved' ? alpha('#10b981', 0.1) :
+                      alpha('#ef4444', 0.1),
+                    color: 
+                      autoSaveStatus === 'saving' ? '#f59e0b' :
+                      autoSaveStatus === 'saved' ? '#10b981' :
+                      '#ef4444',
+                  }}
+                />
+              )}
             </Box>
             <IconButton size="small" onClick={() => setEditDialogOpen(false)} disabled={editSaving}>
               <Close />
