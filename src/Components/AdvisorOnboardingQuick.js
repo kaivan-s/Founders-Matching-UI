@@ -13,8 +13,6 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  Avatar,
-  Chip,
 } from '@mui/material';
 import {
   RocketLaunch,
@@ -196,23 +194,17 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
 
         {/* Form */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Name with Avatar */}
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-            <Avatar 
-              src={user?.imageUrl} 
-              sx={{ width: 40, height: 40, mt: 1, flexShrink: 0 }}
-            />
-            <TextField
-              label="Your Name"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              fullWidth
-              required
-              size="small"
-              placeholder="John Smith"
-              helperText="How founders will see you"
-            />
-          </Box>
+          {/* Name */}
+          <TextField
+            label="Your Name"
+            value={formData.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            fullWidth
+            required
+            size="small"
+            placeholder="John Smith"
+            helperText="How founders will see you"
+          />
 
           {/* Headline */}
           <TextField
