@@ -39,6 +39,7 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
 
   const [formData, setFormData] = useState({
     name: user?.fullName || user?.firstName || '',
+    email: user?.emailAddresses?.[0]?.emailAddress || '',
     linkedin_url: '',
     headline: '',
     primary_expertise: '',
@@ -80,8 +81,10 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
   };
 
   const isValid = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return (
       formData.name.trim().length >= 2 &&
+      formData.email.trim() && emailRegex.test(formData.email.trim()) &&
       formData.headline.trim().length >= 5 &&
       formData.primary_expertise
     );
@@ -106,7 +109,7 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
         domains: [],
         languages: ['English'],
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        contact_email: user?.emailAddresses?.[0]?.emailAddress || '',
+        contact_email: formData.email.trim(),
       };
 
       const response = await fetch(`${API_BASE}/advisors/profile`, {
@@ -204,6 +207,19 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
             size="small"
             placeholder="John Smith"
             helperText="How founders will see you"
+          />
+
+          {/* Email */}
+          <TextField
+            label="Contact Email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            fullWidth
+            required
+            size="small"
+            placeholder="you@example.com"
+            helperText="Founders will contact you here"
           />
 
           {/* Headline */}

@@ -498,6 +498,8 @@ const AdvisorDashboard = () => {
       calcom_booking_url: profile.calcom_booking_url || '',
       consultation_rate_30min_usd: profile.consultation_rate_30min_usd ?? '',
       consultation_rate_60min_usd: profile.consultation_rate_60min_usd ?? '',
+      // Preserve contact_email from profile or use user's email
+      contact_email: profile.contact_email || user?.emailAddresses?.[0]?.emailAddress || '',
       payment_methods: {
         upi_id: profile.payment_methods?.upi_id || '',
         paypal_url: profile.payment_methods?.paypal_url || '',
@@ -1894,16 +1896,19 @@ const AdvisorDashboard = () => {
                     Set your availability and rates - founders will see this before booking
                   </Typography>
                   <FormControl fullWidth required>
-                    <InputLabel>Availability *</InputLabel>
+                    <InputLabel shrink>Availability *</InputLabel>
                     <Select
                       value={editFormData.availability_hours_per_week || ''}
                       onChange={(e) => handleEditFormChange('availability_hours_per_week', e.target.value)}
                       label="Availability *"
                       displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) {
+                          return <Typography sx={{ color: 'text.secondary' }}>Select your availability</Typography>;
+                        }
+                        return AVAILABILITY_OPTIONS.find(opt => opt.value === selected)?.label || selected;
+                      }}
                     >
-                      <MenuItem value="" disabled sx={{ color: 'text.secondary' }}>
-                        Select your availability
-                      </MenuItem>
                       {AVAILABILITY_OPTIONS.map((opt) => (
                         <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
                       ))}
