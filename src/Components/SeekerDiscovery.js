@@ -1066,7 +1066,7 @@ const SeekerDiscovery = () => {
                             <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
                               {cardProject.title}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                               <Chip 
                                 label={cardProject.stage?.replace('_', ' ')} 
                                 size="small" 
@@ -1074,6 +1074,19 @@ const SeekerDiscovery = () => {
                               />
                               {cardProject.genre && (
                                 <Chip label={cardProject.genre} size="small" sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }} />
+                              )}
+                              {cardProject.has_insights && (
+                                <Chip 
+                                  icon={<AutoAwesome sx={{ fontSize: 14 }} />}
+                                  label="AI Insights" 
+                                  size="small" 
+                                  sx={{ 
+                                    bgcolor: alpha(TEAL, 0.1), 
+                                    color: TEAL, 
+                                    fontWeight: 600,
+                                    '& .MuiChip-icon': { color: TEAL },
+                                  }} 
+                                />
                               )}
                             </Box>
                           </Box>
