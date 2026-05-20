@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -51,6 +52,7 @@ const BG = '#f8fafc';
 
 const MyProjects = () => {
   const { user } = useUser();
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,58 +86,7 @@ const MyProjects = () => {
     { value: 'growth', label: 'Growth Stage' }
   ];
 
-  useEffect(() => {
-    fetchProjects();
-    fetchInsightsUsage();
-  }, [user]);
-
-  useEffect(() => {
-    // Fetch insights for all projects when projects are loaded
-    if (projects.length > 0) {
-      projects.forEach(project => {
-        fetchProjectInsights(project.id);
-      });
-    }
-  }, [projects]);
-
-  const fetchProjects = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/projects`, {
-        headers: {
-          'X-Clerk-User-Id': user.id,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch projects');
-      }
-
-      const data = await response.json();
-      setProjects(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchInsightsUsage = async () => {
-    if (!user?.id) return;
-    try {
-      const response = await fetch(`${API_BASE}/insights/usage`, {
-        headers: { 'X-Clerk-User-Id': user.id },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setInsightsUsage(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch insights usage:', err);
-    }
-  };
-
-  const fetchProjectInsights = async (projectId) => {
+  const fetchProjectInsights = useCallback(async (projectId) => {
     if (!user?.id) return;
     try {
       const response = await fetch(`${API_BASE}/projects/${projectId}/insights`, {
@@ -150,7 +101,91 @@ const MyProjects = () => {
     } catch (err) {
       console.error('Failed to fetch project insights:', err);
     }
-  };
+  }, [user?.id]);
+
+  const refreshAll = useCallback(async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [projectsRes, usageRes] = await Promise.all([
+        fetch(`${API_BASE}/projects`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        }),
+        fetch(`${API_BASE}/insights/usage`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        }),
+      ]);
+
+      if (!projectsRes.ok) {
+        const errorData = await projectsRes.json();
+        throw new Error(errorData.error || 'Failed to fetch projects');
+      }
+
+      const projectsData = await projectsRes.json();
+      setProjects(projectsData);
+
+      if (usageRes.ok) {
+        const usageData = await usageRes.json();
+        setInsightsUsage(usageData);
+      }
+
+      // Fetch insights for each project
+      if (projectsData.length > 0) {
+        const insightsResults = await Promise.all(
+          projectsData.map(async (project) => {
+            try {
+              const res = await fetch(`${API_BASE}/projects/${project.id}/insights`, {
+                headers: { 'X-Clerk-User-Id': user.id },
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data && data.id) {
+                  return { projectId: project.id, data };
+                }
+              }
+            } catch (err) {
+              console.error(`Failed to fetch insights for project ${project.id}:`, err);
+            }
+            return null;
+          })
+        );
+
+        const insightsMap = {};
+        insightsResults.forEach((result) => {
+          if (result) {
+            insightsMap[result.projectId] = result.data;
+          }
+        });
+        setProjectInsights(insightsMap);
+      } else {
+        setProjectInsights({});
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Initial load and refresh when navigated here after project creation
+  useEffect(() => {
+    refreshAll();
+  }, [refreshAll, location.state?.refreshProjects]);
+
+  // Listen for projectCreated event (when already on /projects page)
+  useEffect(() => {
+    const handleProjectCreated = () => {
+      refreshAll();
+    };
+
+    window.addEventListener('projectCreated', handleProjectCreated);
+    return () => {
+      window.removeEventListener('projectCreated', handleProjectCreated);
+    };
+  }, [refreshAll]);
 
   const handleGenerateInsights = async (projectId, e) => {
     if (e) e.stopPropagation();
@@ -183,8 +218,16 @@ const MyProjects = () => {
       
       // Update the insights for this project
       setProjectInsights(prev => ({ ...prev, [projectId]: data }));
-      // Refresh usage
-      fetchInsightsUsage();
+      try {
+        const usageRes = await fetch(`${API_BASE}/insights/usage`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        if (usageRes.ok) {
+          setInsightsUsage(await usageRes.json());
+        }
+      } catch (usageErr) {
+        console.error('Failed to refresh insights usage:', usageErr);
+      }
       
     } catch (err) {
       setError(err.message || 'Failed to generate insights');
@@ -244,7 +287,7 @@ const MyProjects = () => {
         throw new Error(errorData.error || 'Failed to update project');
       }
 
-      await fetchProjects();
+      await refreshAll();
       setEditDialogOpen(false);
       setEditingProject(null);
       setError(null);
@@ -289,7 +332,7 @@ const MyProjects = () => {
         throw new Error(errorData.error || 'Failed to delete project');
       }
 
-      await fetchProjects();
+      await refreshAll();
       setDeleteDialogOpen(false);
       setProjectToDelete(null);
       setError(null);

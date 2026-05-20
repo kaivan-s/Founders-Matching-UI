@@ -416,7 +416,11 @@ const AppLayout = ({ children }) => {
         onClose={() => setNewProjectDialogOpen(false)}
         onProjectCreated={() => {
           setNewProjectDialogOpen(false);
-          window.dispatchEvent(new Event('projectCreated'));
+          navigate('/projects', { state: { refreshProjects: Date.now() } });
+          // Defer until after navigation so MyProjects is mounted and listening
+          setTimeout(() => {
+            window.dispatchEvent(new Event('projectCreated'));
+          }, 0);
         }}
       />
     </Box>
