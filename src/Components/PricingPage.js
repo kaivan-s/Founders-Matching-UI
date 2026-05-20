@@ -36,6 +36,7 @@ import {
   Warning,
   CancelOutlined,
   Rocket,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
@@ -313,12 +314,14 @@ const PricingPage = () => {
       { icon: <People />, text: 'Unlimited applications' },
       { icon: <Rocket />, text: 'Up to 3 projects' },
       { icon: <Business />, text: 'Unlimited workspaces' },
+      { icon: <AutoAwesome />, text: 'AI project insights — idea validation & competition analysis (3/month)' },
       { icon: <Star />, text: 'Revisit passed opportunities' },
       { icon: <Star />, text: 'Advisor marketplace access' },
     ],
     PRO_PLUS: [
       { icon: <TrendingUp />, text: '50 personalized opportunities (10x more)' },
       { icon: <People />, text: 'Unlimited applications' },
+      { icon: <AutoAwesome />, text: 'AI project insights — 10 reports per month' },
       { icon: <Star />, text: 'Post-match support (30 days)' },
       { icon: <Star />, text: 'Priority support' },
       { icon: <Check />, text: 'Everything in Pro' },

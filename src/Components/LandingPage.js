@@ -216,6 +216,15 @@ const LandingPage = () => {
     },
     { 
       icon: <AutoAwesome />, 
+      title: 'AI Project Insights', 
+      tagline: 'Validate ideas when you create a project',
+      preview: {
+        items: ['Market overview', 'Competitor landscape', 'SWOT & recommendations'],
+        label: 'Pro & Pro+ — generate on project creation'
+      }
+    },
+    { 
+      icon: <Handshake />, 
       title: 'Advisor Marketplace', 
       tagline: 'Expert guidance on demand',
       preview: {
@@ -242,6 +251,7 @@ const LandingPage = () => {
         'Unlimited applications',
         'Up to 3 projects',
         'Unlimited workspaces',
+        'AI project insights on creation (3/month)',
         'Revisit passed opportunities',
         'Advisor marketplace',
       ],
@@ -250,6 +260,7 @@ const LandingPage = () => {
       name: 'Pro+', price: '$29/mo', popular: false,
       features: [
         '50 personalized opportunities (10x more)',
+        'AI project insights (10/month)',
         '30-day post-match support',
         'Priority support',
         'Everything in Pro',
@@ -563,6 +574,22 @@ const LandingPage = () => {
                       )}
                       
                       {index === 5 && (
+                        /* AI Project Insights - Report sections */
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {['Market overview', 'Competitors', 'SWOT'].map((section, i) => (
+                            <Box key={i} sx={{ 
+                              p: 0.75, borderRadius: 1, bgcolor: alpha(TEAL, 0.05),
+                              border: `1px solid ${i === 0 ? TEAL : SLATE_200}`,
+                              display: 'flex', alignItems: 'center', gap: 0.75,
+                            }}>
+                              <AutoAwesome sx={{ fontSize: 10, color: TEAL }} />
+                              <Typography sx={{ fontSize: '0.55rem', color: SLATE_900, fontWeight: i === 0 ? 600 : 400 }}>{section}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {index === 6 && (
                         /* Advisor Marketplace - Advisor Cards */
                         <Box sx={{ flex: 1, display: 'flex', gap: 0.5 }}>
                           {['⭐ 4.9', '⭐ 4.8'].map((rating, i) => (
@@ -1443,7 +1470,7 @@ const LandingPage = () => {
             Simple subscription plans
           </Typography>
           <Typography variant="body1" sx={{ color: SLATE_500, mt: 1.5, maxWidth: 560, mx: 'auto' }}>
-            All workspace features included in every plan. Upgrade for more opportunities, unlimited applications, and access to the advisor marketplace.
+            All workspace features included in every plan. Upgrade for more opportunities, unlimited applications, AI project insights when you create a project, and access to the advisor marketplace.
           </Typography>
         </Box>
 
