@@ -20,6 +20,8 @@ import {
   Tabs,
   Tab,
   alpha,
+  Tooltip,
+  LinearProgress,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import { 
@@ -31,6 +33,8 @@ import {
   Close,
   Psychology,
   Lock,
+  AutoAwesome,
+  Visibility,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { PROJECT_COMPATIBILITY_QUESTIONS } from './ProjectCompatibilityQuiz';
@@ -65,6 +69,13 @@ const MyProjects = () => {
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  
+  // Insights state
+  const [insightsUsage, setInsightsUsage] = useState(null);
+  const [projectInsights, setProjectInsights] = useState({});
+  const [generatingInsightsFor, setGeneratingInsightsFor] = useState(null);
+  const [insightsDialogOpen, setInsightsDialogOpen] = useState(false);
+  const [selectedInsights, setSelectedInsights] = useState(null);
 
   const projectStages = [
     { value: 'idea', label: 'Just an Idea' },
@@ -75,7 +86,17 @@ const MyProjects = () => {
 
   useEffect(() => {
     fetchProjects();
+    fetchInsightsUsage();
   }, [user]);
+
+  useEffect(() => {
+    // Fetch insights for all projects when projects are loaded
+    if (projects.length > 0) {
+      projects.forEach(project => {
+        fetchProjectInsights(project.id);
+      });
+    }
+  }, [projects]);
 
   const fetchProjects = async () => {
     try {
@@ -96,6 +117,88 @@ const MyProjects = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInsightsUsage = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/insights/usage`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInsightsUsage(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch insights usage:', err);
+    }
+  };
+
+  const fetchProjectInsights = async (projectId) => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`${API_BASE}/projects/${projectId}/insights`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.id) {
+          setProjectInsights(prev => ({ ...prev, [projectId]: data }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch project insights:', err);
+    }
+  };
+
+  const handleGenerateInsights = async (projectId, e) => {
+    if (e) e.stopPropagation();
+    if (!user?.id || generatingInsightsFor) return;
+    
+    setGeneratingInsightsFor(projectId);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE}/projects/${projectId}/insights/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (data.upgrade_required) {
+          setError('Upgrade to Pro or Pro+ to generate AI insights.');
+        } else if (data.limit_reached) {
+          setError('Monthly insights limit reached. Try again next month.');
+        } else {
+          throw new Error(data.error || 'Failed to generate insights');
+        }
+        return;
+      }
+      
+      // Update the insights for this project
+      setProjectInsights(prev => ({ ...prev, [projectId]: data }));
+      // Refresh usage
+      fetchInsightsUsage();
+      
+    } catch (err) {
+      setError(err.message || 'Failed to generate insights');
+    } finally {
+      setGeneratingInsightsFor(null);
+    }
+  };
+
+  const handleViewInsights = (projectId, e) => {
+    if (e) e.stopPropagation();
+    const insights = projectInsights[projectId];
+    if (insights && insights.report_data) {
+      setSelectedInsights(insights);
+      setInsightsDialogOpen(true);
     }
   };
 
@@ -365,6 +468,10 @@ const MyProjects = () => {
 
             {projects.map((project, index) => {
               const stageColor = getStageColor(project.stage);
+              const insights = projectInsights[project.id];
+              const hasInsights = insights && insights.status === 'completed' && insights.report_data;
+              const isGenerating = generatingInsightsFor === project.id || (insights && insights.status === 'generating');
+              
               return (
                 <motion.div
                   key={project.id}
@@ -397,19 +504,37 @@ const MyProjects = () => {
                         <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
                           {project.title}
                         </Typography>
-                        <Chip
-                          label={projectStages.find(s => s.value === project.stage)?.label || project.stage}
-                          size="small"
-                          sx={{
-                            bgcolor: stageColor.bg,
-                            color: stageColor.color,
-                            border: `1px solid ${alpha(stageColor.color, 0.3)}`,
-                            textTransform: 'capitalize',
-                            fontSize: '0.7rem',
-                            height: 24,
-                            fontWeight: 500,
-                          }}
-                        />
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <Chip
+                            label={projectStages.find(s => s.value === project.stage)?.label || project.stage}
+                            size="small"
+                            sx={{
+                              bgcolor: stageColor.bg,
+                              color: stageColor.color,
+                              border: `1px solid ${alpha(stageColor.color, 0.3)}`,
+                              textTransform: 'capitalize',
+                              fontSize: '0.7rem',
+                              height: 24,
+                              fontWeight: 500,
+                            }}
+                          />
+                          {hasInsights && (
+                            <Chip
+                              icon={<AutoAwesome sx={{ fontSize: 14 }} />}
+                              label="Insights"
+                              size="small"
+                              sx={{
+                                bgcolor: alpha('#8b5cf6', 0.1),
+                                color: '#8b5cf6',
+                                border: `1px solid ${alpha('#8b5cf6', 0.3)}`,
+                                fontSize: '0.7rem',
+                                height: 24,
+                                fontWeight: 500,
+                                '& .MuiChip-icon': { color: '#8b5cf6' }
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <IconButton
@@ -452,7 +577,7 @@ const MyProjects = () => {
                         mb: 2,
                         color: SLATE_500,
                         display: '-webkit-box',
-                        WebkitLineClamp: 4,
+                        WebkitLineClamp: 3,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
                         lineHeight: 1.6,
@@ -461,11 +586,91 @@ const MyProjects = () => {
                       {project.description}
                     </Typography>
 
-                    {project.created_at && (
-                      <Typography variant="caption" sx={{ color: SLATE_400 }}>
-                        Created {new Date(project.created_at).toLocaleDateString()}
-                      </Typography>
-                    )}
+                    {/* Insights Actions */}
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1, 
+                      pt: 1.5,
+                      borderTop: '1px solid',
+                      borderColor: SLATE_200,
+                      mt: 'auto'
+                    }}>
+                      {isGenerating ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                          <CircularProgress size={16} sx={{ color: TEAL }} />
+                          <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                            Generating insights...
+                          </Typography>
+                        </Box>
+                      ) : hasInsights ? (
+                        <Tooltip title="View AI Insights">
+                          <Button
+                            size="small"
+                            onClick={(e) => handleViewInsights(project.id, e)}
+                            startIcon={<Visibility sx={{ fontSize: 16 }} />}
+                            sx={{
+                              textTransform: 'none',
+                              color: '#8b5cf6',
+                              fontWeight: 500,
+                              fontSize: '0.75rem',
+                              '&:hover': {
+                                bgcolor: alpha('#8b5cf6', 0.08),
+                              },
+                            }}
+                          >
+                            View Insights
+                          </Button>
+                        </Tooltip>
+                      ) : insightsUsage?.can_generate ? (
+                        <Tooltip title={`Generate AI insights (${insightsUsage.remaining} remaining this month)`}>
+                          <Button
+                            size="small"
+                            onClick={(e) => handleGenerateInsights(project.id, e)}
+                            startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
+                            sx={{
+                              textTransform: 'none',
+                              color: TEAL,
+                              fontWeight: 500,
+                              fontSize: '0.75rem',
+                              '&:hover': {
+                                bgcolor: alpha(TEAL, 0.08),
+                              },
+                            }}
+                          >
+                            Generate Insights
+                          </Button>
+                        </Tooltip>
+                      ) : insightsUsage?.tier === 'FREE' ? (
+                        <Tooltip title="Upgrade to Pro to generate AI insights">
+                          <Button
+                            size="small"
+                            href="/pricing"
+                            startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
+                            sx={{
+                              textTransform: 'none',
+                              color: SLATE_400,
+                              fontWeight: 500,
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            Upgrade for Insights
+                          </Button>
+                        </Tooltip>
+                      ) : (
+                        <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                          Monthly limit reached
+                        </Typography>
+                      )}
+                      
+                      <Box sx={{ flex: 1 }} />
+                      
+                      {project.created_at && (
+                        <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                          {new Date(project.created_at).toLocaleDateString()}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
                 </motion.div>
               );
@@ -881,6 +1086,221 @@ const MyProjects = () => {
                 Close
               </Button>
             </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* Insights View Dialog */}
+      <Dialog
+        open={insightsDialogOpen}
+        onClose={() => {
+          setInsightsDialogOpen(false);
+          setSelectedInsights(null);
+        }}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: SLATE_200,
+            maxHeight: '90vh',
+          }
+        }}
+      >
+        {selectedInsights && selectedInsights.report_data && (
+          <>
+            <DialogTitle sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: 1.5,
+              borderBottom: '1px solid',
+              borderColor: SLATE_200,
+            }}>
+              <Box sx={{ 
+                p: 1, 
+                borderRadius: '8px', 
+                bgcolor: alpha('#8b5cf6', 0.1),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <AutoAwesome sx={{ color: '#8b5cf6', fontSize: 24 }} />
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                  AI-Powered Insights
+                </Typography>
+                <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                  Market research & competitor analysis
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }} />
+              <IconButton onClick={() => setInsightsDialogOpen(false)} size="small">
+                <Close />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Executive Summary */}
+                {selectedInsights.report_data.executive_summary && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
+                      Executive Summary
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.7 }}>
+                      {selectedInsights.report_data.executive_summary}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Market Overview */}
+                {selectedInsights.report_data.market_overview && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
+                      Market Overview
+                    </Typography>
+                    <Box sx={{ pl: 2, borderLeft: '3px solid', borderColor: alpha(TEAL, 0.3) }}>
+                      {selectedInsights.report_data.market_overview.market_size && (
+                        <Box sx={{ mb: 1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_500 }}>Market Size</Typography>
+                          <Typography variant="body2">{selectedInsights.report_data.market_overview.market_size}</Typography>
+                        </Box>
+                      )}
+                      {selectedInsights.report_data.market_overview.growth_trends && (
+                        <Box sx={{ mb: 1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_500 }}>Growth Trends</Typography>
+                          <Typography variant="body2">{selectedInsights.report_data.market_overview.growth_trends}</Typography>
+                        </Box>
+                      )}
+                      {selectedInsights.report_data.market_overview.key_drivers?.length > 0 && (
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_500 }}>Key Drivers</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                            {selectedInsights.report_data.market_overview.key_drivers.map((driver, i) => (
+                              <Chip key={i} label={driver} size="small" sx={{ fontSize: '0.7rem' }} />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Competitors */}
+                {selectedInsights.report_data.competitors?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
+                      Competitor Landscape
+                    </Typography>
+                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+                      {selectedInsights.report_data.competitors.map((competitor, i) => (
+                        <Box key={i} sx={{ p: 2, bgcolor: BG, borderRadius: '8px', border: '1px solid', borderColor: SLATE_200 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{competitor.name}</Typography>
+                          <Typography variant="caption" sx={{ color: SLATE_500 }}>{competitor.description}</Typography>
+                          {competitor.funding && (
+                            <Chip label={competitor.funding} size="small" sx={{ mt: 1, fontSize: '0.65rem', height: 20 }} />
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* SWOT Analysis */}
+                {selectedInsights.report_data.swot && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
+                      SWOT Analysis
+                    </Typography>
+                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      {['strengths', 'weaknesses', 'opportunities', 'threats'].map((key) => (
+                        <Box key={key} sx={{ 
+                          p: 2, 
+                          borderRadius: '8px', 
+                          bgcolor: key === 'strengths' ? alpha('#22c55e', 0.05) : 
+                                   key === 'weaknesses' ? alpha('#ef4444', 0.05) :
+                                   key === 'opportunities' ? alpha('#3b82f6', 0.05) : alpha('#f59e0b', 0.05),
+                          border: '1px solid',
+                          borderColor: key === 'strengths' ? alpha('#22c55e', 0.2) : 
+                                       key === 'weaknesses' ? alpha('#ef4444', 0.2) :
+                                       key === 'opportunities' ? alpha('#3b82f6', 0.2) : alpha('#f59e0b', 0.2),
+                        }}>
+                          <Typography variant="caption" sx={{ 
+                            fontWeight: 600, 
+                            textTransform: 'uppercase',
+                            color: key === 'strengths' ? '#22c55e' : 
+                                   key === 'weaknesses' ? '#ef4444' :
+                                   key === 'opportunities' ? '#3b82f6' : '#f59e0b',
+                          }}>
+                            {key}
+                          </Typography>
+                          <Box component="ul" sx={{ m: 0, pl: 2, mt: 1 }}>
+                            {selectedInsights.report_data.swot[key]?.map((item, i) => (
+                              <Typography component="li" key={i} variant="caption" sx={{ mb: 0.5 }}>
+                                {item}
+                              </Typography>
+                            ))}
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Recommendations */}
+                {selectedInsights.report_data.recommendations?.length > 0 && (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
+                      Recommendations
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {selectedInsights.report_data.recommendations.map((rec, i) => (
+                        <Box key={i} sx={{ 
+                          p: 2, 
+                          bgcolor: BG, 
+                          borderRadius: '8px',
+                          border: '1px solid',
+                          borderColor: SLATE_200,
+                          display: 'flex',
+                          gap: 2,
+                          alignItems: 'flex-start'
+                        }}>
+                          <Box sx={{ 
+                            minWidth: 24, 
+                            height: 24, 
+                            borderRadius: '50%', 
+                            bgcolor: TEAL, 
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
+                          }}>
+                            {rec.priority || i + 1}
+                          </Box>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>{rec.action}</Typography>
+                            {rec.rationale && (
+                              <Typography variant="caption" sx={{ color: SLATE_500 }}>{rec.rationale}</Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Generation metadata */}
+                <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+                  <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                    Generated on {new Date(selectedInsights.completed_at || selectedInsights.created_at).toLocaleDateString()} 
+                    {selectedInsights.model_used && ` • Model: ${selectedInsights.model_used}`}
+                  </Typography>
+                </Box>
+              </Box>
+            </DialogContent>
           </>
         )}
       </Dialog>

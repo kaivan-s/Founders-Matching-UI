@@ -101,9 +101,8 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
   const filteredPartners = partners.filter((partner) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    const partnerUser = partner.user || {};
     return (
-      partnerUser.name?.toLowerCase().includes(query) ||
+      partner.name?.toLowerCase().includes(query) ||
       partner.headline?.toLowerCase().includes(query) ||
       partner.bio?.toLowerCase().includes(query) ||
       partner.domains?.some((d) => d.toLowerCase().includes(query))
@@ -288,7 +287,6 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {filteredPartners.map((partner) => {
-                const partnerUser = partner.user || {};
                 const rate30 = formatRate(partner.consultation_rate_30min_usd);
                 const rate60 = formatRate(partner.consultation_rate_60min_usd);
                 const isBookable = !!(rate30 || rate60);
@@ -324,7 +322,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                           }}
                         >
-                          {partnerUser.name?.[0]?.toUpperCase() || 'P'}
+                          {partner.name?.[0]?.toUpperCase() || 'P'}
                         </Avatar>
                         
                         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -341,7 +339,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                                     textOverflow: 'ellipsis',
                                   }}
                                 >
-                                  {partnerUser.name || 'Unknown'}
+                                  {partner.name || 'Unknown'}
                                 </Typography>
                                 {partner.marketplace_broadened && partner.marketplace_stage_match && (
                                   <Chip label="Stage fit" size="small" sx={{ height: 22, fontSize: '0.7rem' }} />
@@ -581,18 +579,6 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                               </Box>
                             )}
                             
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                              <Person 
-                                fontSize="small" 
-                                sx={{ 
-                                  color: 'text.secondary',
-                                  fontSize: 16,
-                                }} 
-                              />
-                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                {partner.current_active_workspaces || 0}/{partner.max_active_workspaces} slots
-                              </Typography>
-                            </Box>
                           </Box>
                         </Box>
                       </Box>
@@ -669,7 +655,7 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
 
   if (!advisor) return null;
 
-  const advisorName = advisor.user?.name || 'Advisor';
+  const advisorName = advisor.name || 'Advisor';
   const ratingBreakdown = stats?.rating_breakdown || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   const totalReviews = stats?.total_reviews || 0;
 
@@ -856,7 +842,6 @@ const AdvisorDetailDialog = ({
 }) => {
   if (!advisor) return null;
 
-  const partnerUser = advisor.user || {};
   const rate30 = formatRate(advisor.consultation_rate_30min_usd);
   const rate60 = formatRate(advisor.consultation_rate_60min_usd);
   const isBookable = !!(rate30 || rate60);
@@ -914,11 +899,11 @@ const AdvisorDetailDialog = ({
               bgcolor: 'primary.dark',
             }}
           >
-            {partnerUser.name?.[0]?.toUpperCase() || 'A'}
+            {advisor.name?.[0]?.toUpperCase() || 'A'}
           </Avatar>
           
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-            {partnerUser.name || 'Advisor'}
+            {advisor.name || 'Advisor'}
           </Typography>
           
           {advisor.headline && (

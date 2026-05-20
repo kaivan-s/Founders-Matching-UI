@@ -24,8 +24,9 @@ import {
   Chip,
   Tooltip,
   FormHelperText,
+  Paper,
 } from '@mui/material';
-import { InfoOutlined, Lock, LockOpen } from '@mui/icons-material';
+import { InfoOutlined, Lock, LockOpen, AutoAwesome, SkipNext } from '@mui/icons-material';
 import { Business, Rocket, Psychology, ArrowBack, ArrowForward, TrendingUp, AttachMoney, Groups, Schedule } from '@mui/icons-material';
 import { useUser } from '@clerk/clerk-react';
 import ProjectCompatibilityQuiz from './ProjectCompatibilityQuiz';
@@ -49,6 +50,8 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
   const [compatibilityAnswers, setCompatibilityAnswers] = useState({});
   const dialogContentRef = useRef(null);
   const [projectLimit, setProjectLimit] = useState(null);
+  const [insightsUsage, setInsightsUsage] = useState(null);
+  const [generatingInsights, setGeneratingInsights] = useState(false);
 
   useEffect(() => {
     dialogContentRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' });
@@ -57,6 +60,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
   useEffect(() => {
     if (open && user?.id) {
       fetchProjectLimit();
+      fetchInsightsUsage();
     }
   }, [open, user]);
 
@@ -73,6 +77,20 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       console.error('Failed to fetch project limit:', err);
     }
   };
+
+  const fetchInsightsUsage = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/insights/usage`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInsightsUsage(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch insights usage:', err);
+    }
+  };
   
   const steps = [
     { label: 'Project Info', icon: <Business />, category: null },
@@ -81,6 +99,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     { label: 'Roles & Equity', icon: <AttachMoney />, category: 'Roles & equity' },
     { label: 'Culture & Team', icon: <Groups />, category: 'Culture & team setup' },
     { label: 'Conflict & Stress', icon: <Psychology />, category: 'Conflict & communication under stress' },
+    { label: 'Review & Insights', icon: <AutoAwesome />, category: null, isValidation: true },
   ];
   
   const totalSteps = steps.length;
@@ -228,6 +247,11 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       return formData.title.trim() && formData.description.trim() && formData.genre && formData.needed_skills && formData.needed_skills.length > 0;
     }
     
+    // Validation step (last step) - always valid, it's a review step
+    if (steps[step]?.isValidation) {
+      return true;
+    }
+    
     // For compatibility quiz steps, validate questions for that category
     const category = steps[step]?.category;
     if (category && questionsByCategory[category]) {
@@ -266,13 +290,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     setCurrentStep(prev => prev - 1);
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
-      const category = steps[currentStep]?.category;
-      setError(`Please answer all ${category || 'compatibility'} questions`);
-      return;
-    }
-    
+  const handleSubmit = async (generateInsights = false) => {
     // Final validation: ensure all 15 questions are answered
     const allQuestions = Object.values(questionsByCategory).flat();
     if (allQuestions.some(qId => !compatibilityAnswers[qId])) {
@@ -284,6 +302,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
     setError(null);
 
     try {
+      // First, create the project
       const response = await fetch(`${API_BASE}/projects`, {
         method: 'POST',
         headers: {
@@ -308,6 +327,25 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         throw new Error(data.error || 'Failed to create project');
       }
 
+      // If user wants to generate insights, do it now
+      if (generateInsights && data.id) {
+        setGeneratingInsights(true);
+        try {
+          await fetch(`${API_BASE}/projects/${data.id}/insights/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Clerk-User-Id': user.id,
+            },
+          });
+          // Insights generation started - it may take a while
+        } catch (insightsErr) {
+          console.error('Failed to generate insights:', insightsErr);
+          // Don't fail the whole project creation if insights fail
+        }
+        setGeneratingInsights(false);
+      }
+
       // Call success callback
       if (onProjectCreated) {
         onProjectCreated(data);
@@ -326,16 +364,18 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       setOtherSkill('');
       setCompatibilityAnswers({});
       setCurrentStep(0);
+      setInsightsUsage(null);
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to create project. Please try again.');
     } finally {
       setLoading(false);
+      setGeneratingInsights(false);
     }
   };
 
   const handleClose = () => {
-    if (!loading) {
+    if (!loading && !generatingInsights) {
       setFormData({
         title: '',
         description: '',
@@ -349,6 +389,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       setCompatibilityAnswers({});
       setCurrentStep(0);
       setError(null);
+      setInsightsUsage(null);
       onClose();
     }
   };
@@ -875,7 +916,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
           </Box>
         )}
 
-        {currentStep > 0 && (
+        {currentStep > 0 && currentStep < totalSteps - 1 && (
           <ProjectCompatibilityQuiz
             answers={compatibilityAnswers}
             onChange={handleCompatibilityAnswerChange}
@@ -883,12 +924,164 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             progress={getCategoryProgress(currentStep)}
           />
         )}
+
+        {/* Validation Step - Review & Generate Insights */}
+        {currentStep === totalSteps - 1 && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+            {/* Project Summary */}
+            <Paper sx={{ p: 3, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: '#0f172a' }}>
+                Project Summary
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Title</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{formData.title}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Description</Typography>
+                  <Typography variant="body2" sx={{ color: '#475569' }}>
+                    {formData.description.length > 200 ? `${formData.description.substring(0, 200)}...` : formData.description}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 3 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Stage</Typography>
+                    <Typography variant="body2">{projectStages.find(s => s.value === formData.stage)?.label}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Genre</Typography>
+                    <Typography variant="body2">{projectGenres.find(g => g.value === formData.genre)?.label}</Typography>
+                  </Box>
+                </Box>
+                {formData.needed_skills.length > 0 && (
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, mb: 0.5, display: 'block' }}>Skills Needed</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {formData.needed_skills.map(skill => (
+                        <Chip key={skill} label={skill} size="small" sx={{ bgcolor: 'rgba(13, 148, 136, 0.08)', color: '#0d9488', fontSize: '0.7rem' }} />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+
+            {/* AI Insights Section */}
+            <Paper sx={{ 
+              p: 3, 
+              borderRadius: '12px', 
+              border: '2px solid',
+              borderColor: insightsUsage?.can_generate ? '#0d9488' : '#e2e8f0',
+              bgcolor: insightsUsage?.can_generate ? 'rgba(13, 148, 136, 0.02)' : '#fff'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <Box sx={{ 
+                  p: 1.5, 
+                  borderRadius: '12px', 
+                  bgcolor: insightsUsage?.can_generate ? 'rgba(13, 148, 136, 0.1)' : '#f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <AutoAwesome sx={{ fontSize: 24, color: insightsUsage?.can_generate ? '#0d9488' : '#94a3b8' }} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5, color: '#0f172a' }}>
+                    AI-Powered Idea Validation
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
+                    Get comprehensive market research, competitor analysis, SWOT analysis, and actionable recommendations powered by AI.
+                  </Typography>
+
+                  {/* Show tier-specific messaging */}
+                  {insightsUsage?.tier === 'FREE' && (
+                    <Alert 
+                      severity="info" 
+                      sx={{ 
+                        borderRadius: '8px', 
+                        bgcolor: '#f0f9ff', 
+                        border: '1px solid #bae6fd',
+                        '& .MuiAlert-message': { width: '100%' }
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                        Upgrade to Pro to unlock AI Insights
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>
+                        Pro users get 3 reports/month, Pro+ users get 10 reports/month.
+                      </Typography>
+                      <Button 
+                        size="small" 
+                        href="/pricing" 
+                        sx={{ 
+                          mt: 1, 
+                          textTransform: 'none', 
+                          fontWeight: 600, 
+                          color: '#0d9488' 
+                        }}
+                      >
+                        View Plans
+                      </Button>
+                    </Alert>
+                  )}
+
+                  {insightsUsage?.tier !== 'FREE' && insightsUsage?.can_generate && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Chip 
+                          label={insightsUsage.tier === 'PRO_PLUS' ? 'Pro+' : 'Pro'} 
+                          size="small" 
+                          sx={{ 
+                            bgcolor: insightsUsage.tier === 'PRO_PLUS' ? '#8b5cf6' : '#0d9488', 
+                            color: 'white',
+                            fontWeight: 600,
+                            fontSize: '0.7rem'
+                          }} 
+                        />
+                        <Typography variant="caption" sx={{ color: '#64748b' }}>
+                          {insightsUsage.remaining} of {insightsUsage.max_allowed} reports remaining this month
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: '#475569' }}>
+                        The report includes: Market Overview, Competitor Analysis, SWOT, Key Risks, and Recommendations.
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {insightsUsage?.tier !== 'FREE' && !insightsUsage?.can_generate && (
+                    <Alert 
+                      severity="warning" 
+                      sx={{ 
+                        borderRadius: '8px',
+                        '& .MuiAlert-message': { width: '100%' }
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        Monthly limit reached ({insightsUsage.current_usage}/{insightsUsage.max_allowed})
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b' }}>
+                        Your limit resets at the beginning of next month. You can still generate insights later from the My Projects page.
+                      </Typography>
+                    </Alert>
+                  )}
+                </Box>
+              </Box>
+            </Paper>
+
+            <Alert severity="info" sx={{ borderRadius: '12px', bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <Typography variant="body2">
+                <strong>Note:</strong> You can always generate insights later from the My Projects page or view them in your workspace after finding a match.
+              </Typography>
+            </Alert>
+          </Box>
+        )}
       </DialogContent>
       
       <DialogActions sx={{ p: 3, pt: 2, borderTop: '1px solid #e2e8f0' }}>
         <Button 
           onClick={handleClose}
-          disabled={loading}
+          disabled={loading || generatingInsights}
           sx={{ 
             textTransform: 'none',
             color: '#64748b',
@@ -903,7 +1096,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         {currentStep > 0 && (
           <Button
             onClick={handleBack}
-            disabled={loading}
+            disabled={loading || generatingInsights}
             startIcon={<ArrowBack />}
             sx={{ 
               textTransform: 'none',
@@ -943,30 +1136,90 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             Next
           </Button>
         ) : (
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={loading || !validateStep(currentStep) || (projectLimit && !projectLimit.can_create)}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Business />}
-            sx={{
-              bgcolor: '#0d9488',
-              color: 'white',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 4,
-              py: 1,
-              borderRadius: '12px',
-              '&:hover': {
-                bgcolor: '#14b8a6',
-              },
-              '&:disabled': {
-                bgcolor: '#cbd5e1',
-                color: '#94a3b8',
-              },
-            }}
-          >
-            {loading ? 'Creating...' : 'Create Project'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            {/* Skip & Create button */}
+            <Button
+              onClick={() => handleSubmit(false)}
+              variant="outlined"
+              disabled={loading || generatingInsights || (projectLimit && !projectLimit.can_create)}
+              startIcon={loading && !generatingInsights ? <CircularProgress size={20} color="inherit" /> : <SkipNext />}
+              sx={{
+                borderColor: '#64748b',
+                color: '#64748b',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: '12px',
+                '&:hover': {
+                  borderColor: '#475569',
+                  bgcolor: 'rgba(100, 116, 139, 0.08)',
+                },
+                '&:disabled': {
+                  borderColor: '#cbd5e1',
+                  color: '#94a3b8',
+                },
+              }}
+            >
+              {loading && !generatingInsights ? 'Creating...' : 'Skip & Create'}
+            </Button>
+            
+            {/* Generate Insights & Create button - only if user can generate */}
+            {insightsUsage?.can_generate && (
+              <Button
+                onClick={() => handleSubmit(true)}
+                variant="contained"
+                disabled={loading || generatingInsights || (projectLimit && !projectLimit.can_create)}
+                startIcon={generatingInsights ? <CircularProgress size={20} color="inherit" /> : <AutoAwesome />}
+                sx={{
+                  bgcolor: '#0d9488',
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: '12px',
+                  '&:hover': {
+                    bgcolor: '#14b8a6',
+                  },
+                  '&:disabled': {
+                    bgcolor: '#cbd5e1',
+                    color: '#94a3b8',
+                  },
+                }}
+              >
+                {generatingInsights ? 'Generating...' : 'Generate Insights & Create'}
+              </Button>
+            )}
+
+            {/* If user can't generate (FREE or limit reached), show simple Create button */}
+            {!insightsUsage?.can_generate && (
+              <Button
+                onClick={() => handleSubmit(false)}
+                variant="contained"
+                disabled={loading || (projectLimit && !projectLimit.can_create)}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Business />}
+                sx={{
+                  bgcolor: '#0d9488',
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: '12px',
+                  '&:hover': {
+                    bgcolor: '#14b8a6',
+                  },
+                  '&:disabled': {
+                    bgcolor: '#cbd5e1',
+                    color: '#94a3b8',
+                  },
+                }}
+              >
+                {loading ? 'Creating...' : 'Create Project'}
+              </Button>
+            )}
+          </Box>
         )}
       </DialogActions>
     </Dialog>

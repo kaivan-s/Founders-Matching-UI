@@ -35,7 +35,7 @@ import { API_BASE } from '../config/api';
  *
  * Props:
  *   - open       : boolean
- *   - advisor    : advisor profile object (must include user_id, user.name,
+ *   - advisor    : advisor profile object (must include user_id, name,
  *                  consultation_rate_30min_usd, consultation_rate_60min_usd)
  *   - onClose()  : closes the dialog
  *   - onSuccess(consultation) : called when booking is successfully created
@@ -86,7 +86,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
   // Early return AFTER all hooks
   if (!advisor) return null;
 
-  const advisorName = advisor.user?.name || 'Advisor';
+  const advisorName = advisor.name || 'Advisor';
   const rate30 = advisor.consultation_rate_30min_usd;
   const rate60 = advisor.consultation_rate_60min_usd;
   const has30 = rate30 != null && rate30 !== '';

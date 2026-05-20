@@ -254,7 +254,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
             if (!savedDraft) {
               setFormData(prev => ({
                 ...prev,
-                name: profileData.user?.name || profileData.name || prev.name,
+                name: profileData.name || prev.name,
                 headline: profileData.headline || prev.headline,
                 bio: profileData.bio || prev.bio,
                 timezone: profileData.timezone || prev.timezone,

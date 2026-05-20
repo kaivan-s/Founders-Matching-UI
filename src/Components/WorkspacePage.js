@@ -34,6 +34,7 @@ import {
   Dashboard,
   ChatBubbleOutline,
   InfoOutlined,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { useWorkspace, useWorkspaceParticipants, useWorkspaceRoles } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
@@ -42,6 +43,7 @@ import WorkspaceEquityRoles from './WorkspaceTabs/WorkspaceEquityRoles';
 import WorkspaceAdvisors from './WorkspaceTabs/WorkspaceAdvisors';
 import WorkspaceSummary from './WorkspaceTabs/WorkspaceSummary';
 import WorkspaceIntegrations from './WorkspaceTabs/WorkspaceIntegrations';
+import WorkspaceInsights from './WorkspaceTabs/WorkspaceInsights';
 import WorkspaceChat from './WorkspaceChat';
 // Optional: Import NotificationBell for in-workspace notifications
 // import NotificationBell from './NotificationBell';
@@ -64,17 +66,19 @@ const WorkspacePage = () => {
   const advisorsMatch = useMatch(`/workspaces/${workspaceId}/advisors`);
   const summaryMatch = useMatch(`/workspaces/${workspaceId}/summary`);
   const integrationsMatch = useMatch(`/workspaces/${workspaceId}/integrations`);
+  const insightsMatch = useMatch(`/workspaces/${workspaceId}/insights`);
   
   // Determine active tab based on route matches
-  // Tabs: 0=Overview, 1=Chat, 2=Equity & Roles, 3=Advisors, 4=Integrations
+  // Tabs: 0=Overview, 1=Chat, 2=Equity & Roles, 3=Advisors, 4=Integrations, 5=Insights
   const activeTab = useMemo(() => {
     if (overviewMatch || summaryMatch) return 0; // Summary merged into Overview
     if (chatMatch) return 1;
     if (equityRolesMatch) return 2;
     if (advisorsMatch) return 3;
     if (integrationsMatch) return 4;
+    if (insightsMatch) return 5;
     return 0; // Default to overview
-  }, [overviewMatch, chatMatch, equityRolesMatch, advisorsMatch, summaryMatch, integrationsMatch]);
+  }, [overviewMatch, chatMatch, equityRolesMatch, advisorsMatch, summaryMatch, integrationsMatch, insightsMatch]);
 
   // Check what setup items are incomplete
   const setupStatus = useMemo(() => {
@@ -143,7 +147,7 @@ const WorkspacePage = () => {
   const [stageValue, setStageValue] = useState('');
 
   const handleTabChange = (event, newValue) => {
-    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations', 'insights'];
     const newPath = `/workspaces/${workspaceId}/${routes[newValue]}`;
     navigate(newPath, { replace: false });
   };
@@ -178,7 +182,7 @@ const WorkspacePage = () => {
 
   const handleSetupItemClick = (item) => {
     // Navigate to the correct tab
-    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
+    const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations', 'insights'];
     navigate(`/workspaces/${workspaceId}/${routes[item.tab]}`);
     
     // Scroll to the section after a short delay to allow navigation
@@ -226,6 +230,7 @@ const WorkspacePage = () => {
     <Groups fontSize="small" />,
     <Handshake fontSize="small" />,
     <LinkIcon fontSize="small" />,
+    <AutoAwesome fontSize="small" />,
   ];
 
   if (loading) {
@@ -523,6 +528,14 @@ const WorkspacePage = () => {
               </Box>
             }
           />
+          <Tab 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                {tabIcons[5]}
+                <span>Insights</span>
+              </Box>
+            }
+          />
         </Tabs>
       </Box>
 
@@ -593,7 +606,7 @@ const WorkspacePage = () => {
           <WorkspaceProvider workspaceId={workspaceId}>
             <Routes>
               <Route path="overview" element={<WorkspaceOverview workspaceId={workspaceId} workspace={workspace} onNavigateTab={(tab) => {
-                const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations'];
+                const routes = ['overview', 'chat', 'equity-roles', 'advisors', 'integrations', 'insights'];
                 navigate(`/workspaces/${workspaceId}/${routes[tab]}`, { replace: false });
               }} />} />
               <Route path="chat" element={
@@ -620,6 +633,7 @@ const WorkspacePage = () => {
               <Route path="advisors" element={<WorkspaceAdvisors workspaceId={workspaceId} />} />
               <Route path="summary" element={<Navigate to="overview" replace />} />
               <Route path="integrations" element={<WorkspaceIntegrations workspaceId={workspaceId} />} />
+              <Route path="insights" element={<WorkspaceInsights workspaceId={workspaceId} />} />
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="*" element={<Navigate to="overview" replace />} />
             </Routes>

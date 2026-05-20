@@ -348,7 +348,7 @@ const AdminAdvisors = () => {
                       {advisor.headline || 'No headline'}
                     </Typography>
                     <Typography variant="body2" sx={{ color: SLATE_500, mb: 1.5, lineHeight: 1.6 }}>
-                      {advisor.user?.name} · {advisor.user?.email}
+                      {advisor.name || 'Unknown'} · {advisor.contact_email || advisor.email}
                     </Typography>
                     {advisor.bio && (
                       <Typography variant="body2" sx={{ color: SLATE_500, lineHeight: 1.6, mb: 1.5 }} noWrap>
@@ -472,11 +472,11 @@ const AdminAdvisors = () => {
                       '&:hover': profile.profile_image_url ? { transform: 'scale(1.05)' } : {},
                     }}
                   >
-                    {profile.user?.name?.[0]?.toUpperCase() || 'A'}
+                    {profile.name?.[0]?.toUpperCase() || 'A'}
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
-                      {profile.user?.name || 'Unknown'}
+                      {profile.name || 'Unknown'}
                     </Typography>
                     <Typography variant="body1" sx={{ color: SLATE_500, mb: 1 }}>
                       {profile.headline || 'No headline'}
@@ -484,7 +484,7 @@ const AdminAdvisors = () => {
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
                       <Chip
                         icon={<Email sx={{ fontSize: 14 }} />}
-                        label={profile.user?.email || profile.contact_email}
+                        label={profile.contact_email || profile.email}
                         size="small"
                         sx={{ bgcolor: 'white', border: '1px solid', borderColor: SLATE_200 }}
                       />
@@ -874,7 +874,7 @@ const AdminAdvisors = () => {
             <Box
               component="img"
               src={detailProfile.profile_image_url}
-              alt={detailProfile?.user?.name || 'Profile'}
+              alt={detailProfile?.name || 'Profile'}
               sx={{
                 maxWidth: '80vw',
                 maxHeight: '80vh',

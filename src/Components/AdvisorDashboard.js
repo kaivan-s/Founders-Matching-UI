@@ -548,6 +548,8 @@ const AdvisorDashboard = () => {
           headers: {
             'Content-Type': 'application/json',
             'X-Clerk-User-Id': user.id,
+            'X-User-Name': user?.fullName || user?.firstName || '',
+            'X-User-Email': user?.emailAddresses?.[0]?.emailAddress || '',
           },
           body: JSON.stringify(newFormData),
         });
@@ -670,6 +672,8 @@ const AdvisorDashboard = () => {
         headers: {
           'Content-Type': 'application/json',
           'X-Clerk-User-Id': user.id,
+          'X-User-Name': user?.fullName || user?.firstName || '',
+          'X-User-Email': user?.emailAddresses?.[0]?.emailAddress || '',
         },
         body: JSON.stringify(editFormData),
       });
@@ -1033,7 +1037,7 @@ const AdvisorDashboard = () => {
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
-                    Welcome back, {profile?.user?.name?.split(' ')[0] || 'Advisor'}
+                    Welcome back, {profile?.name?.split(' ')[0] || 'Advisor'}
                   </Typography>
                   {profile?.is_discoverable && (
                     <Chip 
@@ -1659,7 +1663,7 @@ const AdvisorDashboard = () => {
                         src={editProfileImage?.preview || profile?.profile_image_url}
                         sx={{ width: 80, height: 80, border: '3px solid white', boxShadow: 1 }}
                       >
-                        {profile?.user?.name?.[0]?.toUpperCase() || 'A'}
+                        {profile?.name?.[0]?.toUpperCase() || 'A'}
                       </Avatar>
                       <input
                         accept="image/jpeg,image/png,image/webp,image/gif"

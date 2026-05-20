@@ -31,7 +31,7 @@ const EXPERTISE_OPTIONS = [
 ];
 
 const AdvisorOnboardingQuick = ({ onComplete }) => {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -92,6 +92,11 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
 
   const handleSubmit = async () => {
     if (!isValid()) return;
+    
+    if (!user?.id) {
+      setError('User session not ready. Please wait a moment and try again.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -116,7 +121,7 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Clerk-User-Id': user.id,
+          'X-Clerk-User-Id': user?.id || '',
           'X-User-Email': user?.emailAddresses?.[0]?.emailAddress || '',
           'X-User-Name': formData.name.trim(),
         },
@@ -305,7 +310,7 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
             variant="contained"
             size="large"
             onClick={handleSubmit}
-            disabled={!isValid() || loading}
+            disabled={!isLoaded || !user?.id || !isValid() || loading}
             sx={{ 
               py: 1.25,
               px: 4,

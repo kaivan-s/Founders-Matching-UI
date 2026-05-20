@@ -230,7 +230,7 @@ const EquityQuestionnaireWizard = ({ workspaceId, participants, onComplete }) =>
   const bothFoundersComplete = founderAComplete && founderBComplete;
   
   // Advisor info for display
-  const advisorName = advisor?.user?.name || 'Project Advisor';
+  const advisorName = advisor?.name || 'Project Advisor';
 
   // Load startup context separately (shared data)
   const loadStartupContext = useCallback(async () => {
