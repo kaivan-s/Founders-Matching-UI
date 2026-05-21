@@ -39,6 +39,8 @@ import {
   Language,
   Work,
   Inbox,
+  Lock,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../config/api';
@@ -65,7 +67,8 @@ const OwnerApplications = () => {
   const [responding, setResponding] = useState(null);
   
   // Tab state
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(0); // Status tabs: 0=Pending, 1=Accepted, 2=Rejected
+  const [selectedProjectId, setSelectedProjectId] = useState(null); // Project filter
   
   // Detail dialog state
   const [selectedApp, setSelectedApp] = useState(null);
@@ -80,6 +83,59 @@ const OwnerApplications = () => {
   // First match coaching
   const [coachingOpen, setCoachingOpen] = useState(false);
   const [newMatchId, setNewMatchId] = useState(null);
+  
+  // User plan for paywall
+  const [userPlan, setUserPlan] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  
+  const FREE_VISIBLE_LIMIT = 2; // Free users can only see 2 applications
+
+  // Fetch user's plan
+  useEffect(() => {
+    const fetchPlan = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await fetch(`${API_BASE}/billing/plans`, {
+          headers: { 'X-Clerk-User-Id': user.id },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserPlan(data.current_plan || 'FREE');
+        }
+      } catch {
+        setUserPlan('FREE');
+      }
+    };
+    fetchPlan();
+  }, [user?.id]);
+  
+  // Direct checkout to Pro
+  const handleDirectCheckout = async () => {
+    if (!user?.id) return;
+    
+    setCheckoutLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/billing/founder/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({ plan: 'PRO' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout');
+      }
+
+      const data = await response.json();
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      setError(err.message);
+      setCheckoutLoading(false);
+    }
+  };
 
   const fetchApplications = useCallback(async () => {
     try {
@@ -193,7 +249,38 @@ const OwnerApplications = () => {
     return `${Math.floor(diffDays / 7)}w ago`;
   };
 
+  // Extract unique projects from applications
+  const projects = React.useMemo(() => {
+    const projectMap = new Map();
+    applications.forEach(app => {
+      if (app.project?.id && !projectMap.has(app.project.id)) {
+        projectMap.set(app.project.id, {
+          id: app.project.id,
+          title: app.project.title || 'Untitled Project',
+          pendingCount: 0,
+        });
+      }
+      if (app.project?.id && app.status === 'pending') {
+        const proj = projectMap.get(app.project.id);
+        if (proj) proj.pendingCount++;
+      }
+    });
+    return Array.from(projectMap.values());
+  }, [applications]);
+
+  // Auto-select first project if none selected
+  React.useEffect(() => {
+    if (projects.length > 0 && !selectedProjectId) {
+      setSelectedProjectId(projects[0].id);
+    }
+  }, [projects, selectedProjectId]);
+
+  // Filter applications by project and status
   const filteredApplications = applications.filter(app => {
+    // Filter by project
+    if (selectedProjectId && app.project?.id !== selectedProjectId) return false;
+    
+    // Filter by status tab
     if (tabValue === 0) return app.status === 'pending';
     if (tabValue === 1) return app.status === 'accepted';
     if (tabValue === 2) return app.status === 'rejected' || app.status === 'withdrawn';
@@ -229,7 +316,7 @@ const OwnerApplications = () => {
       )}
 
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900 }}>
           Applications
         </Typography>
@@ -238,13 +325,108 @@ const OwnerApplications = () => {
         </Typography>
       </Box>
 
-      {/* Tabs */}
+      {/* No applications at all - show global empty state */}
+      {applications.length === 0 ? (
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center',
+        }}>
+          <Box
+            sx={{
+              textAlign: 'center',
+              bgcolor: '#fff',
+              borderRadius: 2,
+              p: 6,
+              border: '1px solid',
+              borderColor: SLATE_200,
+              maxWidth: '400px',
+            }}
+          >
+            <Box sx={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: 80,
+              height: 80,
+              borderRadius: 2,
+              bgcolor: alpha(TEAL, 0.1),
+              mb: 3,
+            }}>
+              <Inbox sx={{ fontSize: 40, color: TEAL }} />
+            </Box>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700, color: SLATE_900 }}>
+              No applications yet
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+              When people apply to join your projects, they'll appear here.
+            </Typography>
+          </Box>
+        </Box>
+      ) : (
+        <>
+      {/* Project Tabs */}
+      {projects.length > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 1, display: 'block' }}>
+            Select Project
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {projects.map((project) => (
+              <Chip
+                key={project.id}
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <span>{project.title}</span>
+                    {project.pendingCount > 0 && (
+                      <Box
+                        sx={{
+                          bgcolor: selectedProjectId === project.id ? '#fff' : TEAL,
+                          color: selectedProjectId === project.id ? TEAL : '#fff',
+                          borderRadius: '50%',
+                          width: 18,
+                          height: 18,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {project.pendingCount}
+                      </Box>
+                    )}
+                  </Box>
+                }
+                onClick={() => setSelectedProjectId(project.id)}
+                sx={{
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  bgcolor: selectedProjectId === project.id ? TEAL : alpha(SLATE_200, 0.5),
+                  color: selectedProjectId === project.id ? '#fff' : SLATE_900,
+                  border: '1px solid',
+                  borderColor: selectedProjectId === project.id ? TEAL : SLATE_200,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: selectedProjectId === project.id ? TEAL : alpha(TEAL, 0.1),
+                    borderColor: TEAL,
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Status Tabs */}
       <Tabs 
         value={tabValue} 
         onChange={(e, v) => setTabValue(v)}
         sx={{ 
           mb: 3,
-          '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
+          '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, minWidth: 'auto', px: 2 },
           '& .MuiTabs-indicator': { bgcolor: TEAL },
         }}
       >
@@ -252,15 +434,15 @@ const OwnerApplications = () => {
           label={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <span>Pending</span>
-              {stats.pending > 0 && (
+              {filteredApplications.filter(a => a.status === 'pending').length > 0 && tabValue !== 0 && (
                 <Chip 
-                  label={stats.pending} 
+                  label={applications.filter(a => a.project?.id === selectedProjectId && a.status === 'pending').length} 
                   size="small" 
                   sx={{ 
-                    bgcolor: TEAL, 
-                    color: '#fff', 
-                    height: 20, 
-                    fontSize: '0.75rem',
+                    bgcolor: alpha(TEAL, 0.1), 
+                    color: TEAL, 
+                    height: 18, 
+                    fontSize: '0.7rem',
                     fontWeight: 600,
                   }} 
                 />
@@ -311,190 +493,327 @@ const OwnerApplications = () => {
             </Typography>
             <Typography variant="body2" sx={{ color: SLATE_500 }}>
               {tabValue === 0 
-                ? 'When founders apply to your projects, they\'ll appear here.'
+                ? `No pending applications for ${projects.find(p => p.id === selectedProjectId)?.title || 'this project'}.`
                 : 'Applications you respond to will show up here.'}
             </Typography>
           </Box>
         </Box>
       ) : (
-        /* Applications List */
+        /* Applications Grid - 3 cards per row */
         <Box sx={{ 
           flex: 1,
           overflowY: 'auto',
           pr: 1,
         }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <AnimatePresence>
-              {filteredApplications.map((app, index) => {
-                const applicant = app.applicant || {};
-                const project = app.project || {};
-                const timeSince = getTimeSince(app.created_at);
-                
-                return (
-                  <motion.div
-                    key={app.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: index * 0.03 }}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            gap: 2,
+          }}>
+            {/* For FREE users on pending tab, only show first 2 applications */}
+            {(userPlan === 'FREE' && tabValue === 0 
+              ? filteredApplications.slice(0, FREE_VISIBLE_LIMIT) 
+              : filteredApplications
+            ).map((app, index) => {
+              const applicant = app.applicant || {};
+              const timeSince = getTimeSince(app.created_at);
+              
+              return (
+                <motion.div
+                  key={app.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card
+                    sx={{
+                      cursor: 'pointer',
+                      border: '1px solid',
+                      borderColor: SLATE_200,
+                      transition: 'all 0.2s',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      '&:hover': {
+                        borderColor: TEAL,
+                        boxShadow: `0 8px 24px ${alpha(TEAL, 0.15)}`,
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                    onClick={() => handleOpenDetail(app)}
                   >
-                    <Card
-                      sx={{
-                        cursor: 'pointer',
-                        border: '1px solid',
-                        borderColor: SLATE_200,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: TEAL,
-                          boxShadow: `0 4px 12px ${alpha(TEAL, 0.1)}`,
-                        },
-                      }}
-                      onClick={() => handleOpenDetail(app)}
-                    >
-                      <CardContent sx={{ p: 2.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                          {/* Avatar */}
-                          <Avatar
-                            src={applicant.profile_picture_url}
-                            sx={{ 
-                              width: 56, 
-                              height: 56, 
-                              bgcolor: alpha(SKY, 0.1),
-                              color: SKY,
-                              fontSize: '1.25rem',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {applicant.name?.split(' ').map(n => n[0]).join('')}
-                          </Avatar>
-
-                          {/* Info */}
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
-                                {applicant.name}
-                              </Typography>
-                              {applicant.verification?.tier !== 'UNVERIFIED' && (
-                                <Verified sx={{ fontSize: 16, color: TEAL }} />
-                              )}
-                              <Typography variant="caption" sx={{ color: SLATE_400 }}>
-                                • {timeSince}
-                              </Typography>
-                            </Box>
-
-                            {applicant.headline && (
-                              <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
-                                {applicant.headline}
-                              </Typography>
-                            )}
-
-                            {/* Project applied to */}
-                            <Box sx={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: 0.5,
-                              px: 1.5,
-                              py: 0.5,
-                              borderRadius: 1,
-                              bgcolor: alpha(SKY, 0.1),
-                              mb: 1,
-                            }}>
-                              <Business sx={{ fontSize: 14, color: SKY }} />
-                              <Typography variant="caption" sx={{ color: SKY, fontWeight: 600 }}>
-                                For: {project.title}
-                              </Typography>
-                            </Box>
-
-                            {/* Skills Preview */}
-                            {applicant.skills && applicant.skills.length > 0 && (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {applicant.skills.slice(0, 4).map((skill, idx) => (
-                                  <Chip
-                                    key={idx}
-                                    label={skill}
-                                    size="small"
-                                    sx={{
-                                      height: 22,
-                                      fontSize: '0.7rem',
-                                      bgcolor: alpha(SLATE_400, 0.1),
-                                      color: SLATE_500,
-                                    }}
-                                  />
-                                ))}
-                                {applicant.skills.length > 4 && (
-                                  <Chip
-                                    label={`+${applicant.skills.length - 4}`}
-                                    size="small"
-                                    sx={{ height: 22, fontSize: '0.7rem', bgcolor: BG, color: SLATE_400 }}
-                                  />
-                                )}
-                              </Box>
+                    <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      {/* Header with Avatar and Time */}
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                        <Avatar
+                          src={applicant.profile_picture_url}
+                          sx={{ 
+                            width: 56, 
+                            height: 56, 
+                            bgcolor: alpha(SKY, 0.1),
+                            color: SKY,
+                            fontSize: '1.25rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {applicant.name?.split(' ').map(n => n[0]).join('')}
+                        </Avatar>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                              {applicant.name}
+                            </Typography>
+                            {applicant.verification?.tier !== 'UNVERIFIED' && (
+                              <Verified sx={{ fontSize: 16, color: TEAL }} />
                             )}
                           </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                              {timeSince}
+                            </Typography>
+                            {applicant.location && (
+                              <>
+                                <Typography variant="caption" sx={{ color: SLATE_400 }}>•</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                                  <LocationOn sx={{ fontSize: 12, color: SLATE_400 }} />
+                                  <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                                    {applicant.location}
+                                  </Typography>
+                                </Box>
+                              </>
+                            )}
+                          </Box>
+                        </Box>
+                      </Box>
 
-                          {/* Actions (only for pending) */}
-                          {app.status === 'pending' && (
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                              <Button
-                                variant="contained"
-                                size="small"
-                                startIcon={<CheckCircle />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRespond(app.id, 'accept');
-                                }}
-                                disabled={responding === app.id}
-                                sx={{ 
-                                  bgcolor: TEAL, 
-                                  fontWeight: 600,
-                                  '&:hover': { bgcolor: TEAL_LIGHT },
-                                }}
-                              >
-                                {responding === app.id ? <CircularProgress size={16} color="inherit" /> : 'Accept'}
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<Close />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenRejectDialog(app);
-                                }}
-                                disabled={responding === app.id}
-                                sx={{ 
-                                  borderColor: SLATE_200, 
-                                  color: SLATE_500,
-                                  fontWeight: 600,
-                                  '&:hover': { borderColor: '#ef4444', color: '#ef4444' },
-                                }}
-                              >
-                                Reject
-                              </Button>
-                            </Box>
-                          )}
+                      {/* Headline */}
+                      {applicant.headline && (
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: SLATE_500, 
+                            mb: 1.5,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {applicant.headline}
+                        </Typography>
+                      )}
 
-                          {/* Status badge for non-pending */}
-                          {app.status !== 'pending' && (
+                      {/* Verification badges - only show if verified */}
+                      {(applicant.linkedin_verified || applicant.github_verified) && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                          {applicant.linkedin_verified && (
                             <Chip
-                              label={app.status}
+                              icon={<LinkedIn sx={{ fontSize: 14 }} />}
+                              label="LinkedIn Verified"
                               size="small"
                               sx={{
-                                textTransform: 'capitalize',
-                                bgcolor: app.status === 'accepted' ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.1),
-                                color: app.status === 'accepted' ? TEAL : SLATE_500,
+                                height: 22,
+                                fontSize: '0.65rem',
+                                bgcolor: alpha('#0077b5', 0.1),
+                                color: '#0077b5',
                                 fontWeight: 600,
+                                '& .MuiChip-icon': { color: '#0077b5' },
+                              }}
+                            />
+                          )}
+                          {applicant.github_verified && (
+                            <Chip
+                              icon={<GitHub sx={{ fontSize: 14 }} />}
+                              label="GitHub"
+                              size="small"
+                              sx={{
+                                height: 22,
+                                fontSize: '0.65rem',
+                                bgcolor: alpha('#333', 0.1),
+                                color: '#333',
+                                fontWeight: 600,
+                                '& .MuiChip-icon': { color: '#333' },
                               }}
                             />
                           )}
                         </Box>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                      )}
+
+                      {/* Skills Preview */}
+                      {applicant.skills && applicant.skills.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                          {applicant.skills.slice(0, 3).map((skill, idx) => (
+                            <Chip
+                              key={idx}
+                              label={skill}
+                              size="small"
+                              sx={{
+                                height: 22,
+                                fontSize: '0.7rem',
+                                bgcolor: alpha(SLATE_400, 0.1),
+                                color: SLATE_500,
+                              }}
+                            />
+                          ))}
+                          {applicant.skills.length > 3 && (
+                            <Chip
+                              label={`+${applicant.skills.length - 3}`}
+                              size="small"
+                              sx={{ height: 22, fontSize: '0.7rem', bgcolor: BG, color: SLATE_400 }}
+                            />
+                          )}
+                        </Box>
+                      )}
+
+                      {/* Spacer to push actions to bottom */}
+                      <Box sx={{ flex: 1 }} />
+
+                      {/* Actions (only for pending) */}
+                      {app.status === 'pending' && (
+                        <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            fullWidth
+                            startIcon={<CheckCircle />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRespond(app.id, 'accept');
+                            }}
+                            disabled={responding === app.id}
+                            sx={{ 
+                              bgcolor: TEAL, 
+                              fontWeight: 600,
+                              '&:hover': { bgcolor: TEAL_LIGHT },
+                            }}
+                          >
+                            {responding === app.id ? <CircularProgress size={16} color="inherit" /> : 'Accept'}
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenRejectDialog(app);
+                            }}
+                            disabled={responding === app.id}
+                            sx={{ 
+                              borderColor: SLATE_200, 
+                              color: SLATE_500,
+                              fontWeight: 600,
+                              minWidth: 'auto',
+                              px: 1.5,
+                              '&:hover': { borderColor: '#ef4444', color: '#ef4444' },
+                            }}
+                          >
+                            <Close sx={{ fontSize: 18 }} />
+                          </Button>
+                        </Box>
+                      )}
+
+                      {/* Status badge for non-pending */}
+                      {app.status !== 'pending' && (
+                        <Chip
+                          label={app.status}
+                          size="small"
+                          sx={{
+                            textTransform: 'capitalize',
+                            bgcolor: app.status === 'accepted' ? alpha(TEAL, 0.1) : alpha(SLATE_400, 0.1),
+                            color: app.status === 'accepted' ? TEAL : SLATE_500,
+                            fontWeight: 600,
+                            alignSelf: 'flex-start',
+                          }}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+            
+            {/* Upgrade Card - shown as 3rd card for FREE users with more applications */}
+            {userPlan === 'FREE' && tabValue === 0 && filteredApplications.length > FREE_VISIBLE_LIMIT && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card
+                  sx={{
+                    border: '2px dashed',
+                    borderColor: alpha(TEAL, 0.3),
+                    bgcolor: alpha(TEAL, 0.02),
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: 280,
+                  }}
+                >
+                  <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        bgcolor: alpha(TEAL, 0.1),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        mb: 2,
+                      }}
+                    >
+                      <Lock sx={{ fontSize: 24, color: TEAL }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
+                      +{filteredApplications.length - FREE_VISIBLE_LIMIT} more {filteredApplications.length - FREE_VISIBLE_LIMIT === 1 ? 'applicant' : 'applicants'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: SLATE_500, mb: 2, px: 1 }}>
+                      Upgrade to Pro to view all interested profiles and never miss a great match
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 2 }}>
+                      <Typography sx={{ fontSize: '0.85rem', color: SLATE_400, textDecoration: 'line-through' }}>
+                        $12
+                      </Typography>
+                      <Typography sx={{ fontSize: '1.25rem', fontWeight: 800, color: TEAL }}>
+                        $5
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.8rem', color: SLATE_500 }}>
+                        /mo
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleDirectCheckout}
+                      disabled={checkoutLoading}
+                      startIcon={checkoutLoading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesome sx={{ fontSize: 16 }} />}
+                      sx={{
+                        bgcolor: TEAL,
+                        color: '#fff',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        px: 2,
+                        '&:hover': { bgcolor: TEAL_LIGHT },
+                        '&.Mui-disabled': {
+                          bgcolor: alpha(TEAL, 0.6),
+                          color: '#fff',
+                        },
+                      }}
+                    >
+                      {checkoutLoading ? 'Loading...' : 'Unlock All'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
           </Box>
         </Box>
+      )}
+        </>
       )}
 
       {/* Detail Dialog */}
