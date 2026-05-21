@@ -96,6 +96,15 @@ const PRIORITY_OPTIONS = [
   { value: 'mission_impact', label: 'Mission/Impact' },
 ];
 
+const PRO_UPGRADE_BENEFITS = [
+  'Unlimited applications',
+  '5× more personalized opportunities',
+  'AI competitor & SWOT analysis for projects',
+  'Revisit passed opportunities',
+  'Up to 3 projects & unlimited workspaces',
+  'Pro badge on your profile',
+];
+
 const DEALBREAKER_OPTIONS = [
   { value: 'remote_friendly', label: 'Must be remote-friendly' },
   { value: 'has_funding', label: 'Must have funding/revenue' },
@@ -155,6 +164,35 @@ const SeekerDiscovery = () => {
   // Info dialog for preference updates
   const [prefsInfoDialogOpen, setPrefsInfoDialogOpen] = useState(false);
   const [normalMatches, setNormalMatches] = useState([]); // Store normal matches when viewing skipped
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  // Direct checkout to Pro
+  const handleDirectCheckout = async () => {
+    if (!user?.id) return;
+    
+    setCheckoutLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/billing/founder/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({ plan: 'PRO' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout');
+      }
+
+      const data = await response.json();
+      window.location.href = data.checkout_url;
+    } catch (err) {
+      setError(err.message);
+      setCheckoutLoading(false);
+    }
+  };
 
   // Check profile completeness
   useEffect(() => {
@@ -409,11 +447,9 @@ const SeekerDiscovery = () => {
         const errorData = await response.json();
         const errorMsg = errorData.error || 'Failed to apply';
         
-        // Check if it's a daily limit error - show upgrade dialog instead
         if (errorMsg.includes('1 application per day') || errorMsg.includes('Daily application limit')) {
           setApplyDialogOpen(false);
-          setUpgradeLimitType('application');
-          setUpgradeLimitDialogOpen(true);
+          setError('Daily application limit reached. Upgrade to Pro for unlimited applications.');
           return;
         }
         
@@ -429,11 +465,23 @@ const SeekerDiscovery = () => {
       setDetailProject(null);
       
       // Update remaining applications count
+      const hadDailyLimit = discoveryMeta?.user_plan === 'FREE'
+        && discoveryMeta?.applications_remaining !== undefined
+        && discoveryMeta?.applications_remaining !== -1;
+
       setDiscoveryMeta(prev => prev ? {
         ...prev,
         applications_remaining: prev.applications_remaining !== -1 ? Math.max(0, prev.applications_remaining - 1) : -1,
         applications_sent_today: (prev.applications_sent_today || 0) + 1,
       } : prev);
+
+      // Show upgrade dialog after a short pause so it doesn't feel abrupt
+      if (hadDailyLimit) {
+        setUpgradeLimitType('application');
+        setTimeout(() => {
+          setUpgradeLimitDialogOpen(true);
+        }, 1500);
+      }
       
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -1813,33 +1861,63 @@ const SeekerDiscovery = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Upgrade Limit Dialog */}
+      {/* Upgrade Limit Dialog - Premium Design */}
       <Dialog
         open={upgradeLimitDialogOpen}
         onClose={() => setUpgradeLimitDialogOpen(false)}
-        maxWidth="xs"
+        maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { 
+            borderRadius: 3,
+            overflow: 'hidden',
+            boxShadow: `0 20px 40px ${alpha(TEAL, 0.15)}`,
+          }
         }}
       >
-        <DialogContent sx={{ textAlign: 'center', py: 4 }}>
+        <DialogContent sx={{ textAlign: 'center', pt: 4, pb: 3, px: 3 }}>
+          {/* Icon with glow effect */}
           <Box
             sx={{
-              width: 72,
-              height: 72,
+              width: 80,
+              height: 80,
               borderRadius: '50%',
-              bgcolor: alpha(TEAL, 0.1),
+              background: `linear-gradient(135deg, ${alpha(TEAL, 0.15)} 0%, ${alpha(TEAL, 0.05)} 100%)`,
+              border: `2px solid ${alpha(TEAL, 0.2)}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mx: 'auto',
-              mb: 2,
+              mb: 2.5,
+              position: 'relative',
             }}
           >
-            <RocketLaunch sx={{ fontSize: 36, color: TEAL }} />
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: -4,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${alpha(TEAL, 0.1)} 0%, transparent 70%)`,
+              }}
+            />
+            <AutoAwesome sx={{ fontSize: 36, color: TEAL }} />
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+
+          {/* Pro badge */}
+          <Chip 
+            label="PRO" 
+            size="small" 
+            sx={{ 
+              mb: 2,
+              bgcolor: alpha(TEAL, 0.1), 
+              color: TEAL, 
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              letterSpacing: '0.05em',
+            }} 
+          />
+          
+          <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1, lineHeight: 1.3 }}>
             {upgradeLimitType === 'filters' 
               ? "Preferences locked for today" 
               : upgradeLimitType === 'skipped'
@@ -1847,37 +1925,115 @@ const SeekerDiscovery = () => {
               : "You've used today's application"
             }
           </Typography>
-          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 3 }}>
             {upgradeLimitType === 'filters'
-              ? "Upgrade to Pro to change preferences anytime and discover 5x more opportunities"
+              ? "Upgrade to Pro to change preferences anytime"
               : upgradeLimitType === 'skipped'
-              ? "Upgrade to Pro to view and reconsider opportunities you previously passed on"
-              : "Upgrade to Pro to apply without daily limits and discover 5x more opportunities"
+              ? "Upgrade to Pro to view projects you passed on"
+              : "Upgrade to Pro for unlimited applications"
             }
           </Typography>
+
+          {/* Price section */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              mb: 3,
+              py: 2,
+              px: 2,
+              bgcolor: alpha(TEAL, 0.04),
+              borderRadius: 2,
+              border: `1px solid ${alpha(TEAL, 0.1)}`,
+            }}
+          >
+            <Typography sx={{ fontSize: '1rem', color: SLATE_400, textDecoration: 'line-through' }}>
+              $12
+            </Typography>
+            <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: TEAL }}>
+              $5
+            </Typography>
+            <Typography sx={{ fontSize: '0.9rem', color: SLATE_500 }}>
+              /mo
+            </Typography>
+            <Chip 
+              label="58% OFF" 
+              size="small" 
+              sx={{ 
+                ml: 1,
+                height: 24,
+                bgcolor: '#ecfdf5', 
+                color: '#059669', 
+                fontWeight: 700,
+                fontSize: '0.7rem',
+              }} 
+            />
+          </Box>
+
+          {/* Benefits list */}
+          {upgradeLimitType === 'application' && (
+            <Box sx={{ textAlign: 'left', mb: 3 }}>
+              {PRO_UPGRADE_BENEFITS.map((benefit) => (
+                <Box 
+                  key={benefit} 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    py: 0.75,
+                  }}
+                >
+                  <CheckCircle sx={{ fontSize: 18, color: TEAL, flexShrink: 0 }} />
+                  <Typography variant="body2" sx={{ color: SLATE_900 }}>
+                    {benefit}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* CTA Button */}
           <Button
             variant="contained"
             size="large"
             fullWidth
-            onClick={() => {
-              setUpgradeLimitDialogOpen(false);
-              navigate('/pricing');
-            }}
+            onClick={handleDirectCheckout}
+            disabled={checkoutLoading}
+            startIcon={checkoutLoading ? <CircularProgress size={18} color="inherit" /> : null}
             sx={{
               bgcolor: TEAL,
               color: '#fff',
               fontWeight: 600,
               py: 1.5,
-              mb: 1.5,
-              '&:hover': { bgcolor: TEAL_LIGHT },
+              borderRadius: 2,
+              fontSize: '1rem',
+              textTransform: 'none',
+              boxShadow: `0 4px 12px ${alpha(TEAL, 0.3)}`,
+              '&:hover': { 
+                bgcolor: TEAL_LIGHT,
+                boxShadow: `0 6px 16px ${alpha(TEAL, 0.4)}`,
+              },
+              '&.Mui-disabled': {
+                bgcolor: alpha(TEAL, 0.6),
+                color: '#fff',
+              },
             }}
           >
-            Upgrade to Pro — $5/mo
+            {checkoutLoading ? 'Redirecting...' : 'Upgrade to Pro'}
           </Button>
+          
           <Button
             fullWidth
             onClick={() => setUpgradeLimitDialogOpen(false)}
-            sx={{ color: SLATE_500 }}
+            sx={{ 
+              mt: 1.5,
+              color: SLATE_400,
+              fontWeight: 500,
+              textTransform: 'none',
+              '&:hover': { bgcolor: 'transparent', color: SLATE_500 },
+            }}
           >
             Maybe later
           </Button>
