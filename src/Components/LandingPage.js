@@ -245,7 +245,7 @@ const LandingPage = () => {
       ],
     },
     {
-      name: 'Pro', price: '$5/mo', originalPrice: '$12/mo', popular: true,
+      name: 'Pro', price: '$15/mo', popular: true,
       features: [
         '25 personalized opportunities (5x more)',
         'Unlimited applications',
@@ -257,7 +257,7 @@ const LandingPage = () => {
       ],
     },
     {
-      name: 'Pro+', price: '$29/mo', popular: false,
+      name: 'Pro+', price: '$35/mo', popular: false,
       features: [
         '50 personalized opportunities (10x more)',
         'AI project insights (10/month)',

@@ -776,10 +776,7 @@ const OwnerApplications = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 2 }}>
                       <Typography sx={{ fontSize: '0.85rem', color: SLATE_400, textDecoration: 'line-through' }}>
-                        $12
-                      </Typography>
-                      <Typography sx={{ fontSize: '1.25rem', fontWeight: 800, color: TEAL }}>
-                        $5
+                        $15
                       </Typography>
                       <Typography sx={{ fontSize: '0.8rem', color: SLATE_500 }}>
                         /mo

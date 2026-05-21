@@ -442,21 +442,8 @@ const PricingPage = () => {
                   </Typography>
                   <Box sx={{ mb: 3, minHeight: 95 }}>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
-                      {/* Show original price with strikethrough for Pro plan */}
-                      {plan.id === 'PRO' && (
-                        <Typography 
-                          variant="h5" 
-                          sx={{ 
-                            textDecoration: 'line-through', 
-                            color: '#94a3b8',
-                            fontWeight: 500,
-                          }}
-                        >
-                          $12
-                        </Typography>
-                      )}
                       <Typography variant="h3" sx={{ fontWeight: 800, color: plan.id === 'PRO' ? '#0d9488' : '#1e3a8a' }}>
-                        {plan.id === 'PRO' ? '$5' : formatPrice(plan.monthlyPriceUSD)}
+                        {formatPrice(plan.monthlyPriceUSD)}
                       </Typography>
                       {plan.monthlyPriceUSD > 0 && (
                         <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
@@ -464,19 +451,6 @@ const PricingPage = () => {
                         </Typography>
                       )}
                     </Box>
-                    {plan.id === 'PRO' && (
-                      <Chip 
-                        label="🔥 Limited Time: 58% OFF" 
-                        size="small" 
-                        sx={{ 
-                          mt: 1,
-                          bgcolor: '#ecfdf5', 
-                          color: '#059669', 
-                          fontWeight: 700,
-                          fontSize: '0.75rem',
-                        }} 
-                      />
-                    )}
                   </Box>
 
                   <List sx={{ flex: 1, mb: 2, py: 0 }}>

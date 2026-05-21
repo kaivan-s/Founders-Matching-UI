@@ -196,7 +196,7 @@ const AppLayout = ({ children }) => {
               ) : (
                 <>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Pro at <span style={{ fontWeight: 800 }}>$5/mo</span> — Save 58%
+                    Pro at <span style={{ fontWeight: 800 }}>$15/mo</span>
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
@@ -232,7 +232,7 @@ const AppLayout = ({ children }) => {
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Pro at <span style={{ fontWeight: 800 }}>$5/mo</span> — Save 58%
+                    Pro at <span style={{ fontWeight: 800 }}>$15/mo</span>
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •

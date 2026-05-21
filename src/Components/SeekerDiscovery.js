@@ -1041,7 +1041,7 @@ const SeekerDiscovery = () => {
                                 '&:hover': { bgcolor: TEAL_LIGHT },
                               }}
                             >
-                              Unlock for $5/mo
+                              Unlock for $15/mo
                             </Button>
                           )}
                         </CardContent>
@@ -1949,17 +1949,14 @@ const SeekerDiscovery = () => {
               border: `1px solid ${alpha(TEAL, 0.1)}`,
             }}
           >
-            <Typography sx={{ fontSize: '1rem', color: SLATE_400, textDecoration: 'line-through' }}>
-              $12
-            </Typography>
             <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: TEAL }}>
-              $5
+              $15
             </Typography>
             <Typography sx={{ fontSize: '0.9rem', color: SLATE_500 }}>
               /mo
             </Typography>
             <Chip 
-              label="58% OFF" 
+              label="BEST VALUE" 
               size="small" 
               sx={{ 
                 ml: 1,
