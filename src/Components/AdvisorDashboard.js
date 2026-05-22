@@ -648,7 +648,11 @@ const AdvisorDashboard = () => {
           setTimeout(() => setAutoSaveStatus(null), 2000);
         } else {
           const errData = await imageResponse.json().catch(() => ({}));
-          setEditError(`Image upload failed: ${errData.error || `Server error (${imageResponse.status})`}. Try a smaller image.`);
+          const errorMsg = errData.error || `Server error (${imageResponse.status})`;
+          const hint = errorMsg.includes('profile not found') 
+            ? ' Please refresh the page and try again.' 
+            : ' Try a smaller image.';
+          setEditError(`Image upload failed: ${errorMsg}.${hint}`);
           setAutoSaveStatus('error');
           setEditProfileImage(null); // Clear failed image
         }
