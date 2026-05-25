@@ -95,12 +95,12 @@ const OwnerApplications = () => {
     const fetchPlan = async () => {
       if (!user?.id) return;
       try {
-        const response = await fetch(`${API_BASE}/billing/plans`, {
+        const response = await fetch(`${API_BASE}/billing/my-plan`, {
           headers: { 'X-Clerk-User-Id': user.id },
         });
         if (response.ok) {
           const data = await response.json();
-          setUserPlan(data.current_plan || 'FREE');
+          setUserPlan(data.id || 'FREE');
         }
       } catch {
         setUserPlan('FREE');
