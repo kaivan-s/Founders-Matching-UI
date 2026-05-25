@@ -85,7 +85,7 @@ const IntegrationCard = ({
       elevation={0}
       sx={{
         height: '100%',
-        borderRadius: 3,
+        borderRadius: { xs: 2, sm: 3 },
         border: '1px solid',
         borderColor: connected ? alpha(TEAL, 0.3) : (requiresUpgrade ? alpha(AMBER_500, 0.3) : SLATE_200),
         bgcolor: connected ? alpha(TEAL, 0.02) : (requiresUpgrade ? alpha(AMBER_500, 0.02) : '#fff'),
@@ -98,13 +98,13 @@ const IntegrationCard = ({
         },
       }}
     >
-      <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ p: { xs: 2, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Header - fixed height for alignment */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2, minHeight: 100 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 }, mb: 2, minHeight: { xs: 80, sm: 100 } }}>
           <Box
             sx={{
-              width: 52,
-              height: 52,
+              width: { xs: 44, sm: 52 },
+              height: { xs: 44, sm: 52 },
               borderRadius: 2.5,
               bgcolor: brandColor,
               display: 'flex',
@@ -117,7 +117,7 @@ const IntegrationCard = ({
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
                 {name}
               </Typography>
               {connected && (
@@ -149,7 +149,7 @@ const IntegrationCard = ({
                 />
               )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
               {description}
             </Typography>
             {headerExtra}
@@ -592,13 +592,13 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
   }
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+    <Box sx={{ maxWidth: { xs: '100%', md: 1000 }, mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+      <Box sx={{ mb: { xs: 2, sm: 4 } }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Integrations
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           Connect your favorite tools to collaborate with your co-founder
         </Typography>
       </Box>
@@ -610,9 +610,9 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
       )}
 
       {/* Integration Cards Grid */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Slack */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid item xs={12} sm={6} lg={4}>
           <IntegrationCard
             icon={<SlackIcon />}
             name="Slack"
@@ -695,8 +695,8 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
               </Alert>
             )}
 
-            <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, minHeight: 120 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, bgcolor: SLATE_100, minHeight: { xs: 100, sm: 120 } }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '0.85rem', sm: '0.875rem' } }}>
                 <Notifications sx={{ fontSize: 18, color: TEAL }} />
                 Notification Settings
               </Typography>
@@ -752,7 +752,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         </Grid>
 
         {/* Notion */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid item xs={12} sm={6} lg={4}>
           <IntegrationCard
             icon={<NotionIcon color="#fff" />}
             name="Notion"
@@ -841,11 +841,11 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
 
             {/* Show workspace info */}
             {notion.connected && notion.has_workspace && (
-              <Box sx={{ p: 2, borderRadius: 2, bgcolor: SLATE_100, minHeight: 120 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+              <Box sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, bgcolor: SLATE_100, minHeight: { xs: 100, sm: 120 } }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, fontSize: { xs: '0.85rem', sm: '0.875rem' } }}>
                   Partnership Hub
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   Your shared Notion workspace includes Tasks, Decisions, and Meeting Notes databases.
                 </Typography>
               </Box>
@@ -854,7 +854,7 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
         </Grid>
 
         {/* Google Calendar */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid item xs={12} sm={6} lg={4}>
           <IntegrationCard
             icon={<CalendarIcon />}
             name="Google Calendar"
@@ -868,14 +868,14 @@ const WorkspaceIntegrations = ({ workspaceId }) => {
 
       {/* Tip Box */}
       <Box sx={{ 
-        mt: 4, 
-        p: 2.5, 
+        mt: { xs: 2, sm: 4 }, 
+        p: { xs: 2, sm: 2.5 }, 
         borderRadius: 2, 
         bgcolor: alpha(TEAL, 0.05), 
         border: '1px solid',
         borderColor: alpha(TEAL, 0.15),
       }}>
-        <Typography variant="body2" sx={{ color: SLATE_500 }}>
+        <Typography variant="body2" sx={{ color: SLATE_500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           <strong style={{ color: TEAL }}>Tip:</strong> Both co-founders should connect to the same Slack and Notion workspaces to collaborate effectively.
         </Typography>
       </Box>

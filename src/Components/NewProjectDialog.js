@@ -402,44 +402,45 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          height: '90vh',
-          maxHeight: '800px',
-          width: '90vw',
+          borderRadius: { xs: '12px', sm: '16px' },
+          height: { xs: '95vh', sm: '90vh' },
+          maxHeight: { xs: '95vh', sm: '800px' },
+          width: { xs: 'calc(100% - 16px)', sm: '90vw' },
           maxWidth: '900px',
+          mx: { xs: 1, sm: 3 },
           display: 'flex',
           flexDirection: 'column',
           border: '1px solid #e2e8f0',
         }
       }}
     >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <DialogTitle sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, pb: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
           <Box sx={{
-            p: 1.5,
+            p: { xs: 1, sm: 1.5 },
             borderRadius: '12px',
             bgcolor: '#0d9488',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Rocket sx={{ color: 'white', fontSize: 24 }} />
+            <Rocket sx={{ color: 'white', fontSize: { xs: 20, sm: 24 } }} />
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               Add New Project
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}>
               Share your idea and find co-founders
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: { xs: 1, sm: 2 } }}>
           <LinearProgress 
             variant="determinate" 
             value={progress} 
             sx={{ 
-              height: 6, 
+              height: { xs: 4, sm: 6 }, 
               borderRadius: '12px',
               bgcolor: 'rgba(13, 148, 136, 0.1)',
               '& .MuiLinearProgress-bar': {
@@ -448,7 +449,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               }
             }} 
           />
-          <Box sx={{ mt: 2, overflowX: 'auto', overflowY: 'hidden' }}>
+          <Box sx={{ mt: { xs: 1, sm: 2 }, overflowX: 'auto', overflowY: 'hidden', display: { xs: 'none', sm: 'block' } }}>
             <Stepper 
               activeStep={currentStep} 
               alternativeLabel
@@ -491,7 +492,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         </Box>
       </DialogTitle>
       
-      <DialogContent ref={dialogContentRef} sx={{ pt: 3, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <DialogContent ref={dialogContentRef} sx={{ p: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -1078,42 +1079,55 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
         )}
       </DialogContent>
       
-      <DialogActions sx={{ p: 3, pt: 2, borderTop: '1px solid #e2e8f0' }}>
-        <Button 
-          onClick={handleClose}
-          disabled={loading || generatingInsights}
-          sx={{ 
-            textTransform: 'none',
-            color: '#64748b',
-            fontWeight: 600,
-            '&:hover': {
-              bgcolor: 'rgba(100, 116, 139, 0.08)',
-            },
-          }}
-        >
-          Cancel
-        </Button>
-        {currentStep > 0 && (
-          <Button
-            onClick={handleBack}
+      <DialogActions sx={{ 
+        p: { xs: 2, sm: 3 }, 
+        pt: { xs: 1.5, sm: 2 }, 
+        borderTop: '1px solid #e2e8f0',
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 1, sm: 0 },
+        alignItems: { xs: 'stretch', sm: 'center' },
+      }}>
+        <Box sx={{ display: 'flex', gap: 1, order: { xs: 2, sm: 1 }, justifyContent: { xs: 'space-between', sm: 'flex-start' } }}>
+          <Button 
+            onClick={handleClose}
             disabled={loading || generatingInsights}
-            startIcon={<ArrowBack />}
             sx={{ 
               textTransform: 'none',
               color: '#64748b',
               fontWeight: 600,
+              flex: { xs: 1, sm: 'none' },
               '&:hover': {
                 bgcolor: 'rgba(100, 116, 139, 0.08)',
               },
             }}
           >
-            Back
+            Cancel
           </Button>
-        )}
+          {currentStep > 0 && (
+            <Button
+              onClick={handleBack}
+              disabled={loading || generatingInsights}
+              startIcon={<ArrowBack />}
+              sx={{ 
+                textTransform: 'none',
+                color: '#64748b',
+                fontWeight: 600,
+                flex: { xs: 1, sm: 'none' },
+                '&:hover': {
+                  bgcolor: 'rgba(100, 116, 139, 0.08)',
+                },
+              }}
+            >
+              Back
+            </Button>
+          )}
+        </Box>
+        <Box sx={{ flex: { xs: 'none', sm: 1 } }} />
         {currentStep < totalSteps - 1 ? (
           <Button
             onClick={handleNext}
             variant="contained"
+            fullWidth
             disabled={loading || !validateStep(currentStep) || (projectLimit && !projectLimit.can_create)}
             endIcon={<ArrowForward />}
             sx={{
@@ -1121,9 +1135,11 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
               color: 'white',
               textTransform: 'none',
               fontWeight: 600,
-              px: 4,
+              px: { xs: 2, sm: 4 },
               py: 1,
               borderRadius: '12px',
+              order: { xs: 1, sm: 2 },
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
                 bgcolor: '#14b8a6',
               },
@@ -1136,7 +1152,7 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
             Next
           </Button>
         ) : (
-          <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 1.5, flexDirection: { xs: 'column', sm: 'row' }, order: { xs: 1, sm: 2 }, width: { xs: '100%', sm: 'auto' } }}>
             {/* Skip & Create button */}
             <Button
               onClick={() => handleSubmit(false)}
@@ -1148,9 +1164,10 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                 color: '#64748b',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3,
+                px: { xs: 2, sm: 3 },
                 py: 1,
                 borderRadius: '12px',
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   borderColor: '#475569',
                   bgcolor: 'rgba(100, 116, 139, 0.08)',
@@ -1176,9 +1193,10 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   color: 'white',
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 3,
+                  px: { xs: 2, sm: 3 },
                   py: 1,
                   borderRadius: '12px',
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
                     bgcolor: '#14b8a6',
                   },
@@ -1204,9 +1222,10 @@ const NewProjectDialog = ({ open, onClose, onProjectCreated }) => {
                   color: 'white',
                   textTransform: 'none',
                   fontWeight: 600,
-                  px: 3,
+                  px: { xs: 2, sm: 3 },
                   py: 1,
                   borderRadius: '12px',
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
                     bgcolor: '#14b8a6',
                   },

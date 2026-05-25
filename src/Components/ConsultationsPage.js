@@ -140,25 +140,25 @@ const ConsultationsPage = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: { xs: 2, sm: 3 }, gap: { xs: 1.5, sm: 0 } }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}>
             Consultations
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Manage your booked advisor calls and incoming requests
           </Typography>
         </Box>
-        <Button startIcon={<Refresh />} onClick={fetchConsultations} sx={{ textTransform: 'none' }}>
+        <Button startIcon={<Refresh />} onClick={fetchConsultations} sx={{ textTransform: 'none' }} size="small">
           Refresh
         </Button>
       </Box>
 
-      <Paper variant="outlined" sx={{ borderRadius: 2, mb: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} indicatorColor="primary" textColor="primary">
-          <Tab label="As Founder" sx={{ textTransform: 'none', fontWeight: 600 }} />
-          <Tab label="As Advisor" sx={{ textTransform: 'none', fontWeight: 600 }} />
+      <Paper variant="outlined" sx={{ borderRadius: 2, mb: { xs: 2, sm: 3 } }}>
+        <Tabs value={tab} onChange={(_, v) => setTab(v)} indicatorColor="primary" textColor="primary" variant="fullWidth">
+          <Tab label="As Founder" sx={{ textTransform: 'none', fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
+          <Tab label="As Advisor" sx={{ textTransform: 'none', fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }} />
         </Tabs>
       </Paper>
 
@@ -169,14 +169,14 @@ const ConsultationsPage = () => {
           <CircularProgress />
         </Box>
       ) : consultations.length === 0 ? (
-        <Paper variant="outlined" sx={{ p: 6, borderRadius: 2, textAlign: 'center' }}>
-          <CalendarMonth sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+        <Paper variant="outlined" sx={{ p: { xs: 3, sm: 6 }, borderRadius: 2, textAlign: 'center' }}>
+          <CalendarMonth sx={{ fontSize: { xs: 36, sm: 48 }, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
             {role === 'founder'
               ? "You haven't booked any consultations yet."
               : "You haven't received any consultation requests yet."}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             {role === 'founder'
               ? 'Browse advisors from any of your workspaces to book your first consultation.'
               : 'Once founders book consultations with you, they will appear here.'}
@@ -382,16 +382,16 @@ const ConsultationCard = ({
 
   return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
-      <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 600 }}>
+      <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'flex-start' }, gap: 2 }}>
+          <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 600, width: { xs: 40, sm: 40 }, height: { xs: 40, sm: 40 } }}>
             {counterpartyName[0]?.toUpperCase()}
           </Avatar>
 
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-start' }, gap: 1, mb: 1 }}>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
                   {counterpartyName}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -403,28 +403,28 @@ const ConsultationCard = ({
                 label={meta.label}
                 color={meta.color}
                 size="small"
-                sx={{ height: 24, fontWeight: 500 }}
+                sx={{ height: 24, fontWeight: 500, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
               />
             </Box>
 
             {/* Details row */}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 1.5 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, mb: 1.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Schedule sx={{ fontSize: 14, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   {consultation.duration_min} min
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <AttachMoney sx={{ fontSize: 14, color: 'text.secondary' }} />
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                   ${Number(consultation.amount_usd).toFixed(0)}
                 </Typography>
               </Box>
               {consultation.scheduled_at && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <CalendarMonth sx={{ fontSize: 14, color: 'text.secondary' }} />
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                     {formatDateTime(consultation.scheduled_at)}
                   </Typography>
                 </Box>
@@ -545,14 +545,14 @@ const PaymentSentModal = ({ consultation, onClose, onSubmitted }) => {
   };
 
   return (
-    <Dialog open={!!consultation} onClose={submitting ? undefined : onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-      <DialogTitle>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>Send payment to {consultation.advisor?.name || 'advisor'}</Typography>
+    <Dialog open={!!consultation} onClose={submitting ? undefined : onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: 3 } } }}>
+      <DialogTitle sx={{ p: { xs: 2, sm: 2 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>Send payment to {consultation.advisor?.name || 'advisor'}</Typography>
           <IconButton onClick={onClose} size="small" disabled={submitting}><Close /></IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
           Send <strong>${Number(consultation.amount_usd).toFixed(0)}</strong> to the advisor using one of the methods below,
           then mark it as sent. The advisor will confirm receipt to lock in the call.
@@ -662,14 +662,14 @@ const RefundRequestModal = ({ consultation, onClose, onSubmitted }) => {
   };
 
   return (
-    <Dialog open={!!consultation} onClose={submitting ? undefined : onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-      <DialogTitle>
+    <Dialog open={!!consultation} onClose={submitting ? undefined : onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: 3 } } }}>
+      <DialogTitle sx={{ p: { xs: 2, sm: 2 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>Request a refund</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>Request a refund</Typography>
           <IconButton onClick={onClose} size="small" disabled={submitting}><Close /></IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
           Payment was sent <strong>directly</strong> to the advisor — Guild Space cannot return it.
           Submitting this flags the consultation; please coordinate the refund with the advisor directly.
@@ -781,11 +781,11 @@ const ReviewModal = ({ consultation, role, userId, onClose, onSubmitted }) => {
       onClose={submitting ? undefined : onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      PaperProps={{ sx: { borderRadius: { xs: 2, sm: 3 }, m: { xs: 2, sm: 3 } } }}
     >
-      <DialogTitle>
+      <DialogTitle sx={{ p: { xs: 2, sm: 2 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             {alreadyReviewed ? 'Already reviewed' : `Review ${counterpartyName}`}
           </Typography>
           <IconButton onClick={onClose} size="small" disabled={submitting}>
@@ -793,7 +793,7 @@ const ReviewModal = ({ consultation, role, userId, onClose, onSubmitted }) => {
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
         {checkingEligibility ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={24} />

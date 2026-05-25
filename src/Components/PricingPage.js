@@ -217,11 +217,11 @@ const PricingPage = () => {
       >
         <Card 
           sx={{ 
-            maxWidth: 500, 
-            mx: 2, 
-            p: 4, 
+            maxWidth: { xs: '100%', sm: 500 }, 
+            mx: { xs: 2, sm: 3 }, 
+            p: { xs: 3, sm: 4 }, 
             textAlign: 'center',
-            borderRadius: 4,
+            borderRadius: { xs: 3, sm: 4 },
             boxShadow: '0 12px 32px rgba(13, 148, 136, 0.15)',
           }}
         >
@@ -241,11 +241,11 @@ const PricingPage = () => {
             <CheckCircle sx={{ fontSize: 48, color: '#10b981' }} />
           </Box>
           
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a' }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#1e3a8a', fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
             Payment Successful!
           </Typography>
           
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#0d9488' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#0d9488', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Welcome to {planDisplayName}
           </Typography>
           
@@ -336,12 +336,12 @@ const PricingPage = () => {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      <Container maxWidth="lg" sx={{ py: 6, flex: 1 }}>
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4, md: 6 }, px: { xs: 2, sm: 3 }, flex: 1 }}>
+      <Box sx={{ textAlign: 'center', mb: { xs: 4, sm: 6 } }}>
+        <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}>
           Pricing Plans
         </Typography>
-        <Typography variant="h6" color="text.secondary">
+        <Typography variant="h6" color="text.secondary" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
           Choose the plan that fits your startup journey
         </Typography>
       </Box>
@@ -358,13 +358,13 @@ const PricingPage = () => {
       )}
 
       {/* Founder Plans */}
-      <Grid container spacing={4} sx={{ mb: 8 }}>
+      <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: { xs: 4, sm: 6, md: 8 } }}>
         {Object.values(plans).map((plan) => {
           const isCurrent = currentPlan === plan.id;
           const isPopular = plan.id === 'PRO';
           
           return (
-            <Grid item xs={12} md={4} key={plan.id} sx={{ display: 'flex' }}>
+            <Grid item xs={12} sm={6} md={4} key={plan.id} sx={{ display: 'flex' }}>
               <Card
                 sx={{
                   width: '100%',
@@ -431,18 +431,18 @@ const PricingPage = () => {
                 <CardContent
                   sx={{
                     flex: 1,
-                    p: 4,
+                    p: { xs: 2.5, sm: 3, md: 4 },
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: 0,
                   }}
                 >
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a' }}> {/* Navy */}
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}> {/* Navy */}
                     {plan.id === 'FREE' ? 'Free' : plan.id === 'PRO' ? 'Pro' : 'Pro+'}
                   </Typography>
-                  <Box sx={{ mb: 3, minHeight: 95 }}>
+                  <Box sx={{ mb: 3, minHeight: { xs: 'auto', sm: 95 } }}>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 0.5 }}>
-                      <Typography variant="h3" sx={{ fontWeight: 800, color: plan.id === 'PRO' ? '#0d9488' : '#1e3a8a' }}>
+                      <Typography variant="h3" sx={{ fontWeight: 800, color: plan.id === 'PRO' ? '#0d9488' : '#1e3a8a', fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}>
                         {formatPrice(plan.monthlyPriceUSD)}
                       </Typography>
                       {plan.monthlyPriceUSD > 0 && (
@@ -517,8 +517,8 @@ const PricingPage = () => {
 
       {/* Subscription Management Section - Only show for paid plans */}
       {currentPlan && currentPlan !== 'FREE' && (
-        <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#fff8f8', border: '1px solid #fecaca', mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Paper sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderRadius: { xs: 2, sm: 3 }, bgcolor: '#fff8f8', border: '1px solid #fecaca', mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', flexDirection: { xs: 'column', sm: 'row' }, flexWrap: 'wrap', gap: 2 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e3a8a', mb: 0.5 }}>
                 Manage Your Subscription
@@ -557,12 +557,19 @@ const PricingPage = () => {
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+            borderRadius: { xs: 2, sm: 3 },
+          }
+        }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Warning sx={{ color: '#f59e0b' }} />
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, px: { xs: 2, sm: 3 }, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+          <Warning sx={{ color: '#f59e0b', fontSize: { xs: 22, sm: 24 } }} />
           {workspaceSelectionRequired ? 'Select Workspace to Keep' : 'Cancel Subscription'}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
           {cancelError && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {cancelError}
@@ -624,7 +631,7 @@ const PricingPage = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, flexWrap: 'wrap', gap: 1 }}>
           <Button 
             onClick={() => {
               setCancelDialogOpen(false);
@@ -642,6 +649,7 @@ const PricingPage = () => {
               onClick={() => handleCancelSubscription()}
               disabled={cancelling}
               startIcon={cancelling ? <CircularProgress size={16} color="inherit" /> : null}
+              sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
             >
               {cancelling ? 'Cancelling...' : 'Yes, Cancel Subscription'}
             </Button>
@@ -650,12 +658,12 @@ const PricingPage = () => {
       </Dialog>
 
       {/* Advisor Section */}
-      <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#f8fafc' }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
+      <Paper sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderRadius: { xs: 2, sm: 3 }, bgcolor: '#f8fafc' }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, textAlign: 'center', fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           For Advisors
         </Typography>
 
-        <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
               Consultations
@@ -727,9 +735,11 @@ const PricingPage = () => {
           onClick={() => navigate('/advisor/onboarding')}
           sx={{
             bgcolor: '#14b8a6',
-            maxWidth: 400,
+            maxWidth: { xs: '100%', sm: 400 },
             mx: 'auto',
             display: 'block',
+            py: { xs: 1.25, sm: 1.5 },
+            fontSize: { xs: '0.9rem', sm: '1rem' },
             '&:hover': { bgcolor: '#0d9488' },
           }}
         >

@@ -197,17 +197,17 @@ const UserFlowSelector = ({ onFounderVerified }) => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: { xs: 4, md: 8 }, position: 'relative' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', pt: { xs: 8, sm: 6, md: 8 }, pb: { xs: 4, md: 8 }, position: 'relative', width: '100%' }}>
       {/* Account menu */}
       <Box
         sx={{
           position: 'absolute',
-          top: { xs: 16, md: 24 },
-          right: { xs: 16, md: 32 },
+          top: { xs: 12, sm: 16, md: 24 },
+          right: { xs: 12, sm: 16, md: 32 },
           zIndex: 2,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          gap: { xs: 1, sm: 1.5 },
         }}
       >
         <FounderPlanNavTag />
@@ -221,17 +221,18 @@ const UserFlowSelector = ({ onFounderVerified }) => {
         />
       </Box>
 
-      <Container maxWidth="lg">
+      <Container maxWidth="md">
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 5, md: 7 }, mt: { xs: 2, sm: 0 } }}>
           <Typography
             variant="h3"
             sx={{
               fontWeight: 700,
-              mb: 2,
+              mb: { xs: 1, sm: 2 },
               color: SLATE_900,
-              fontSize: { xs: '1.75rem', md: '2.5rem' },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.5rem' },
               letterSpacing: '-0.02em',
+              px: { xs: 1, sm: 0 },
             }}
           >
             What brings you here today?
@@ -240,9 +241,10 @@ const UserFlowSelector = ({ onFounderVerified }) => {
             variant="body1"
             sx={{
               color: SLATE_500,
-              maxWidth: 480,
+              maxWidth: { xs: '100%', sm: 480 },
               mx: 'auto',
-              fontSize: '1.05rem',
+              fontSize: { xs: '0.9rem', sm: '1.05rem' },
+              px: { xs: 2, sm: 0 },
             }}
           >
             Choose your path. You can always explore other options later.
@@ -250,9 +252,9 @@ const UserFlowSelector = ({ onFounderVerified }) => {
         </Box>
 
         {/* Options Grid */}
-        <Grid container spacing={3} sx={{ maxWidth: 1000, mx: 'auto' }}>
+        <Grid container spacing={{ xs: 2, sm: 3 }} justifyContent="center" sx={{ px: { xs: 2, sm: 0 } }}>
           {options.map((option) => (
-            <Grid item xs={12} md={4} key={option.id}>
+            <Grid item xs={12} sm={6} md={4} key={option.id}>
               <Card
                 onClick={() => handleCardClick(option.id)}
                 sx={{
@@ -261,7 +263,7 @@ const UserFlowSelector = ({ onFounderVerified }) => {
                   transition: 'all 0.25s ease',
                   border: '2px solid',
                   borderColor: SLATE_200,
-                  borderRadius: 3,
+                  borderRadius: { xs: 2, sm: 3 },
                   bgcolor: '#fff',
                   position: 'relative',
                   overflow: 'hidden',
@@ -280,13 +282,14 @@ const UserFlowSelector = ({ onFounderVerified }) => {
                   },
                 }}
               >
-                <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 }, textAlign: 'center' }}>
                   <Box
                     className="option-icon"
                     sx={{
                       color: alpha(option.color, 0.7),
-                      mb: 3,
+                      mb: { xs: 2, sm: 3 },
                       transition: 'all 0.25s ease',
+                      '& svg': { fontSize: { xs: 36, sm: 48 } },
                     }}
                   >
                     {option.icon}
@@ -296,9 +299,9 @@ const UserFlowSelector = ({ onFounderVerified }) => {
                     variant="h5"
                     sx={{
                       fontWeight: 600,
-                      mb: 1.5,
+                      mb: { xs: 1, sm: 1.5 },
                       color: SLATE_900,
-                      fontSize: '1.25rem',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
                     }}
                   >
                     {option.title}
@@ -308,9 +311,10 @@ const UserFlowSelector = ({ onFounderVerified }) => {
                     variant="body2"
                     sx={{
                       color: SLATE_500,
-                      mb: 3,
+                      mb: { xs: 2, sm: 3 },
                       lineHeight: 1.7,
-                      minHeight: 60,
+                      minHeight: { xs: 'auto', sm: 60 },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
                     }}
                   >
                     {option.description}
@@ -379,7 +383,7 @@ const UserFlowSelector = ({ onFounderVerified }) => {
           },
         }}
       >
-        <DialogContent sx={{ p: { xs: 3, md: 4 } }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
           {/* Close button */}
           <IconButton
             onClick={handleCloseModal}
@@ -401,6 +405,7 @@ const UserFlowSelector = ({ onFounderVerified }) => {
               fontWeight: 700,
               color: SLATE_900,
               mb: 1,
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
             }}
           >
             Almost there!
@@ -409,7 +414,8 @@ const UserFlowSelector = ({ onFounderVerified }) => {
             variant="body2"
             sx={{
               color: SLATE_500,
-              mb: 4,
+              mb: { xs: 2, sm: 4 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
             }}
           >
             Tell us a bit about yourself to get started
@@ -474,7 +480,7 @@ const UserFlowSelector = ({ onFounderVerified }) => {
           <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', mb: 1 }}>
             Quick add:
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mb: { xs: 2, sm: 4 } }}>
             {commonSkills.filter(s => !skills.includes(s)).slice(0, 8).map((skill) => (
               <Chip
                 key={skill}

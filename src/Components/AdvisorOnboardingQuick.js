@@ -165,31 +165,31 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
       pt: { xs: 4, sm: 6 },
     }}>
       <Paper sx={{ 
-        maxWidth: 720, 
+        maxWidth: { xs: '100%', sm: 600, md: 720 }, 
         width: '100%', 
-        p: { xs: 3, sm: 4 }, 
-        borderRadius: 3,
+        p: { xs: 2, sm: 3, md: 4 }, 
+        borderRadius: { xs: 2, sm: 3 },
         boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
       }}>
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 1 }}>
+        <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'center', gap: { xs: 1, sm: 1.5 }, mb: 1 }}>
             <Box sx={{ 
-              width: 48, 
-              height: 48, 
+              width: { xs: 40, sm: 48 }, 
+              height: { xs: 40, sm: 48 }, 
               borderRadius: '50%', 
               bgcolor: 'rgba(13, 148, 136, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <RocketLaunch sx={{ fontSize: 24, color: '#0d9488' }} />
+              <RocketLaunch sx={{ fontSize: { xs: 20, sm: 24 }, color: '#0d9488' }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
               Become an Advisor
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Get started in 30 seconds. Complete your full profile later.
           </Typography>
         </Box>
@@ -305,26 +305,28 @@ const AdvisorOnboardingQuick = ({ onComplete }) => {
         </Box>
 
         {/* Submit Button */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, gap: { xs: 1.5, sm: 2 }, mt: 2.5 }}>
           <Button
             variant="contained"
             size="large"
             onClick={handleSubmit}
             disabled={!isLoaded || !user?.id || !isValid() || loading}
+            fullWidth
             sx={{ 
               py: 1.25,
-              px: 4,
+              px: { xs: 2, sm: 4 },
               bgcolor: '#0d9488',
               fontWeight: 600,
               borderRadius: 2,
               textTransform: 'none',
-              fontSize: '0.95rem',
+              fontSize: { xs: '0.875rem', sm: '0.95rem' },
               '&:hover': { bgcolor: '#0f766e' },
+              width: { sm: 'auto' },
             }}
           >
             {loading ? <CircularProgress size={22} color="inherit" /> : 'Get Started'}
           </Button>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
             Free to join. No credit card required.
           </Typography>
         </Box>

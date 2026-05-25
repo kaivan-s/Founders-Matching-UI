@@ -150,11 +150,18 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
       onClose={submitting ? undefined : onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      PaperProps={{
+        sx: {
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          maxHeight: { xs: '90vh', sm: '85vh' },
+        }
+      }}
     >
-      <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
+      <DialogTitle sx={{ borderBottom: '1px solid', borderColor: 'divider', py: { xs: 1.5, sm: 2 }, px: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Book a consultation
           </Typography>
           <IconButton onClick={onClose} disabled={submitting} size="small">
@@ -163,7 +170,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 } }}>
         {/* Advisor summary */}
         <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48, fontWeight: 600 }}>
@@ -220,9 +227,9 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
             </Alert>
 
             {/* Pricing info */}
-            <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+            <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mb: 3, borderRadius: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>Consultation rates</Typography>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, mb: 2, flexWrap: 'wrap' }}>
                 {has30 && (
                   <Chip 
                     icon={<Schedule sx={{ fontSize: 16 }} />}
@@ -289,16 +296,18 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       Once your booking is confirmed on cal.com, {advisorName} will reach out to coordinate payment and share the meeting link.
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flexDirection: { xs: 'column', sm: 'row' } }}>
                       <Button
                         variant="contained"
                         size="small"
                         onClick={onClose}
+                        fullWidth={false}
                         sx={{ 
                           textTransform: 'none', 
                           fontWeight: 600,
                           bgcolor: 'success.main',
                           '&:hover': { bgcolor: 'success.dark' },
+                          width: { xs: '100%', sm: 'auto' },
                         }}
                       >
                         Yes, I booked
@@ -309,7 +318,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
                         href={calcomStatus.booking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        sx={{ textTransform: 'none', fontWeight: 500 }}
+                        sx={{ textTransform: 'none', fontWeight: 500, width: { xs: '100%', sm: 'auto' } }}
                       >
                         Open cal.com again
                       </Button>
@@ -414,8 +423,15 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ borderTop: '1px solid', borderColor: 'divider', p: 2 }}>
-        <Button onClick={onClose} disabled={submitting} sx={{ textTransform: 'none' }}>
+      <DialogActions sx={{ 
+        borderTop: '1px solid', 
+        borderColor: 'divider', 
+        p: { xs: 1.5, sm: 2 },
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 1,
+        '& > button': { width: { xs: '100%', sm: 'auto' } }
+      }}>
+        <Button onClick={onClose} disabled={submitting} sx={{ textTransform: 'none', order: { xs: 2, sm: 1 } }}>
           Cancel
         </Button>
         {(!calcomStatus.has_calcom || !calcomStatus.booking_url) && !loadingCalcom && (
@@ -424,7 +440,7 @@ const BookingDialog = ({ open, advisor, onClose, onSuccess }) => {
             onClick={handleSubmit}
             disabled={submitting || (!has30 && !has60)}
             startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <CalendarMonth />}
-            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, order: { xs: 1, sm: 2 } }}
           >
             {submitting ? 'Sending request…' : 'Send booking request'}
           </Button>

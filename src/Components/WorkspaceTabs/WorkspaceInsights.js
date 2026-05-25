@@ -137,56 +137,56 @@ const WorkspaceInsights = ({ workspaceId }) => {
   const hasInsights = insights && insights.status === 'completed' && insights.report_data;
 
   return (
-    <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 1.5, sm: 3 }, maxWidth: { xs: '100%', md: 900 }, mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
         <Box sx={{ 
-          p: 1.5, 
-          borderRadius: '12px', 
+          p: { xs: 1, sm: 1.5 }, 
+          borderRadius: { xs: '10px', sm: '12px' }, 
           bgcolor: alpha(PURPLE_500, 0.1),
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <AutoAwesome sx={{ fontSize: 28, color: PURPLE_500 }} />
+          <AutoAwesome sx={{ fontSize: { xs: 24, sm: 28 }, color: PURPLE_500 }} />
         </Box>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: SLATE_900 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             AI-Powered Insights
           </Typography>
-          <Typography variant="body2" sx={{ color: SLATE_500 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Market research, competitor analysis, and recommendations
           </Typography>
         </Box>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3 }, borderRadius: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
       {!hasInsights ? (
         // No insights yet - show generation prompt
-        <Paper sx={{ p: 4, borderRadius: 2, textAlign: 'center', border: '1px solid', borderColor: SLATE_200 }}>
+        <Paper sx={{ p: { xs: 2, sm: 4 }, borderRadius: 2, textAlign: 'center', border: '1px solid', borderColor: SLATE_200 }}>
           <Box sx={{ 
-            width: 80, 
-            height: 80, 
+            width: { xs: 60, sm: 80 }, 
+            height: { xs: 60, sm: 80 }, 
             borderRadius: '50%', 
             bgcolor: alpha(PURPLE_500, 0.1),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             mx: 'auto',
-            mb: 3
+            mb: { xs: 2, sm: 3 }
           }}>
-            <AutoAwesome sx={{ fontSize: 40, color: PURPLE_500 }} />
+            <AutoAwesome sx={{ fontSize: { xs: 30, sm: 40 }, color: PURPLE_500 }} />
           </Box>
           
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             No Insights Generated Yet
           </Typography>
-          <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, maxWidth: 400, mx: 'auto' }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, maxWidth: { xs: '100%', sm: 400 }, mx: 'auto', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Generate AI-powered market research, competitor analysis, SWOT analysis, and actionable recommendations for your project.
           </Typography>
 
@@ -247,10 +247,10 @@ const WorkspaceInsights = ({ workspaceId }) => {
         </Paper>
       ) : (
         // Show insights report
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
           {/* Executive Summary */}
           {insights.report_data.executive_summary && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Lightbulb sx={{ color: AMBER_500 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -265,7 +265,7 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* Market Overview */}
           {insights.report_data.market_overview && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <TrendingUp sx={{ color: GREEN_500 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -320,14 +320,14 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* Competitor Landscape */}
           {insights.report_data.competitors?.length > 0 && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Groups sx={{ color: BLUE_500 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Groups sx={{ color: BLUE_500, fontSize: { xs: 20, sm: 24 } }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Competitor Landscape
                 </Typography>
               </Box>
-              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+              <Box sx={{ display: 'grid', gap: { xs: 1.5, sm: 2 }, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
                 {insights.report_data.competitors.map((competitor, i) => (
                   <Box 
                     key={i} 
@@ -374,7 +374,7 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* Competitive Positioning */}
           {insights.report_data.positioning && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Business sx={{ color: PURPLE_500 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -412,11 +412,11 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* SWOT Analysis */}
           {insights.report_data.swot && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 SWOT Analysis
               </Typography>
-              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(2, 1fr)' }}>
+              <Box sx={{ display: 'grid', gap: { xs: 1.5, sm: 2 }, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
                 {[
                   { key: 'strengths', label: 'Strengths', color: GREEN_500, icon: <CheckCircle /> },
                   { key: 'weaknesses', label: 'Weaknesses', color: RED_500, icon: <Warning /> },
@@ -454,7 +454,7 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* Key Risks */}
           {insights.report_data.risks?.length > 0 && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '1px solid', borderColor: SLATE_200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Warning sx={{ color: AMBER_500 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -505,7 +505,7 @@ const WorkspaceInsights = ({ workspaceId }) => {
 
           {/* Recommendations */}
           {insights.report_data.recommendations?.length > 0 && (
-            <Paper sx={{ p: 3, borderRadius: 2, border: '2px solid', borderColor: TEAL }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 2, border: '2px solid', borderColor: TEAL }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Lightbulb sx={{ color: TEAL }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -561,6 +561,8 @@ const WorkspaceInsights = ({ workspaceId }) => {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 1,
             pt: 2, 
             borderTop: '1px solid', 
             borderColor: SLATE_200 

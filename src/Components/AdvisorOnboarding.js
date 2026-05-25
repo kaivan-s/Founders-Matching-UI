@@ -835,7 +835,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
               error={formData.bio.length > 0 && formData.bio.length < 100}
             />
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <TextField
                 label="Contact Email *"
                 type="email"
@@ -941,7 +941,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
             {/* Professional Background */}
             <Typography variant="subtitle1" fontWeight={600} color="primary">Professional Background</Typography>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <FormControl fullWidth required size="small">
                 <InputLabel>Years of Experience *</InputLabel>
                 <Select
@@ -969,12 +969,12 @@ const AdvisorOnboarding = ({ onComplete }) => {
             </Box>
 
             {/* Current Role */}
-            <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0' }}>
+            <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: '#f8fafc', borderRadius: 1.5, border: '1px solid #e2e8f0' }}>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <WorkHistory fontSize="small" color="primary" />
                 Current Role *
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
                 <TextField
                   label="Title"
                   placeholder="e.g., CEO, CTO, Founder"
@@ -993,7 +993,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
                   fullWidth
                   size="small"
                 />
-                <FormControl size="small" sx={{ minWidth: 100 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 100 } }}>
                   <InputLabel>Since</InputLabel>
                   <Select
                     value={formData.professional_background.current_role.start_year}
@@ -1193,7 +1193,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
                 Founders pay you directly — set this up later if you prefer.
               </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                 <TextField
                   label="30-min rate ($)"
                   type="number"
@@ -1341,9 +1341,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
             )}
 
             {/* Summary */}
-            <Box sx={{ p: 2, border: '1px solid #e2e8f0', borderRadius: 2 }}>
+            <Box sx={{ p: { xs: 1.5, sm: 2 }, border: '1px solid #e2e8f0', borderRadius: 2 }}>
               <Typography variant="body2" fontWeight={600} sx={{ mb: 1.5 }}>Profile Summary</Typography>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' }, gap: 2, mb: 2, textAlign: { xs: 'center', sm: 'left' } }}>
                 <Avatar src={profileImage?.preview || existingImageUrl || user?.imageUrl} sx={{ width: 56, height: 56 }} />
                 <Box>
                   <Typography variant="body1" fontWeight={600}>{formData.name || 'Your Name'}</Typography>
@@ -1353,7 +1353,7 @@ const AdvisorOnboarding = ({ onComplete }) => {
                   </Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
                 {formData.advisory_types.map((type) => (
                   <Chip key={type} label={ADVISORY_TYPES.find(t => t.value === type)?.label || type} size="small" variant="outlined" />
                 ))}
@@ -1387,9 +1387,9 @@ const AdvisorOnboarding = ({ onComplete }) => {
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', height: '100%', p: { xs: 2, sm: 3 }, overflow: 'auto' }}>
       <Paper sx={{ width: '100%', maxWidth: { xs: '100%', sm: '90%', md: 850, lg: 950 }, maxHeight: { xs: 'none', sm: 680 }, display: 'flex', flexDirection: 'column', borderRadius: 2, boxShadow: 3, overflow: 'hidden' }}>
         {/* Header */}
-        <Box sx={{ p: { xs: 2, sm: 2.5 }, borderBottom: 1, borderColor: 'divider', bgcolor: 'white', flexShrink: 0 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Become an Advisor</Typography>
-          <Stepper activeStep={activeStep} nonLinear alternativeLabel sx={{ '& .MuiStepLabel-label': { fontSize: '0.7rem' } }}>
+        <Box sx={{ p: { xs: 1.5, sm: 2.5 }, borderBottom: 1, borderColor: 'divider', bgcolor: 'white', flexShrink: 0 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>Become an Advisor</Typography>
+          <Stepper activeStep={activeStep} nonLinear alternativeLabel sx={{ '& .MuiStepLabel-label': { fontSize: { xs: '0.6rem', sm: '0.7rem' } } }}>
             {steps.map((label, index) => {
               const stepComplete = isStepComplete(index);
               return (
@@ -1420,11 +1420,11 @@ const AdvisorOnboarding = ({ onComplete }) => {
         </Box>
 
         {/* Footer */}
-        <Box sx={{ p: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider', bgcolor: 'white', display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-          <Button disabled={activeStep === 0 || loading} onClick={handleBack} variant="outlined" size="small">
+        <Box sx={{ p: { xs: 1.5, sm: 2 }, borderTop: 1, borderColor: 'divider', bgcolor: 'white', display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'space-between', gap: { xs: 1, sm: 0 }, flexShrink: 0 }}>
+          <Button disabled={activeStep === 0 || loading} onClick={handleBack} variant="outlined" size="small" fullWidth sx={{ display: { sm: 'inline-flex' }, width: { sm: 'auto' } }}>
             Back
           </Button>
-          <Button variant="contained" onClick={handleNext} disabled={!validateStep() || loading} size="small">
+          <Button variant="contained" onClick={handleNext} disabled={!validateStep() || loading} size="small" fullWidth sx={{ display: { sm: 'inline-flex' }, width: { sm: 'auto' } }}>
             {loading ? <CircularProgress size={20} /> : activeStep === steps.length - 1 ? 'Submit' : 'Next'}
           </Button>
         </Box>

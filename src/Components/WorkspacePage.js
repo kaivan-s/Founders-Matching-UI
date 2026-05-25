@@ -269,7 +269,7 @@ const WorkspacePage = () => {
         px: { xs: 2, sm: 3, md: 4 },
         py: 2,
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
           <Tooltip title="Back to workspaces">
               <IconButton 
               onClick={() => navigate('/workspaces')}
@@ -294,9 +294,9 @@ const WorkspacePage = () => {
           {/* <NotificationBell workspaceId={workspaceId} clerkUserId={user.id} /> */}
           
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               {editingTitle ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, flexWrap: 'wrap', minWidth: { xs: '100%', sm: 'auto' } }}>
                   <TextField
                     value={titleValue}
                     onChange={(e) => setTitleValue(e.target.value)}
@@ -304,9 +304,10 @@ const WorkspacePage = () => {
                     placeholder="Enter workspace title"
                     sx={{ 
                       flex: 1, 
-                      maxWidth: 400,
+                      maxWidth: { xs: '100%', sm: 400 },
+                      minWidth: { xs: '100%', sm: 200 },
                       '& .MuiOutlinedInput-root': {
-                        fontSize: '1.125rem',
+                        fontSize: { xs: '1rem', sm: '1.125rem' },
                         fontWeight: 600,
                       }
                     }}
@@ -342,8 +343,9 @@ const WorkspacePage = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#1e3a8a',
-                      fontSize: '1.125rem',
+                      fontSize: { xs: '1rem', sm: '1.125rem' },
                       letterSpacing: '-0.01em',
+                      wordBreak: 'break-word',
                     }}
                   >
                     {workspace.title || 'Untitled Workspace'}
@@ -371,7 +373,8 @@ const WorkspacePage = () => {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: 1.5,
-                ml: 'auto'
+                ml: { xs: 0, sm: 'auto' },
+                flexWrap: 'wrap',
               }}>
                 {editingStage ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -548,15 +551,15 @@ const WorkspacePage = () => {
           py: 1.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
+          gap: { xs: 1, sm: 2 },
           flexWrap: 'wrap',
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-            <InfoOutlined sx={{ color: '#d97706', fontSize: 20 }} />
-            <Typography variant="body2" sx={{ color: '#92400e', fontWeight: 500 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, flexWrap: 'wrap' }}>
+            <InfoOutlined sx={{ color: '#d97706', fontSize: 20, display: { xs: 'none', sm: 'block' } }} />
+            <Typography variant="body2" sx={{ color: '#92400e', fontWeight: 500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
               Complete your workspace setup:
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' }, mt: { xs: 1, sm: 0 } }}>
               {setupStatus.items.map((item, idx) => (
                 <Chip
                   key={idx}

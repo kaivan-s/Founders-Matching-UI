@@ -106,29 +106,30 @@ const StatCard = ({ icon: Icon, value, label, color }) => (
   <Paper
     elevation={0}
     sx={{
-      p: 2.5,
+      p: { xs: 2, sm: 2.5 },
       border: '1px solid',
       borderColor: 'divider',
       borderRadius: 2,
       height: '100%',
     }}
   >
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
       <Box sx={{ 
-        p: 1.5, 
+        p: { xs: 1, sm: 1.5 }, 
         borderRadius: 2, 
         bgcolor: alpha(color, 0.1),
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        flexShrink: 0,
       }}>
-        <Icon sx={{ color, fontSize: 24 }} />
+        <Icon sx={{ color, fontSize: { xs: 20, sm: 24 } }} />
       </Box>
-      <Box>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1 }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
           {value}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
           {label}
         </Typography>
       </Box>
@@ -942,7 +943,7 @@ const AdvisorDashboard = () => {
   // Error state
   if (error) {
     return (
-      <Box sx={{ p: 4, maxWidth: 500, mx: 'auto', textAlign: 'center' }}>
+      <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: { xs: '100%', sm: 500 }, mx: 'auto', textAlign: 'center' }}>
         <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>
         <Button variant="contained" onClick={() => window.location.reload()} sx={{ bgcolor: '#0ea5e9' }}>
           Retry
@@ -996,9 +997,9 @@ const AdvisorDashboard = () => {
   // Rejected status
   if (status === 'REJECTED') {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: 6 }}>
-        <Box sx={{ maxWidth: 600, mx: 'auto', px: 3 }}>
-          <Paper elevation={0} sx={{ p: 5, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', py: { xs: 3, sm: 6 } }}>
+        <Box sx={{ maxWidth: { xs: '100%', sm: 600 }, mx: 'auto', px: { xs: 2, sm: 3 } }}>
+          <Paper elevation={0} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
             <Box sx={{ 
               width: 80, 
               height: 80, 
@@ -1035,12 +1036,12 @@ const AdvisorDashboard = () => {
   // Approved - Full Dashboard
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc' }}>
-      <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Box sx={{ maxWidth: { xs: '100%', sm: 900, md: 1200 }, mx: 'auto', p: { xs: 2, sm: 3, md: 4 } }}>
         {/* Header */}
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ mb: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'flex-start' }, flexWrap: 'wrap', gap: 2 }}>
               <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, mb: 1, flexWrap: 'wrap' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#0f172a', fontSize: { xs: '1.25rem', sm: '1.5rem' }, wordBreak: 'break-word' }}>
                     Welcome back, {profile?.name?.split(' ')[0] || 'Advisor'}
                   </Typography>
                   {profile?.is_discoverable && (
@@ -1064,11 +1065,13 @@ const AdvisorDashboard = () => {
                 variant="outlined"
                 startIcon={<Settings />}
                 onClick={handleOpenEditDialog}
+                fullWidth={false}
                 sx={{
                   textTransform: 'none',
                   fontWeight: 600,
                   borderColor: '#e2e8f0',
                   color: '#64748b',
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': { borderColor: '#0d9488', color: '#0d9488', bgcolor: alpha('#0d9488', 0.04) },
                 }}
               >
@@ -1081,7 +1084,7 @@ const AdvisorDashboard = () => {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2.5,
+                  p: { xs: 2, sm: 2.5 },
                   mb: 3,
                   borderRadius: 2,
                   border: '1px solid',
@@ -1089,8 +1092,8 @@ const AdvisorDashboard = () => {
                   bgcolor: profileCompletion.isComplete ? alpha('#3b82f6', 0.04) : alpha('#f59e0b', 0.04),
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                  <Box sx={{ flex: 1, minWidth: 280 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                  <Box sx={{ flex: 1, minWidth: { xs: 0, sm: 280 } }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                       {profileCompletion.isComplete ? (
                         <Schedule sx={{ color: '#3b82f6', fontSize: 22 }} />
@@ -1143,20 +1146,23 @@ const AdvisorDashboard = () => {
                     variant={profileCompletion.isComplete ? "outlined" : "contained"}
                     startIcon={<Edit />}
                     onClick={() => handleOpenEditDialog(0)}
+                    fullWidth={false}
                     sx={profileCompletion.isComplete ? {
                       borderColor: '#3b82f6',
                       color: '#3b82f6',
                       textTransform: 'none',
                       fontWeight: 600,
                       borderRadius: 2,
-                      px: 3,
+                      px: { xs: 2, sm: 3 },
+                      width: { xs: '100%', sm: 'auto' },
                       '&:hover': { borderColor: '#1d4ed8', bgcolor: alpha('#3b82f6', 0.04) },
                     } : {
                       bgcolor: '#f59e0b',
                       textTransform: 'none',
                       fontWeight: 600,
                       borderRadius: 2,
-                      px: 3,
+                      px: { xs: 2, sm: 3 },
+                      width: { xs: '100%', sm: 'auto' },
                       '&:hover': { bgcolor: '#d97706' },
                     }}
                   >
@@ -1246,8 +1252,8 @@ const AdvisorDashboard = () => {
               id="calcom-section"
               elevation={0}
               sx={{
-                p: 2,
-                mb: 4,
+                p: { xs: 1.5, sm: 2 },
+                mb: { xs: 3, sm: 4 },
                 borderRadius: 2,
                 border: '1px solid',
                 borderColor:
@@ -1593,13 +1599,20 @@ const AdvisorDashboard = () => {
         onClose={editSaving ? undefined : () => setEditDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, maxHeight: '90vh' } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: { xs: 2, sm: 3 }, 
+            maxHeight: '90vh',
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          } 
+        }}
       >
-        <DialogTitle sx={{ pb: 0, pt: 2, px: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Settings sx={{ color: '#0d9488' }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>Edit Profile</Typography>
+        <DialogTitle sx={{ pb: 0, pt: 2, px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, flexWrap: 'wrap' }}>
+              <Settings sx={{ color: '#0d9488', fontSize: { xs: 20, sm: 24 } }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>Edit Profile</Typography>
               {/* Auto-save status indicator */}
               {autoSaveStatus && (
                 <Chip
@@ -1632,6 +1645,9 @@ const AdvisorDashboard = () => {
           <Tabs
             value={editTabIndex}
             onChange={(_, v) => setEditTabIndex(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
               mt: 2,
               borderBottom: '1px solid',
@@ -1639,7 +1655,9 @@ const AdvisorDashboard = () => {
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 500,
-                minWidth: 100,
+                minWidth: { xs: 80, sm: 100 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                px: { xs: 1.5, sm: 2 },
                 '&.Mui-selected': { color: '#0d9488', fontWeight: 600 },
               },
               '& .MuiTabs-indicator': { bgcolor: '#0d9488' },
@@ -1650,9 +1668,9 @@ const AdvisorDashboard = () => {
             <Tab label="Booking Setup" />
           </Tabs>
         </DialogTitle>
-        <DialogContent sx={{ p: 0, minHeight: 420, maxHeight: 420, overflow: 'auto' }}>
+        <DialogContent sx={{ p: 0, minHeight: { xs: 350, sm: 420 }, maxHeight: { xs: 350, sm: 420 }, overflow: 'auto' }}>
           {editFormData && (
-            <Box sx={{ p: 3, minHeight: 380 }}>
+            <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: { xs: 300, sm: 380 } }}>
               {editError && (
                 <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>{editError}</Alert>
               )}
@@ -2000,11 +2018,12 @@ const AdvisorDashboard = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}>
+        <DialogActions sx={{ p: { xs: 1.5, sm: 2 }, borderTop: '1px solid', borderColor: 'divider', gap: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
           <Button
             onClick={() => setEditDialogOpen(false)}
             disabled={editSaving}
-            sx={{ textTransform: 'none' }}
+            fullWidth
+            sx={{ textTransform: 'none', width: { xs: '100%', sm: 'auto' } }}
           >
             Cancel
           </Button>
@@ -2012,11 +2031,13 @@ const AdvisorDashboard = () => {
             variant="contained"
             onClick={handleSaveProfile}
             disabled={editSaving}
+            fullWidth
             startIcon={editSaving ? <CircularProgress size={16} color="inherit" /> : <Save />}
             sx={{
               textTransform: 'none',
               fontWeight: 600,
               bgcolor: '#0d9488',
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': { bgcolor: '#0f766e' },
             }}
           >

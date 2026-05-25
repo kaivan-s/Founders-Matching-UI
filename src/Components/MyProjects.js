@@ -381,7 +381,7 @@ const MyProjects = () => {
       <Box sx={{ 
         flex: 1,
         overflowY: 'auto',
-        p: 3,
+        p: { xs: 2, sm: 3 },
         '&::-webkit-scrollbar': {
           width: '6px',
         },
@@ -409,8 +409,9 @@ const MyProjects = () => {
             alignItems: 'center',
             height: '100%',
             textAlign: 'center',
-            maxWidth: 500,
+            maxWidth: { xs: '100%', sm: 500 },
             mx: 'auto',
+            px: { xs: 2, sm: 0 },
           }}>
             <Box sx={{ 
               display: 'inline-flex', 
@@ -462,20 +463,20 @@ const MyProjects = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Box
-                onClick={() => window.dispatchEvent(new Event('openNewProjectDialog'))}
-                sx={{
-                  height: '100%',
-                  minHeight: 180,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: alpha(TEAL, 0.04),
-                  borderRadius: 2,
-                  border: '2px dashed',
-                  borderColor: alpha(TEAL, 0.3),
-                  p: 3,
+                <Box
+                  onClick={() => window.dispatchEvent(new Event('openNewProjectDialog'))}
+                  sx={{
+                    height: '100%',
+                    minHeight: { xs: 150, sm: 180 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: alpha(TEAL, 0.04),
+                    borderRadius: 2,
+                    border: '2px dashed',
+                    borderColor: alpha(TEAL, 0.3),
+                    p: { xs: 2, sm: 3 },
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   '&:hover': {
@@ -532,7 +533,7 @@ const MyProjects = () => {
                       borderRadius: 2,
                       border: '1px solid',
                       borderColor: SLATE_200,
-                      p: 2.5,
+                      p: { xs: 2, sm: 2.5 },
                       transition: 'all 0.2s',
                       cursor: 'pointer',
                       '&:hover': {
@@ -544,7 +545,7 @@ const MyProjects = () => {
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: SLATE_900 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: SLATE_900, wordBreak: 'break-word' }}>
                           {project.title}
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -632,12 +633,14 @@ const MyProjects = () => {
                     {/* Insights Actions */}
                     <Box sx={{ 
                       display: 'flex', 
-                      alignItems: 'center', 
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: { xs: 'flex-start', sm: 'center' }, 
                       gap: 1, 
                       pt: 1.5,
                       borderTop: '1px solid',
                       borderColor: SLATE_200,
-                      mt: 'auto'
+                      mt: 'auto',
+                      flexWrap: 'wrap',
                     }}>
                       {isGenerating ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
@@ -732,7 +735,11 @@ const MyProjects = () => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 2 }
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          }
         }}
       >
         <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
@@ -740,7 +747,7 @@ const MyProjects = () => {
             Edit Project
           </Typography>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
+        <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <TextField
               fullWidth
@@ -819,20 +826,28 @@ const MyProjects = () => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+        <DialogActions sx={{ 
+          p: { xs: 1.5, sm: 2 }, 
+          borderTop: '1px solid', 
+          borderColor: SLATE_200,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+        }}>
           <Button 
             onClick={() => {
               setEditDialogOpen(false);
               setEditingProject(null);
             }}
             disabled={saving}
-            sx={{ textTransform: 'none', color: SLATE_500 }}
+            fullWidth
+            sx={{ textTransform: 'none', color: SLATE_500, order: { xs: 2, sm: 1 } }}
           >
             Cancel
           </Button>
           <Button
             onClick={handleSaveEdit}
             variant="contained"
+            fullWidth
             disabled={saving || !editFormData.title.trim() || !editFormData.description.trim()}
             startIcon={saving ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <Check />}
             sx={{
@@ -840,6 +855,7 @@ const MyProjects = () => {
               '&:hover': { bgcolor: TEAL_LIGHT },
               textTransform: 'none',
               px: 3,
+              order: { xs: 1, sm: 2 },
             }}
           >
             {saving ? 'Saving...' : 'Save Changes'}
@@ -855,7 +871,11 @@ const MyProjects = () => {
           setProjectToDelete(null);
         }}
         PaperProps={{
-          sx: { borderRadius: 2 }
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: 'auto' },
+          }
         }}
       >
         <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
@@ -863,31 +883,40 @@ const MyProjects = () => {
             Delete Project
           </Typography>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Typography sx={{ color: SLATE_900 }}>
+        <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
+          <Typography sx={{ color: SLATE_900, wordBreak: 'break-word' }}>
             Are you sure you want to delete "{projectToDelete?.title}"? This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+        <DialogActions sx={{ 
+          p: { xs: 1.5, sm: 2 }, 
+          borderTop: '1px solid', 
+          borderColor: SLATE_200,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+        }}>
           <Button 
             onClick={() => {
               setDeleteDialogOpen(false);
               setProjectToDelete(null);
             }}
             disabled={deleting}
-            sx={{ textTransform: 'none', color: SLATE_500 }}
+            fullWidth
+            sx={{ textTransform: 'none', color: SLATE_500, order: { xs: 2, sm: 1 } }}
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirmDelete}
             variant="contained"
+            fullWidth
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <Delete />}
             sx={{
               bgcolor: '#ef4444',
               '&:hover': { bgcolor: '#dc2626' },
               textTransform: 'none',
+              order: { xs: 1, sm: 2 },
             }}
           >
             {deleting ? 'Deleting...' : 'Delete'}
@@ -906,10 +935,12 @@ const MyProjects = () => {
             borderRadius: 2,
             border: '1px solid',
             borderColor: SLATE_200,
-            height: '90vh',
-            maxHeight: '800px',
+            height: { xs: '95vh', sm: '90vh' },
+            maxHeight: { xs: '100%', sm: '800px' },
             display: 'flex',
             flexDirection: 'column',
+            mx: { xs: 1, sm: 3 },
+            width: { xs: 'calc(100% - 16px)', sm: '100%' },
           }
         }}
       >
@@ -918,13 +949,14 @@ const MyProjects = () => {
             <DialogTitle sx={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
-              alignItems: 'center',
+              alignItems: 'flex-start',
               pb: 2,
               borderBottom: '1px solid',
               borderColor: SLATE_200,
+              px: { xs: 2, sm: 3 },
             }}>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900 }}>
+              <Box sx={{ flex: 1, minWidth: 0, pr: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: SLATE_900, wordBreak: 'break-word', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   {selectedProject.title}
                 </Typography>
                 {selectedProject.stage && (
@@ -954,6 +986,7 @@ const MyProjects = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 pt: 3,
+                px: { xs: 2, sm: 3 },
               }}
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -1115,10 +1148,11 @@ const MyProjects = () => {
                 )}
               </Box>
             </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+            <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
               <Button 
                 onClick={handleCloseViewDialog}
                 variant="contained"
+                fullWidth
                 sx={{
                   bgcolor: TEAL,
                   '&:hover': { bgcolor: TEAL_LIGHT },
@@ -1147,7 +1181,9 @@ const MyProjects = () => {
             borderRadius: 2,
             border: '1px solid',
             borderColor: SLATE_200,
-            maxHeight: '90vh',
+            maxHeight: { xs: '95vh', sm: '90vh' },
+            mx: { xs: 1, sm: 3 },
+            width: { xs: 'calc(100% - 16px)', sm: '100%' },
           }
         }}
       >
@@ -1159,6 +1195,8 @@ const MyProjects = () => {
               gap: 1.5,
               borderBottom: '1px solid',
               borderColor: SLATE_200,
+              px: { xs: 2, sm: 3 },
+              flexWrap: 'wrap',
             }}>
               <Box sx={{ 
                 p: 1, 
@@ -1168,22 +1206,21 @@ const MyProjects = () => {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <AutoAwesome sx={{ color: '#8b5cf6', fontSize: 24 }} />
+                <AutoAwesome sx={{ color: '#8b5cf6', fontSize: { xs: 20, sm: 24 } }} />
               </Box>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   AI-Powered Insights
                 </Typography>
                 <Typography variant="caption" sx={{ color: SLATE_500 }}>
                   Market research & competitor analysis
                 </Typography>
               </Box>
-              <Box sx={{ flex: 1 }} />
               <IconButton onClick={() => setInsightsDialogOpen(false)} size="small">
                 <Close />
               </IconButton>
             </DialogTitle>
-            <DialogContent sx={{ p: 3 }}>
+            <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {/* Executive Summary */}
                 {selectedInsights.report_data.executive_summary && (
@@ -1256,7 +1293,7 @@ const MyProjects = () => {
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: TEAL, mb: 1 }}>
                       SWOT Analysis
                     </Typography>
-                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                    <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
                       {['strengths', 'weaknesses', 'opportunities', 'threats'].map((key) => (
                         <Box key={key} sx={{ 
                           p: 2, 

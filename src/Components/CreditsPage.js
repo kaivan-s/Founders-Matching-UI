@@ -197,14 +197,14 @@ const CreditsPage = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: { xs: '100%', sm: 900, md: 1200 }, mx: 'auto' }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
           <Typography
             variant="h4"
             sx={{
@@ -213,13 +213,14 @@ const CreditsPage = () => {
               mb: 1,
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5,
+              gap: { xs: 1, sm: 1.5 },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
             }}
           >
-            <AccountBalanceWallet sx={{ color: TEAL }} />
+            <AccountBalanceWallet sx={{ color: TEAL, fontSize: { xs: 24, sm: 28 } }} />
             Credits
           </Typography>
-          <Typography variant="body1" sx={{ color: SLATE_500 }}>
+          <Typography variant="body1" sx={{ color: SLATE_500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
             Manage your credits and purchase more to use premium services
           </Typography>
         </Box>
@@ -239,23 +240,23 @@ const CreditsPage = () => {
         {/* Balance Card */}
         <Card
           sx={{
-            mb: 4,
+            mb: { xs: 2, sm: 3, md: 4 },
             bgcolor: alpha(TEAL, 0.05),
             border: `1px solid ${alpha(TEAL, 0.2)}`,
           }}
         >
-          <CardContent sx={{ py: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+          <CardContent sx={{ py: { xs: 2, sm: 3 }, px: { xs: 2, sm: 3 } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
               <Box>
-                <Typography variant="body2" sx={{ color: SLATE_500, mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 0.5, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   Available Balance
                 </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 700, color: TEAL }}>
-                  {balance} <Typography component="span" variant="h6" sx={{ color: SLATE_500, fontWeight: 500 }}>credits</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 700, color: TEAL, fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}>
+                  {balance} <Typography component="span" variant="h6" sx={{ color: SLATE_500, fontWeight: 500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>credits</Typography>
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="body2" sx={{ color: SLATE_500, mb: 1 }}>
+                <Typography variant="body2" sx={{ color: SLATE_500, mb: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   New users get 20 free credits to start
                 </Typography>
               </Box>
@@ -264,12 +265,12 @@ const CreditsPage = () => {
         </Card>
 
         {/* Credit Packs */}
-        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           Buy Credits
         </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
           {creditPacks.map((pack) => (
-            <Grid item xs={12} sm={6} md={3} key={pack.id}>
+            <Grid item xs={6} sm={6} md={3} key={pack.id}>
               <Card
                 sx={{
                   height: '100%',
@@ -289,21 +290,22 @@ const CreditsPage = () => {
                     sx={{
                       position: 'absolute',
                       top: -10,
-                      right: 16,
+                      right: { xs: 8, sm: 16 },
                       bgcolor: TEAL,
                       color: '#fff',
                       fontWeight: 600,
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
                     }}
                   />
                 )}
-                <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: NAVY, mb: 1 }}>
+                <CardContent sx={{ textAlign: 'center', py: { xs: 2, sm: 3 }, px: { xs: 1.5, sm: 2 } }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: NAVY, mb: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                     {pack.credits}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: SLATE_500, mb: { xs: 1, sm: 2 }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
                     credits
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: TEAL, mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: TEAL, mb: { xs: 1, sm: 2 }, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                     {pack.price_display || `$${(pack.price_cents / 100).toFixed(0)}`}
                   </Typography>
                   {pack.bonus_credits > 0 && (
@@ -338,14 +340,14 @@ const CreditsPage = () => {
         </Grid>
 
         {/* Service Costs */}
-        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           What Costs Credits?
         </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
           {serviceCosts.map((service) => (
             <Grid item xs={12} sm={6} md={4} key={service.key}>
               <Card sx={{ height: '100%', border: '1px solid #e2e8f0' }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, sm: 2 } }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                     {getServiceIcon(service.key)}
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, color: NAVY }}>
@@ -379,20 +381,20 @@ const CreditsPage = () => {
         <Divider sx={{ my: 4 }} />
 
         {/* Transaction History */}
-        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: NAVY, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           Transaction History
         </Typography>
         {transactions.length === 0 ? (
           <Card sx={{ border: '1px solid #e2e8f0' }}>
-            <CardContent sx={{ textAlign: 'center', py: 6 }}>
-              <AccountBalanceWallet sx={{ fontSize: 48, color: SLATE_500, mb: 2, opacity: 0.5 }} />
-              <Typography variant="body1" sx={{ color: SLATE_500 }}>
+            <CardContent sx={{ textAlign: 'center', py: { xs: 4, sm: 6 } }}>
+              <AccountBalanceWallet sx={{ fontSize: { xs: 36, sm: 48 }, color: SLATE_500, mb: 2, opacity: 0.5 }} />
+              <Typography variant="body1" sx={{ color: SLATE_500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 No transactions yet. Your credit activity will appear here.
               </Typography>
             </CardContent>
           </Card>
         ) : (
-          <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+          <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0', boxShadow: 'none', overflowX: 'auto' }}>
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: SLATE_100 }}>

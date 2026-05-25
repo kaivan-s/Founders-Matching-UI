@@ -275,13 +275,14 @@ const AppLayout = ({ children }) => {
                   bgcolor: '#fff',
                   color: planId === 'PRO' ? '#1e3a8a' : '#0d9488',
                   fontWeight: 700,
-                  fontSize: '0.75rem',
-                  px: 1.5,
+                  fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                  px: { xs: 1, sm: 1.5 },
                   py: 0.25,
                   minHeight: 0,
                   position: 'absolute',
-                  right: 40,
+                  right: { xs: 32, sm: 40 },
                   zIndex: 1,
+                  display: { xs: 'none', sm: 'inline-flex' },
                   '&:hover': { bgcolor: '#f0fdfa' },
                 }}
               >
@@ -293,15 +294,15 @@ const AppLayout = ({ children }) => {
               onClick={handleDismissPromoBanner}
               sx={{
                 position: 'absolute',
-                right: 8,
+                right: { xs: 4, sm: 8 },
                 color: '#fff',
                 opacity: 0.7,
-                p: 0.25,
+                p: { xs: 0.15, sm: 0.25 },
                 zIndex: 1,
                 '&:hover': { opacity: 1 },
               }}
             >
-              <Close fontSize="small" />
+              <Close sx={{ fontSize: { xs: 16, sm: 20 } }} />
             </IconButton>
           </Box>
         )}
@@ -331,7 +332,7 @@ const AppLayout = ({ children }) => {
               <FounderPlanNavTag />
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 } }}>
               <Tooltip title="Notifications">
                 <IconButton
                   sx={{

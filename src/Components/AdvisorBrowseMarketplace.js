@@ -186,16 +186,18 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 2, sm: 3 },
           maxHeight: '85vh',
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
         },
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '85vh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: { xs: '80vh', sm: '85vh' } }}>
         {/* Header */}
         <Box 
           sx={{ 
-            p: 3, 
+            p: { xs: 2, sm: 3 }, 
             bgcolor: 'background.paper',
             borderBottom: 1, 
             borderColor: 'divider',
@@ -204,7 +206,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
             alignItems: 'center',
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Find an Advisor
           </Typography>
           <IconButton 
@@ -223,7 +225,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         </Box>
 
         {/* Search */}
-        <Box sx={{ px: 3, py: 2, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ px: { xs: 2, sm: 3 }, py: 2, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
           <TextField
             fullWidth
             placeholder="Search by name, expertise, or domain..."
@@ -254,7 +256,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
         </Box>
 
         {/* Content */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 3, bgcolor: 'grey.50' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: { xs: 2, sm: 3 }, bgcolor: 'grey.50' }}>
           {!loading && !error && showBroadenedListNote && (
             <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
               We expanded the list so you still see options when few advisors match your workspace
@@ -309,24 +311,25 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                       },
                     }}
                   >
-                    <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
-                      <Box sx={{ display: 'flex', gap: 2 }}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                         <Avatar 
                           src={partner.profile_image_url}
                           sx={{ 
-                            width: 64, 
-                            height: 64,
+                            width: { xs: 56, sm: 64 }, 
+                            height: { xs: 56, sm: 64 },
                             bgcolor: 'primary.main',
-                            fontSize: '1.5rem',
+                            fontSize: { xs: '1.25rem', sm: '1.5rem' },
                             fontWeight: 600,
                             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            alignSelf: { xs: 'center', sm: 'flex-start' },
                           }}
                         >
                           {partner.name?.[0]?.toUpperCase() || 'P'}
                         </Avatar>
                         
                         <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1 }}>
+                          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'flex-start' }, mb: 1.5, gap: 1 }}>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
                                 <Typography 
@@ -415,7 +418,7 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                               {renderBadges(partner.verification_badges)}
                             </Box>
                             
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, alignItems: { xs: 'center', sm: 'flex-end' }, justifyContent: { xs: 'space-between', sm: 'flex-start' }, gap: { xs: 1, sm: 0.5 }, flexWrap: 'wrap', mt: { xs: 1, sm: 0 } }}>
                               {/* Rating display - clickable to view reviews */}
                               {partner.rating_stats?.avg_rating != null && (
                                 <Box
@@ -481,8 +484,10 @@ const AdvisorBrowseMarketplace = ({ open, onClose, workspaceId, onBookingCreated
                                   borderRadius: 2,
                                   textTransform: 'none',
                                   fontWeight: 500,
-                                  px: 2,
-                                  minWidth: 160,
+                                  px: { xs: 1.5, sm: 2 },
+                                  minWidth: { xs: 'auto', sm: 160 },
+                                  width: { xs: '100%', sm: 'auto' },
+                                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                                 }}
                               >
                                 {isBookable ? 'Book Consultation' : 'Rates not set'}
@@ -678,18 +683,24 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      PaperProps={{ 
+        sx: { 
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+        } 
+      }}
     >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <DialogTitle sx={{ px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, minWidth: 0 }}>
             <Avatar
-              sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontWeight: 600 }}
+              sx={{ width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 }, bgcolor: 'primary.main', fontWeight: 600, flexShrink: 0 }}
             >
               {advisorName[0]?.toUpperCase()}
             </Avatar>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' }, wordBreak: 'break-word' }}>
                 Reviews for {advisorName}
               </Typography>
               {stats?.avg_rating != null && (
@@ -715,15 +726,15 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 4, sm: 6 } }}>
             <CircularProgress size={28} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ m: 2, borderRadius: 2 }}>
+          <Alert severity="error" sx={{ m: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
             {error}
           </Alert>
         ) : reviews.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
+          <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 6 }, px: 2 }}>
             <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
               No reviews yet
             </Typography>
@@ -736,7 +747,7 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
             {/* Rating breakdown */}
             <Paper
               variant="outlined"
-              sx={{ m: 2, p: 2, borderRadius: 2, bgcolor: 'background.default' }}
+              sx={{ m: { xs: 1.5, sm: 2 }, p: { xs: 1.5, sm: 2 }, borderRadius: 2, bgcolor: 'background.default' }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
                 Rating breakdown
@@ -777,14 +788,14 @@ const AdvisorReviewsDialog = ({ advisor, onClose }) => {
             </Paper>
 
             {/* Reviews list */}
-            <Box sx={{ px: 2, pb: 2 }}>
+            <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 } }}>
               {reviews.map((review, idx) => {
                 const reviewer = review.reviewer || {};
                 return (
                   <Paper
                     key={review.id || idx}
                     variant="outlined"
-                    sx={{ p: 2, mb: 1.5, borderRadius: 2, '&:last-child': { mb: 0 } }}
+                    sx={{ p: { xs: 1.5, sm: 2 }, mb: 1.5, borderRadius: 2, '&:last-child': { mb: 0 } }}
                   >
                     <Box sx={{ display: 'flex', gap: 1.5 }}>
                       <Avatar
@@ -855,8 +866,10 @@ const AdvisorDetailDialog = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 2, sm: 3 },
           maxHeight: '90vh',
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
         },
       }}
     >
@@ -866,8 +879,8 @@ const AdvisorDetailDialog = ({
           onClick={onClose}
           sx={{
             position: 'absolute',
-            top: 12,
-            right: 12,
+            top: { xs: 8, sm: 12 },
+            right: { xs: 8, sm: 12 },
             bgcolor: 'rgba(255,255,255,0.9)',
             zIndex: 1,
             '&:hover': { bgcolor: 'white' },
@@ -880,7 +893,7 @@ const AdvisorDetailDialog = ({
         {/* Profile header */}
         <Box
           sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             bgcolor: 'primary.main',
             color: 'white',
             textAlign: 'center',
@@ -889,20 +902,20 @@ const AdvisorDetailDialog = ({
           <Avatar
             src={advisor.profile_image_url}
             sx={{
-              width: 100,
-              height: 100,
+              width: { xs: 80, sm: 100 },
+              height: { xs: 80, sm: 100 },
               mx: 'auto',
               mb: 2,
               border: '4px solid white',
               boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-              fontSize: '2.5rem',
+              fontSize: { xs: '2rem', sm: '2.5rem' },
               bgcolor: 'primary.dark',
             }}
           >
             {advisor.name?.[0]?.toUpperCase() || 'A'}
           </Avatar>
           
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem' }, wordBreak: 'break-word' }}>
             {advisor.name || 'Advisor'}
           </Typography>
           
@@ -952,29 +965,29 @@ const AdvisorDetailDialog = ({
 
       <DialogContent sx={{ p: 0 }}>
         {/* Pricing section */}
-        <Box sx={{ p: 3, bgcolor: 'grey.50', borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'grey.50', borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
             Consultation Rates
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1.5, sm: 2 } }}>
             {rate30 && (
-              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+              <Paper variant="outlined" sx={{ flex: 1, p: { xs: 1.5, sm: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {rate30}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">30 min session</Typography>
               </Paper>
             )}
             {rate60 && (
-              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
+              <Paper variant="outlined" sx={{ flex: 1, p: { xs: 1.5, sm: 2 }, textAlign: 'center', borderRadius: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {rate60}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">60 min session</Typography>
               </Paper>
             )}
             {!isBookable && (
-              <Paper variant="outlined" sx={{ flex: 1, p: 2, textAlign: 'center', borderRadius: 2, bgcolor: 'grey.50' }}>
+              <Paper variant="outlined" sx={{ flex: 1, p: { xs: 1.5, sm: 2 }, textAlign: 'center', borderRadius: 2, bgcolor: 'grey.50' }}>
                 <Typography variant="body2" color="text.secondary">Rates not set</Typography>
               </Paper>
             )}
@@ -983,7 +996,7 @@ const AdvisorDetailDialog = ({
 
         {/* About section */}
         {advisor.bio && (
-          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: 1, borderColor: 'divider' }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               About
             </Typography>
@@ -994,11 +1007,11 @@ const AdvisorDetailDialog = ({
         )}
 
         {/* Experience & Credentials */}
-        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
             Experience
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 } }}>
             {profBg.years_experience && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <WorkHistory sx={{ color: 'text.secondary', fontSize: 20 }} />
@@ -1029,8 +1042,8 @@ const AdvisorDetailDialog = ({
 
         {/* Expertise */}
         {(advisor.domains?.length > 0 || advisor.expertise_stages?.length > 0) && (
-          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               Expertise
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -1059,11 +1072,11 @@ const AdvisorDetailDialog = ({
         )}
 
         {/* Availability */}
-        <Box sx={{ p: 3 }}>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
             Availability
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 } }}>
             {advisor.availability_frequency && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Schedule sx={{ color: 'text.secondary', fontSize: 20 }} />
@@ -1091,7 +1104,7 @@ const AdvisorDetailDialog = ({
       </DialogContent>
 
       {/* Action button */}
-      <Box sx={{ p: 3, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+      <Box sx={{ p: { xs: 2, sm: 3 }, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Button
           variant="contained"
           fullWidth
@@ -1101,10 +1114,10 @@ const AdvisorDetailDialog = ({
           startIcon={<CalendarMonth />}
           sx={{
             borderRadius: 2,
-            py: 1.5,
+            py: { xs: 1.25, sm: 1.5 },
             textTransform: 'none',
             fontWeight: 600,
-            fontSize: '1rem',
+            fontSize: { xs: '0.9rem', sm: '1rem' },
           }}
         >
           {isBookable ? 'Book a Consultation' : 'Rates Not Available'}

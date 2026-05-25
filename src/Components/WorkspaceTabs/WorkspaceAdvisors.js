@@ -46,13 +46,13 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
   const canAccessAdvisors = plan && (plan.id === 'PRO' || plan.id === 'PRO_PLUS');
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ p: { xs: 0, sm: 0 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, sm: 3 }, flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Advisors
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Connect with experienced advisors for 1-on-1 consultations
           </Typography>
         </Box>
@@ -64,10 +64,11 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
           severity="info" 
           icon={<Star />}
           sx={{ 
-            mb: 3, 
+            mb: { xs: 2, sm: 3 }, 
             bgcolor: alpha(TEAL, 0.05),
             border: `1px solid ${alpha(TEAL, 0.2)}`,
             '& .MuiAlert-icon': { color: TEAL },
+            borderRadius: { xs: 2, sm: 2 },
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
@@ -93,10 +94,11 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
         <Alert 
           severity="success" 
           sx={{ 
-            mb: 3, 
+            mb: { xs: 2, sm: 3 }, 
             bgcolor: alpha(TEAL, 0.05),
             border: `1px solid ${alpha(TEAL, 0.2)}`,
             '& .MuiAlert-icon': { color: TEAL },
+            borderRadius: { xs: 2, sm: 2 },
           }}
         >
           <Typography variant="body2">
@@ -108,25 +110,25 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
 
       {/* Only show button for Pro/Pro+ users */}
       {!loading && canAccessAdvisors && (
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={() => setMarketplaceOpen(true)}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}
+            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' }, width: { xs: '100%', sm: 'auto' } }}
           >
             Browse Advisor Marketplace
           </Button>
         </Box>
       )}
 
-      <Card variant="outlined" sx={{ mb: 4 }}>
-        <CardContent>
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+      <Card variant="outlined" sx={{ mb: { xs: 3, sm: 4 }, borderRadius: { xs: 2, sm: 2 } }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box sx={{ textAlign: 'center', py: { xs: 2, sm: 4 } }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               Book 1-on-1 Consultations
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500, mx: 'auto' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: { xs: '100%', sm: 500 }, mx: 'auto', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
               Browse our marketplace of experienced advisors and book consultation sessions 
               that fit your schedule. Get personalized guidance on strategy, technical decisions, 
               fundraising, and more.
@@ -143,17 +145,17 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
         </CardContent>
       </Card>
 
-      <Divider sx={{ my: 4 }} />
+      <Divider sx={{ my: { xs: 3, sm: 4 } }} />
 
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           About Advisors
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           Advisors provide 1-on-1 consultation sessions with founders. They can help with strategy, 
           technical guidance, industry insights, and mentorship based on their expertise.
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           Book sessions through the marketplace above to connect with advisors who match your needs.
         </Typography>
       </Box>

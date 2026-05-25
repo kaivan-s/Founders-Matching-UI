@@ -176,7 +176,7 @@ const MyApplications = () => {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      py: 3,
+      py: { xs: 2, sm: 3 },
       px: { xs: 2, sm: 3, md: 4 },
     }}>
       {error && (
@@ -192,9 +192,16 @@ const MyApplications = () => {
       )}
 
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'flex-start' }, 
+        mb: 3,
+        gap: { xs: 2, sm: 0 },
+      }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             My Applications
           </Typography>
           <Typography variant="body2" sx={{ color: SLATE_500 }}>
@@ -205,7 +212,11 @@ const MyApplications = () => {
           variant="contained"
           startIcon={<Send />}
           onClick={() => navigate('/find-project')}
-          sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
+          sx={{ 
+            bgcolor: TEAL, 
+            '&:hover': { bgcolor: TEAL_LIGHT },
+            alignSelf: { xs: 'stretch', sm: 'flex-start' },
+          }}
         >
           Find More Projects
         </Button>
@@ -272,16 +283,18 @@ const MyApplications = () => {
           flexDirection: 'column',
           justifyContent: 'center', 
           alignItems: 'center',
+          px: { xs: 2, sm: 0 },
         }}>
           <Box
             sx={{
               textAlign: 'center',
               bgcolor: '#fff',
               borderRadius: 2,
-              p: 6,
+              p: { xs: 4, sm: 6 },
               border: '1px solid',
               borderColor: SLATE_200,
-              maxWidth: '400px',
+              maxWidth: { xs: '100%', sm: '400px' },
+              width: '100%',
             }}
           >
             <Box sx={{ 
@@ -351,12 +364,12 @@ const MyApplications = () => {
                         },
                       }}
                     >
-                      <CardContent sx={{ p: 2.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'flex-start', gap: 2 }}>
                           {/* Project Icon */}
                           <Box sx={{ 
-                            width: 56, 
-                            height: 56, 
+                            width: { xs: 48, sm: 56 }, 
+                            height: { xs: 48, sm: 56 }, 
                             borderRadius: 2,
                             bgcolor: alpha(SKY, 0.1),
                             display: 'flex',
@@ -364,13 +377,13 @@ const MyApplications = () => {
                             justifyContent: 'center',
                             flexShrink: 0,
                           }}>
-                            <Business sx={{ fontSize: 28, color: SKY }} />
+                            <Business sx={{ fontSize: { xs: 24, sm: 28 }, color: SKY }} />
                           </Box>
 
                           {/* Info */}
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900, wordBreak: 'break-word' }}>
                                 {project.title}
                               </Typography>
                               <Chip
@@ -466,11 +479,19 @@ const MyApplications = () => {
                           </Box>
 
                           {/* Actions */}
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            flexDirection: { xs: 'row', sm: 'column' }, 
+                            gap: 1, 
+                            flexShrink: 0,
+                            width: { xs: '100%', sm: 'auto' },
+                            mt: { xs: 1, sm: 0 },
+                          }}>
                             {app.status === 'accepted' && (
                               <Button
                                 variant="contained"
                                 size="small"
+                                fullWidth
                                 onClick={() => navigate('/workspaces')}
                                 sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
                               >
@@ -481,6 +502,7 @@ const MyApplications = () => {
                               <Button
                                 variant="outlined"
                                 size="small"
+                                fullWidth
                                 startIcon={<Cancel />}
                                 onClick={() => {
                                   setAppToWithdraw(app);
@@ -513,28 +535,44 @@ const MyApplications = () => {
         onClose={() => setWithdrawDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          } 
+        }}
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Withdraw Application?
           </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: SLATE_500 }}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, wordBreak: 'break-word' }}>
             Are you sure you want to withdraw your application to <strong>{appToWithdraw?.project?.title}</strong>? 
             This action cannot be undone.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setWithdrawDialogOpen(false)} sx={{ color: SLATE_500 }}>
+        <DialogActions sx={{ 
+          px: { xs: 2, sm: 3 }, 
+          pb: 2,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+        }}>
+          <Button 
+            onClick={() => setWithdrawDialogOpen(false)} 
+            sx={{ color: SLATE_500, order: { xs: 2, sm: 1 } }}
+            fullWidth
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
             onClick={handleWithdraw}
             disabled={withdrawing === appToWithdraw?.id}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' }, order: { xs: 1, sm: 2 } }}
+            fullWidth
           >
             {withdrawing === appToWithdraw?.id ? <CircularProgress size={16} color="inherit" /> : 'Withdraw'}
           </Button>

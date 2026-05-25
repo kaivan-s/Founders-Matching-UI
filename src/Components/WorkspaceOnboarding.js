@@ -159,11 +159,11 @@ const WorkspaceOnboarding = ({
           <Celebration sx={{ fontSize: 32, color: TEAL }} />
         </Box>
         
-        <Typography variant="h5" sx={{ fontWeight: 700, color: NAVY, mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: NAVY, mb: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Welcome to Your Workspace!
         </Typography>
         
-        <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, maxWidth: 450, mx: 'auto' }}>
+        <Typography variant="body2" sx={{ color: SLATE_500, mb: 3, maxWidth: { xs: '100%', sm: 450 }, mx: 'auto', px: { xs: 1, sm: 0 } }}>
           This is your shared space with {partner?.user?.name || 'your co-founder'}. 
           Let's set things up so you can collaborate effectively.
         </Typography>
@@ -282,21 +282,21 @@ const WorkspaceOnboarding = ({
 
           <Grid item xs={12}>
             <Card sx={{ border: `1px solid ${SLATE_200}` }}>
-              <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Chat sx={{ color: TEAL, fontSize: 20 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Communication Style
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
                   {COMMUNICATION_PREFERENCES.map(pref => (
                     <Box
                       key={pref.value}
                       onClick={() => setFormData(prev => ({ ...prev, communication_preference: pref.value }))}
                       sx={{
                         flex: 1,
-                        p: 1.5,
+                        p: { xs: 1, sm: 1.5 },
                         borderRadius: 2,
                         border: '2px solid',
                         borderColor: formData.communication_preference === pref.value ? TEAL : SLATE_200,
@@ -307,10 +307,10 @@ const WorkspaceOnboarding = ({
                         '&:hover': { borderColor: TEAL },
                       }}
                     >
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: NAVY, fontSize: '0.8rem' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: NAVY, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
                         {pref.label}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem', display: 'block' }}>
+                      <Typography variant="caption" sx={{ color: SLATE_500, fontSize: { xs: '0.6rem', sm: '0.65rem' }, display: 'block' }}>
                         {pref.description}
                       </Typography>
                     </Box>
@@ -476,10 +476,10 @@ const WorkspaceOnboarding = ({
   };
 
   return (
-    <Box sx={{ maxWidth: 700, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 700 }, mx: 'auto', p: { xs: 2, sm: 3 } }}>
       {/* Progress */}
-      <Box sx={{ mb: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
+      <Box sx={{ mb: { xs: 2, sm: 4 } }}>
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ '& .MuiStepLabel-label': { fontSize: { xs: '0.7rem', sm: '0.875rem' } } }}>
           {steps.map((step, index) => (
             <Step key={step.label}>
               <StepLabel
@@ -503,14 +503,14 @@ const WorkspaceOnboarding = ({
       </Box>
 
       {/* Content */}
-      <Card sx={{ mb: 3, height: 480, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        <CardContent sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      <Card sx={{ mb: { xs: 2, sm: 3 }, minHeight: { xs: 'auto', sm: 480 }, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <CardContent sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', p: { xs: 2, sm: 3 } }}>
           {renderStepContent()}
         </CardContent>
       </Card>
 
       {/* Navigation */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, justifyContent: 'space-between', gap: { xs: 1.5, sm: 0 } }}>
         <Button
           onClick={activeStep === 0 ? onSkip : handleBack}
           startIcon={activeStep === 0 ? null : <ArrowBack />}

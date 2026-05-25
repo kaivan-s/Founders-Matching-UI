@@ -464,9 +464,9 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: '1400px', mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: { xs: '100%', md: '1400px' }, mx: 'auto', p: { xs: 1.5, sm: 2, md: 3 } }}>
       {/* Quick Stats Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={3}>
           <Box sx={{ 
             p: 2, 
@@ -626,7 +626,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
       {/* Keeping code for potential future use */}
 
       {/* Main Content */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Partnership Overview */}
         <Grid item xs={12} lg={8}>
           <Box sx={{ 
@@ -634,14 +634,14 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
             borderRadius: 2,
             border: '1px solid',
             borderColor: SLATE_200,
-            p: 3,
+            p: { xs: 2, sm: 3 },
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-              <TrendingUp sx={{ color: TEAL, fontSize: 24 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 2, sm: 3 } }}>
+              <TrendingUp sx={{ color: TEAL, fontSize: { xs: 20, sm: 24 } }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Partnership Overview
               </Typography>
             </Box>
@@ -724,7 +724,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
             {/* Current Focus */}
             <Box sx={{ 
-              p: 2.5,
+              p: { xs: 2, sm: 2.5 },
               bgcolor: alpha(TEAL, 0.05),
               borderRadius: 2,
               border: '1px solid',
@@ -732,10 +732,10 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              flexWrap: 'wrap',
+              flexDirection: { xs: 'column', sm: 'row' },
               gap: 2,
             }}>
-              <Box sx={{ flex: 1, minWidth: 200 }}>
+              <Box sx={{ flex: 1, minWidth: { xs: '100%', sm: 200 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Flag sx={{ fontSize: 18, color: TEAL }} />
                   <Typography variant="subtitle2" sx={{ color: SLATE_500, fontWeight: 600 }}>
@@ -774,15 +774,15 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
             borderRadius: 2,
             border: '1px solid',
             borderColor: SLATE_200,
-            p: 3,
+            p: { xs: 2, sm: 3 },
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
           }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, sm: 2.5 }, flexWrap: 'wrap', gap: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <AccessTime sx={{ color: TEAL, fontSize: 24 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                <AccessTime sx={{ color: TEAL, fontSize: { xs: 20, sm: 24 } }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Activity / Health
                 </Typography>
               </Box>
@@ -859,13 +859,13 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         {/* Founders */}
         <Grid item xs={12} lg={8} id="founders-section">
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-              <Groups sx={{ color: TEAL, fontSize: 24 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 2, sm: 2.5 } }}>
+              <Groups sx={{ color: TEAL, fontSize: { xs: 20, sm: 24 } }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Founders
               </Typography>
             </Box>
-            <Grid container spacing={3} sx={{ flex: 1 }}>
+            <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ flex: 1 }}>
               {participantsLoading ? (
                 <Grid item xs={12}>
                   <Box display="flex" justifyContent="center" p={3}>
@@ -876,13 +876,13 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
                 participants?.map((participant) => {
                   const role = roles?.find(r => r.user_id === participant.user_id);
                   return (
-                    <Grid item xs={12} md={6} key={participant.user_id}>
+                    <Grid item xs={12} sm={6} key={participant.user_id}>
                       <Box sx={{ 
                         bgcolor: '#fff',
                         borderRadius: 2,
                         border: '1px solid',
                         borderColor: SLATE_200,
-                        p: 3,
+                        p: { xs: 2, sm: 3 },
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
@@ -1075,20 +1075,20 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         {/* Weekly Check-ins */}
         <Grid item xs={12} lg={4}>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Box sx={{ height: 40, mb: 2.5 }} />
+            <Box sx={{ height: { xs: 0, lg: 40 }, mb: { xs: 0, lg: 2.5 } }} />
             <Box sx={{ 
               bgcolor: '#fff',
               borderRadius: 2,
               border: '1px solid',
               borderColor: SLATE_200,
-              p: 3,
+              p: { xs: 2, sm: 3 },
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <CalendarToday sx={{ color: TEAL, fontSize: 24 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                <CalendarToday sx={{ color: TEAL, fontSize: { xs: 20, sm: 24 } }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Weekly Check-ins
                 </Typography>
               </Box>
@@ -1259,16 +1259,16 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
       {/* Recent Activity */}
       <Box sx={{ 
-        mt: 4, 
-        p: 3, 
-        borderRadius: 3, 
+        mt: { xs: 2, sm: 4 }, 
+        p: { xs: 2, sm: 3 }, 
+        borderRadius: { xs: 2, sm: 3 }, 
         border: '1px solid', 
         borderColor: SLATE_200,
         bgcolor: '#fff',
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-          <History sx={{ color: TEAL, fontSize: 24 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: { xs: 2, sm: 2.5 } }}>
+          <History sx={{ color: TEAL, fontSize: { xs: 20, sm: 24 } }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Recent Activity
           </Typography>
         </Box>
@@ -1333,16 +1333,16 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
 
       {/* Danger Zone - Dissolve Partnership */}
       <Box sx={{ 
-        mt: 4, 
-        p: 3, 
-        borderRadius: 3, 
+        mt: { xs: 2, sm: 4 }, 
+        p: { xs: 2, sm: 3 }, 
+        borderRadius: { xs: 2, sm: 3 }, 
         border: '1px solid', 
         borderColor: '#fecaca',
         bgcolor: '#fef2f2',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <Warning sx={{ color: '#dc2626', fontSize: 24 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#dc2626' }}>
+          <Warning sx={{ color: '#dc2626', fontSize: { xs: 20, sm: 24 } }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#dc2626', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Danger Zone
           </Typography>
         </Box>
@@ -1383,6 +1383,13 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         onClose={() => !dissolving && setDissolveDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+            borderRadius: 2,
+          }
+        }}
       >
         <DialogTitle sx={{ 
           display: 'flex', 
@@ -1481,11 +1488,11 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         PaperProps={{
           sx: { 
             width: { xs: '100%', sm: 400 },
-            borderRadius: '16px 0 0 16px',
+            borderRadius: { xs: 0, sm: '16px 0 0 16px' },
           }
         }}
       >
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
               Compatibility
@@ -1563,7 +1570,11 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { 
+            borderRadius: { xs: 2, sm: 3 },
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          }
         }}
       >
         <DialogTitle sx={{ 
@@ -1583,8 +1594,8 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           </Box>
         </DialogTitle>
         
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 }, pt: 1 }}>
             {/* Accomplishments */}
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
@@ -1700,11 +1711,11 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
           </Box>
         </DialogContent>
         
-        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 1, flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
           <Button 
             onClick={() => setCheckinDialogOpen(false)}
             disabled={checkinSubmitting}
-            sx={{ textTransform: 'none', color: SLATE_500 }}
+            sx={{ textTransform: 'none', color: SLATE_500, width: { xs: '100%', sm: 'auto' } }}
           >
             Cancel
           </Button>
@@ -1717,6 +1728,7 @@ const WorkspaceOverview = ({ workspaceId, workspace, onNavigateTab }) => {
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': { bgcolor: TEAL_LIGHT },
             }}
           >

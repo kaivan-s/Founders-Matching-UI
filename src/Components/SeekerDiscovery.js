@@ -165,6 +165,18 @@ const SeekerDiscovery = () => {
   const [prefsInfoDialogOpen, setPrefsInfoDialogOpen] = useState(false);
   const [normalMatches, setNormalMatches] = useState([]); // Store normal matches when viewing skipped
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  
+  // Mobile detection for responsive carousel
+  const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' && window.innerWidth < 600);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 600);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Direct checkout to Pro
   const handleDirectCheckout = async () => {
@@ -846,53 +858,86 @@ const SeekerDiscovery = () => {
         {/* Carousel of project cards - Full width */}
         <Box sx={{ 
           position: 'relative', 
-          height: { xs: 480, sm: 540, md: 580 },
+          height: { xs: 'auto', sm: 540, md: 580 },
+          minHeight: { xs: 520, sm: 540, md: 580 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          overflow: 'hidden',
+          overflow: { xs: 'visible', sm: 'hidden' },
           perspective: '1500px',
-          mx: { xs: -2, sm: -3, md: -4 },
+          mx: { xs: 0, sm: -3, md: -4 },
         }}>
-          {/* Left Navigation Arrow */}
+          {/* Navigation Arrows - positioned at bottom on mobile, center on desktop */}
           {totalCards > 1 && (
-            <IconButton
-              onClick={handlePrev}
-              disabled={isFirst}
-              sx={{
-                position: 'absolute',
-                left: { xs: 4, sm: 16 },
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 25,
-                bgcolor: 'white',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                border: '1px solid',
-                borderColor: SLATE_200,
-                width: { xs: 36, sm: 44 },
-                height: { xs: 36, sm: 44 },
-                opacity: isFirst ? 0.5 : 1,
-                '&:hover': {
+            <Box sx={{
+              display: 'flex',
+              gap: 2,
+              position: { xs: 'absolute', sm: 'absolute' },
+              bottom: { xs: -50, sm: 'auto' },
+              top: { xs: 'auto', sm: '50%' },
+              left: { xs: '50%', sm: 16 },
+              transform: { xs: 'translateX(-50%)', sm: 'translateY(-50%)' },
+              zIndex: 25,
+            }}>
+              <IconButton
+                onClick={handlePrev}
+                disabled={isFirst}
+                sx={{
                   bgcolor: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                },
-                '&:disabled': {
-                  bgcolor: 'white',
-                },
-              }}
-            >
-              <ArrowBack sx={{ color: NAVY }} />
-            </IconButton>
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  border: '1px solid',
+                  borderColor: SLATE_200,
+                  width: { xs: 40, sm: 44 },
+                  height: { xs: 40, sm: 44 },
+                  opacity: isFirst ? 0.5 : 1,
+                  '&:hover': {
+                    bgcolor: 'white',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  },
+                  '&:disabled': {
+                    bgcolor: 'white',
+                  },
+                }}
+              >
+                <ArrowBack sx={{ color: NAVY }} />
+              </IconButton>
+              {/* Show right arrow inline on mobile */}
+              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                <IconButton
+                  onClick={handleNext}
+                  disabled={isLast}
+                  sx={{
+                    bgcolor: 'white',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    border: '1px solid',
+                    borderColor: SLATE_200,
+                    width: 40,
+                    height: 40,
+                    opacity: isLast ? 0.5 : 1,
+                    '&:hover': {
+                      bgcolor: 'white',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    },
+                    '&:disabled': {
+                      bgcolor: 'white',
+                    },
+                  }}
+                >
+                  <ArrowForward sx={{ color: NAVY }} />
+                </IconButton>
+              </Box>
+            </Box>
           )}
 
-          {/* Right Navigation Arrow */}
+          {/* Right Navigation Arrow - only on desktop */}
           {totalCards > 1 && (
             <IconButton
               onClick={handleNext}
               disabled={isLast}
               sx={{
+                display: { xs: 'none', sm: 'flex' },
                 position: 'absolute',
-                right: { xs: 4, sm: 16 },
+                right: 16,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 25,
@@ -900,8 +945,8 @@ const SeekerDiscovery = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 border: '1px solid',
                 borderColor: SLATE_200,
-                width: { xs: 36, sm: 44 },
-                height: { xs: 36, sm: 44 },
+                width: 44,
+                height: 44,
                 opacity: isLast ? 0.5 : 1,
                 '&:hover': {
                   bgcolor: 'white',
@@ -923,7 +968,8 @@ const SeekerDiscovery = () => {
               const totalCards = matches.length + (hasUpgradeCard ? 1 : 0);
               
               const cardsToShow = [];
-              const maxVisible = 3; // Show 3 cards (1 left, 1 center, 1 right) - cleaner look
+              // On mobile, only show center card; on desktop show 3
+              const maxVisible = isMobileView ? 1 : 3;
               const sideCards = Math.floor(maxVisible / 2);
               
               for (let offset = -sideCards; offset <= sideCards; offset++) {
@@ -943,10 +989,8 @@ const SeekerDiscovery = () => {
                 const isCenter = offset === 0;
                 const absOffset = Math.abs(offset);
                 
-                // Card positioning - center card takes most width, side cards peek in
-                const cardWidth = 650;
-                const cardGap = 20;
-                const horizontalPos = offset * (cardWidth * 0.55 + cardGap);
+                // Card positioning - use percentage-based positioning for desktop carousel
+                const horizontalPos = isMobileView ? 0 : offset * 380; // Fixed offset for side cards
                 const scale = isCenter ? 1.0 : Math.max(0.6, 0.75 - (absOffset * 0.08));
                 const cardOpacity = isCenter ? 1 : Math.max(0.4, 0.65 - (absOffset * 0.12));
                 const zIdx = isCenter ? 20 : 10 - absOffset;
@@ -971,36 +1015,37 @@ const SeekerDiscovery = () => {
                           setCurrentCardIndex(cardIdx);
                         }
                       }}
-                      style={{
-                        position: 'absolute',
-                        width: cardWidth,
-                        zIndex: zIdx,
-                        cursor: 'pointer',
-                        pointerEvents: 'auto',
+                    style={{
+                      position: isMobileView ? 'relative' : 'absolute',
+                      width: isMobileView ? '100%' : 650,
+                      maxWidth: isMobileView ? '100%' : 650,
+                      zIndex: zIdx,
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                    }}
+                    whileHover={!isCenter ? { scale: scale * 1.05, opacity: 1 } : {}}
+                  >
+                    <Card
+                      sx={{
+                        border: '2px dashed',
+                        borderColor: TEAL,
+                        boxShadow: isCenter 
+                          ? `0 8px 24px ${alpha(TEAL, 0.2)}` 
+                          : `0 4px 12px ${alpha(SLATE_900, 0.06)}`,
+                        bgcolor: alpha(TEAL, 0.02),
+                        height: '100%',
+                        minHeight: { xs: 380, sm: 420 },
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
-                      whileHover={!isCenter ? { scale: scale * 1.05, opacity: 1 } : {}}
                     >
-                      <Card
-                        sx={{
-                          border: '2px dashed',
-                          borderColor: TEAL,
-                          boxShadow: isCenter 
-                            ? `0 8px 24px ${alpha(TEAL, 0.2)}` 
-                            : `0 4px 12px ${alpha(SLATE_900, 0.06)}`,
-                          bgcolor: alpha(TEAL, 0.02),
-                          height: '100%',
-                          minHeight: 420,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                        <CardContent sx={{ p: { xs: 2.5, sm: 4 }, textAlign: 'center' }}>
                           <Box
                             sx={{
-                              width: 72,
-                              height: 72,
+                              width: { xs: 56, sm: 72 },
+                              height: { xs: 56, sm: 72 },
                               borderRadius: '50%',
                               bgcolor: alpha(TEAL, 0.1),
                               display: 'flex',
@@ -1010,15 +1055,15 @@ const SeekerDiscovery = () => {
                               mb: 2,
                             }}
                           >
-                            <RocketLaunch sx={{ fontSize: 36, color: TEAL }} />
+                            <RocketLaunch sx={{ fontSize: { xs: 28, sm: 36 }, color: TEAL }} />
                           </Box>
-                          <Typography variant="h4" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+                          <Typography sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: { xs: '1.25rem', sm: '2rem' } }}>
                             {discoveryMeta?.results_cached 
                               ? "Today's results locked" 
                               : `${moreCount}+ More Ideas`
                             }
                           </Typography>
-                          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3, maxWidth: 300, mx: 'auto' }}>
+                          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3, maxWidth: 300, mx: 'auto', fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                             {discoveryMeta?.results_cached 
                               ? "Upgrade to refresh and see 5x more" 
                               : "Your next big opportunity awaits"
@@ -1036,8 +1081,9 @@ const SeekerDiscovery = () => {
                                 bgcolor: TEAL,
                                 color: '#fff',
                                 fontWeight: 600,
-                                px: 4,
-                                py: 1.5,
+                                px: { xs: 3, sm: 4 },
+                                py: { xs: 1, sm: 1.5 },
+                                fontSize: { xs: '0.85rem', sm: '1rem' },
                                 '&:hover': { bgcolor: TEAL_LIGHT },
                               }}
                             >
@@ -1070,8 +1116,9 @@ const SeekerDiscovery = () => {
                       }
                     }}
                     style={{
-                      position: 'absolute',
-                      width: cardWidth,
+                      position: isMobileView ? 'relative' : 'absolute',
+                      width: isMobileView ? '100%' : 650,
+                      maxWidth: isMobileView ? '100%' : 650,
                       zIndex: zIdx,
                       cursor: 'pointer',
                       pointerEvents: 'auto',
@@ -1107,31 +1154,59 @@ const SeekerDiscovery = () => {
                         },
                       }}
                     >
-                      <CardContent sx={{ p: 3 }}>
+                      <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                         {/* Header with match score */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1 }}>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography 
+                              variant="h5" 
+                              sx={{ 
+                                fontWeight: 700, 
+                                color: SLATE_900, 
+                                mb: 1,
+                                fontSize: { xs: '1.1rem', sm: '1.5rem' },
+                                lineHeight: 1.3,
+                                wordBreak: 'break-word',
+                              }}
+                            >
                               {cardProject.title}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                               <Chip 
                                 label={cardProject.stage?.replace('_', ' ')} 
                                 size="small" 
-                                sx={{ bgcolor: alpha(SKY, 0.1), color: SKY, fontWeight: 600, textTransform: 'capitalize' }} 
+                                sx={{ 
+                                  bgcolor: alpha(SKY, 0.1), 
+                                  color: SKY, 
+                                  fontWeight: 600, 
+                                  textTransform: 'capitalize',
+                                  height: { xs: 22, sm: 24 },
+                                  fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                }} 
                               />
                               {cardProject.genre && (
-                                <Chip label={cardProject.genre} size="small" sx={{ bgcolor: alpha(SLATE_400, 0.1), color: SLATE_500 }} />
+                                <Chip 
+                                  label={cardProject.genre} 
+                                  size="small" 
+                                  sx={{ 
+                                    bgcolor: alpha(SLATE_400, 0.1), 
+                                    color: SLATE_500,
+                                    height: { xs: 22, sm: 24 },
+                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                  }} 
+                                />
                               )}
                               {cardProject.has_insights && (
                                 <Chip 
-                                  icon={<AutoAwesome sx={{ fontSize: 14 }} />}
+                                  icon={<AutoAwesome sx={{ fontSize: { xs: 12, sm: 14 } }} />}
                                   label="AI Insights" 
                                   size="small" 
                                   sx={{ 
                                     bgcolor: alpha(TEAL, 0.1), 
                                     color: TEAL, 
                                     fontWeight: 600,
+                                    height: { xs: 22, sm: 24 },
+                                    fontSize: { xs: '0.65rem', sm: '0.75rem' },
                                     '& .MuiChip-icon': { color: TEAL },
                                   }} 
                                 />
@@ -1144,29 +1219,32 @@ const SeekerDiscovery = () => {
                             alignItems: 'center',
                             bgcolor: cardProject.match_score >= 80 ? alpha(TEAL, 0.1) : cardProject.match_score >= 60 ? alpha(SKY, 0.1) : alpha(SLATE_400, 0.1),
                             borderRadius: 2,
-                            p: 1.5,
-                            minWidth: 64,
+                            p: { xs: 1, sm: 1.5 },
+                            minWidth: { xs: 50, sm: 64 },
+                            flexShrink: 0,
                           }}>
-                            <Typography variant="h5" sx={{ 
+                            <Typography sx={{ 
                               fontWeight: 700, 
                               color: cardProject.match_score >= 80 ? TEAL : cardProject.match_score >= 60 ? SKY : SLATE_500,
                               lineHeight: 1,
+                              fontSize: { xs: '1rem', sm: '1.5rem' },
                             }}>
                               {cardProject.match_score}%
                             </Typography>
-                            <Typography variant="caption" sx={{ color: SLATE_500, fontSize: '0.65rem' }}>
+                            <Typography variant="caption" sx={{ color: SLATE_500, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
                               match
                             </Typography>
                           </Box>
                         </Box>
 
                         {/* Description */}
-                        <Box sx={{ mb: 2.5, minHeight: 72 }}>
+                        <Box sx={{ mb: { xs: 2, sm: 2.5 }, minHeight: { xs: 56, sm: 72 } }}>
                           <Typography 
                             variant="body1" 
                             sx={{ 
                               color: SLATE_500, 
                               lineHeight: 1.6,
+                              fontSize: { xs: '0.85rem', sm: '1rem' },
                               display: '-webkit-box',
                               WebkitLineClamp: 3,
                               WebkitBoxOrient: 'vertical',
@@ -1178,15 +1256,15 @@ const SeekerDiscovery = () => {
                         </Box>
 
                         {/* Match reasons */}
-                        <Box sx={{ bgcolor: alpha(TEAL, 0.05), borderRadius: 2, p: 2, mb: 2.5, minHeight: 64 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Box sx={{ bgcolor: alpha(TEAL, 0.05), borderRadius: 2, p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 2.5 }, minHeight: { xs: 56, sm: 64 } }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                             Why this matches
                           </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mt: 1 }}>
                             {(cardProject.match_reasons?.length > 0 ? cardProject.match_reasons : ['Good fit based on your preferences']).slice(0, 3).map((reason, idx) => (
                               <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
-                                <Typography variant="caption" sx={{ color: SLATE_900 }}>{reason}</Typography>
+                                <CheckCircle sx={{ fontSize: { xs: 12, sm: 14 }, color: TEAL }} />
+                                <Typography variant="caption" sx={{ color: SLATE_900, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{reason}</Typography>
                               </Box>
                             ))}
                           </Box>
@@ -1197,33 +1275,40 @@ const SeekerDiscovery = () => {
                           <Box sx={{ 
                             display: 'flex', 
                             alignItems: 'center', 
-                            gap: 1.5, 
-                            p: 1.5, 
+                            gap: { xs: 1, sm: 1.5 }, 
+                            p: { xs: 1, sm: 1.5 }, 
                             bgcolor: alpha(SLATE_200, 0.3), 
                             borderRadius: 2,
-                            mb: 2.5,
+                            mb: { xs: 2, sm: 2.5 },
                           }}>
                             <Avatar
                               src={cardProject.founder.profile_picture_url}
-                              sx={{ width: 40, height: 40, bgcolor: alpha(SKY, 0.15), color: SKY, fontWeight: 600, fontSize: 14 }}
+                              sx={{ 
+                                width: { xs: 32, sm: 40 }, 
+                                height: { xs: 32, sm: 40 }, 
+                                bgcolor: alpha(SKY, 0.15), 
+                                color: SKY, 
+                                fontWeight: 600, 
+                                fontSize: { xs: 12, sm: 14 } 
+                              }}
                             >
                               {cardProject.founder.name?.split(' ').map(n => n[0]).join('')}
                             </Avatar>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                                   {cardProject.founder.name}
                                 </Typography>
                                 {cardProject.founder.verification?.tier !== 'UNVERIFIED' && (
-                                  <Verified sx={{ fontSize: 14, color: TEAL }} />
+                                  <Verified sx={{ fontSize: { xs: 12, sm: 14 }, color: TEAL }} />
                                 )}
                                 {['PRO', 'PRO_PLUS'].includes(founderPlan) && (
                                   <Chip 
                                     label={founderPlan === 'PRO_PLUS' ? 'Pro+' : 'Pro'} 
                                     size="small" 
                                     sx={{ 
-                                      height: 18, 
-                                      fontSize: '0.65rem', 
+                                      height: { xs: 16, sm: 18 }, 
+                                      fontSize: { xs: '0.6rem', sm: '0.65rem' }, 
                                       fontWeight: 700,
                                       bgcolor: alpha(NAVY, 0.1), 
                                       color: NAVY,
@@ -1231,7 +1316,17 @@ const SeekerDiscovery = () => {
                                   />
                                 )}
                               </Box>
-                              <Typography variant="caption" sx={{ color: SLATE_500, display: 'block' }}>
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: SLATE_500, 
+                                  display: 'block',
+                                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
                                 {cardProject.founder.headline || cardProject.founder.location || 'Founder'}
                               </Typography>
                             </Box>
@@ -1240,7 +1335,7 @@ const SeekerDiscovery = () => {
 
                         {/* Action buttons - only on center card */}
                         {isCenter && (
-                          <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2 } }}>
                             <Button
                               variant="outlined"
                               onClick={(e) => {
@@ -1249,10 +1344,11 @@ const SeekerDiscovery = () => {
                               }}
                               sx={{ 
                                 flex: 1,
-                                py: 1.5, 
+                                py: { xs: 1, sm: 1.5 }, 
                                 borderColor: SLATE_200, 
                                 color: SLATE_500,
                                 fontWeight: 600,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                                 '&:hover': { borderColor: SLATE_400 },
                               }}
                             >
@@ -1260,7 +1356,7 @@ const SeekerDiscovery = () => {
                             </Button>
                             <Button
                               variant="contained"
-                              endIcon={<Send />}
+                              endIcon={<Send sx={{ fontSize: { xs: 16, sm: 20 } }} />}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedProject(cardProject);
@@ -1268,9 +1364,10 @@ const SeekerDiscovery = () => {
                               }}
                               sx={{ 
                                 flex: 2,
-                                py: 1.5, 
+                                py: { xs: 1, sm: 1.5 }, 
                                 bgcolor: TEAL, 
                                 fontWeight: 600, 
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' },
                                 '&:hover': { bgcolor: TEAL_LIGHT } 
                               }}
                             >
@@ -1288,14 +1385,14 @@ const SeekerDiscovery = () => {
         </Box>
 
         {/* Footer with project counter */}
-        <Box sx={{ mt: 0, textAlign: 'center' }}>
+        <Box sx={{ mt: { xs: 8, sm: 0 }, textAlign: 'center' }}>
           <Typography variant="body2" sx={{ color: SLATE_500, fontWeight: 600 }}>
             {isOnUpgradeCard 
               ? `${matches.length} of ${matches.length} projects`
               : `${safeIndex + 1} of ${matches.length} projects`
             }
           </Typography>
-          <Typography variant="caption" sx={{ display: 'block', color: SLATE_400, mt: 0.5 }}>
+          <Typography variant="caption" sx={{ display: { xs: 'none', sm: 'block' }, color: SLATE_400, mt: 0.5 }}>
             Use arrow keys or click side cards to navigate
           </Typography>
         </Box>
@@ -1334,8 +1431,9 @@ const SeekerDiscovery = () => {
           <Box sx={{ 
             mb: 2,
             display: 'flex',
-            alignItems: 'center',
-            gap: 2,
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 1.5, sm: 2 },
           }}>
             {/* Profile Banner */}
             {profileIncomplete && !profileBannerDismissed && (
@@ -1349,7 +1447,9 @@ const SeekerDiscovery = () => {
                   color: '#fff',
                   fontWeight: 600,
                   textTransform: 'none',
-                  whiteSpace: 'nowrap',
+                  whiteSpace: { xs: 'normal', sm: 'nowrap' },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                  py: { xs: 1, sm: 0.5 },
                   '&:hover': {
                     bgcolor: TEAL_LIGHT,
                   },
@@ -1359,53 +1459,65 @@ const SeekerDiscovery = () => {
               </Button>
             )}
             
-            {/* Spacer to push buttons to the right */}
-            <Box sx={{ flex: 1 }} />
+            {/* Spacer to push buttons to the right - only on desktop */}
+            <Box sx={{ flex: 1, display: { xs: 'none', sm: 'block' } }} />
             
-            {/* Edit Filters Button */}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Edit />}
-              onClick={handleUpdatePreferences}
-              sx={{ 
-                borderColor: TEAL,
-                color: TEAL,
-                fontWeight: 600,
-                textTransform: 'none',
-                whiteSpace: 'nowrap',
-                '&:hover': {
-                  borderColor: TEAL_LIGHT,
-                  bgcolor: alpha(TEAL, 0.05),
-                },
-              }}
-            >
-              Edit filters
-            </Button>
-            
-            {/* View Skipped Projects Button (Pro/Pro+ only) */}
-            <Button
-              variant={viewingSkipped ? "contained" : "outlined"}
-              size="small"
-              startIcon={loadingSkipped ? <CircularProgress size={16} color="inherit" /> : <Refresh />}
-              onClick={handleToggleSkipped}
-              disabled={loadingSkipped}
-              sx={{ 
-                borderColor: viewingSkipped ? TEAL : SLATE_400,
-                color: viewingSkipped ? '#fff' : SLATE_500,
-                bgcolor: viewingSkipped ? TEAL : 'transparent',
-                fontWeight: 600,
-                textTransform: 'none',
-                whiteSpace: 'nowrap',
-                '&:hover': {
+            {/* Button group for filters */}
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1,
+              flexWrap: 'wrap',
+              justifyContent: { xs: 'space-between', sm: 'flex-end' },
+            }}>
+              {/* Edit Filters Button */}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Edit />}
+                onClick={handleUpdatePreferences}
+                sx={{ 
                   borderColor: TEAL,
-                  bgcolor: viewingSkipped ? TEAL_LIGHT : alpha(TEAL, 0.05),
-                  color: viewingSkipped ? '#fff' : TEAL,
-                },
-              }}
-            >
-              {viewingSkipped ? 'Back to Feed' : 'See Skipped'}
-            </Button>
+                  color: TEAL,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: { xs: 1, sm: 'none' },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                  '&:hover': {
+                    borderColor: TEAL_LIGHT,
+                    bgcolor: alpha(TEAL, 0.05),
+                  },
+                }}
+              >
+                Edit filters
+              </Button>
+              
+              {/* View Skipped Projects Button (Pro/Pro+ only) */}
+              <Button
+                variant={viewingSkipped ? "contained" : "outlined"}
+                size="small"
+                startIcon={loadingSkipped ? <CircularProgress size={16} color="inherit" /> : <Refresh />}
+                onClick={handleToggleSkipped}
+                disabled={loadingSkipped}
+                sx={{ 
+                  borderColor: viewingSkipped ? TEAL : SLATE_400,
+                  color: viewingSkipped ? '#fff' : SLATE_500,
+                  bgcolor: viewingSkipped ? TEAL : 'transparent',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: { xs: 1, sm: 'none' },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                  '&:hover': {
+                    borderColor: TEAL,
+                    bgcolor: viewingSkipped ? TEAL_LIGHT : alpha(TEAL, 0.05),
+                    color: viewingSkipped ? '#fff' : TEAL,
+                  },
+                }}
+              >
+                {viewingSkipped ? 'Back to Feed' : 'See Skipped'}
+              </Button>
+            </Box>
           </Box>
         )}
         
@@ -1678,7 +1790,13 @@ const SeekerDiscovery = () => {
         onClose={() => setApplyDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          } 
+        }}
       >
         <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1872,6 +1990,8 @@ const SeekerDiscovery = () => {
             borderRadius: 3,
             overflow: 'hidden',
             boxShadow: `0 20px 40px ${alpha(TEAL, 0.15)}`,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
           }
         }}
       >

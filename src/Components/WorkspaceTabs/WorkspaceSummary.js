@@ -119,19 +119,19 @@ const PriorityChip = ({ priority, small = false }) => {
 
 const StatCard = ({ icon, label, value, color, subtext }) => (
   <Box sx={{
-    p: 2,
+    p: { xs: 1.5, sm: 2 },
     borderRadius: 2,
     bgcolor: alpha(color, 0.05),
     border: `1px solid ${alpha(color, 0.15)}`,
     display: 'flex',
     alignItems: 'center',
-    gap: 1.5,
-    height: 80,
+    gap: { xs: 1, sm: 1.5 },
+    height: { xs: 70, sm: 80 },
     minWidth: 0,
   }}>
     <Box sx={{
-      width: 40,
-      height: 40,
+      width: { xs: 32, sm: 40 },
+      height: { xs: 32, sm: 40 },
       borderRadius: 1.5,
       bgcolor: alpha(color, 0.1),
       display: 'flex',
@@ -143,13 +143,13 @@ const StatCard = ({ icon, label, value, color, subtext }) => (
       {icon}
     </Box>
     <Box sx={{ minWidth: 0 }}>
-      <Typography variant="h5" sx={{ fontWeight: 700, color, lineHeight: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, color, lineHeight: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
         {value}
       </Typography>
-      <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block' }}>
+      <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500, display: 'block', fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
         {label}
       </Typography>
-      <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', fontSize: '0.65rem', minHeight: 16, visibility: subtext ? 'visible' : 'hidden' }}>
+      <Typography variant="caption" sx={{ color: SLATE_500, display: { xs: 'none', sm: 'block' }, fontSize: '0.65rem', minHeight: 16, visibility: subtext ? 'visible' : 'hidden' }}>
         {subtext || '-'}
       </Typography>
     </Box>
@@ -160,7 +160,7 @@ const SectionCard = ({ title, icon, children, headerAction, emptyMessage }) => (
   <Card
     elevation={0}
     sx={{
-      borderRadius: 3,
+      borderRadius: { xs: 2, sm: 3 },
       border: `1px solid ${SLATE_200}`,
       bgcolor: '#fff',
       height: '100%',
@@ -168,11 +168,13 @@ const SectionCard = ({ title, icon, children, headerAction, emptyMessage }) => (
   >
     <CardContent sx={{ p: 0 }}>
       <Box sx={{
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
         borderBottom: `1px solid ${SLATE_200}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 1,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{
@@ -193,9 +195,9 @@ const SectionCard = ({ title, icon, children, headerAction, emptyMessage }) => (
         </Box>
         {headerAction}
       </Box>
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
         {React.Children.count(children) === 0 && emptyMessage ? (
-          <Typography variant="body2" sx={{ color: SLATE_500, textAlign: 'center', py: 3 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, textAlign: 'center', py: 3, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             {emptyMessage}
           </Typography>
         ) : (
@@ -429,8 +431,10 @@ const ChangesDialog = ({ open, onClose, changes, onAcknowledge, loading }) => (
     fullWidth
     PaperProps={{
       sx: {
-        borderRadius: 3,
+        borderRadius: { xs: 2, sm: 3 },
         maxHeight: '80vh',
+        mx: { xs: 2, sm: 3 },
+        width: { xs: 'calc(100% - 32px)', sm: '100%' },
       }
     }}
   >
@@ -852,31 +856,32 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: { xs: 2, sm: 3 }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', sm: 'auto' } }}>
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
               borderRadius: 2,
               bgcolor: '#000',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             <NotionIcon color="#fff" size={28} />
           </Box>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.5rem' }, wordBreak: 'break-word' }}>
               Partnership Summary
             </Typography>
-            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+            <Typography variant="body2" sx={{ color: SLATE_500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
               {summary.workspace_name ? `Connected to ${summary.workspace_name}` : 'Synced from Notion'}
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, width: { xs: '100%', sm: 'auto' } }}>
           {changes.length > 0 && (
             <Tooltip title={`${changes.length} new update${changes.length !== 1 ? 's' : ''}`}>
               <IconButton 
@@ -923,7 +928,7 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
       </Box>
 
       {/* Stats Overview */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
         <Grid item xs={6} sm={3}>
           <StatCard
             icon={<Assignment />}
@@ -966,11 +971,11 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
         <Card
           elevation={0}
           sx={{
-            borderRadius: 3,
+            borderRadius: { xs: 2, sm: 3 },
             border: `1px solid ${SLATE_200}`,
             bgcolor: '#fff',
-            p: 2.5,
-            mb: 3,
+            p: { xs: 2, sm: 2.5 },
+            mb: { xs: 2, sm: 3 },
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
@@ -1016,7 +1021,7 @@ const WorkspaceSummary = ({ workspaceId, onNavigateTab }) => {
       )}
 
       {/* Main Content Grid */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {/* Tasks */}
         <Grid item xs={12} md={6}>
           <SectionCard

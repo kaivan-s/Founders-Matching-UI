@@ -300,7 +300,7 @@ const OwnerApplications = () => {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      py: 3,
+      py: { xs: 2, sm: 3 },
       px: { xs: 2, sm: 3, md: 4 },
     }}>
       {error && (
@@ -317,7 +317,7 @@ const OwnerApplications = () => {
 
       {/* Header */}
       <Box sx={{ mb: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: SLATE_900, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Applications
         </Typography>
         <Typography variant="body2" sx={{ color: SLATE_500 }}>
@@ -333,16 +333,18 @@ const OwnerApplications = () => {
           flexDirection: 'column',
           justifyContent: 'center', 
           alignItems: 'center',
+          px: { xs: 2, sm: 0 },
         }}>
           <Box
             sx={{
               textAlign: 'center',
               bgcolor: '#fff',
               borderRadius: 2,
-              p: 6,
+              p: { xs: 4, sm: 6 },
               border: '1px solid',
               borderColor: SLATE_200,
-              maxWidth: '400px',
+              maxWidth: { xs: '100%', sm: '400px' },
+              width: '100%',
             }}
           >
             <Box sx={{ 
@@ -462,16 +464,18 @@ const OwnerApplications = () => {
           flexDirection: 'column',
           justifyContent: 'center', 
           alignItems: 'center',
+          px: { xs: 2, sm: 0 },
         }}>
           <Box
             sx={{
               textAlign: 'center',
               bgcolor: '#fff',
               borderRadius: 2,
-              p: 6,
+              p: { xs: 4, sm: 6 },
               border: '1px solid',
               borderColor: SLATE_200,
-              maxWidth: '400px',
+              maxWidth: { xs: '100%', sm: '400px' },
+              width: '100%',
             }}
           >
             <Box sx={{ 
@@ -543,17 +547,17 @@ const OwnerApplications = () => {
                     }}
                     onClick={() => handleOpenDetail(app)}
                   >
-                    <CardContent sx={{ p: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5 }, flex: 1, display: 'flex', flexDirection: 'column' }}>
                       {/* Header with Avatar and Time */}
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 }, mb: 2 }}>
                         <Avatar
                           src={applicant.profile_picture_url}
                           sx={{ 
-                            width: 56, 
-                            height: 56, 
+                            width: { xs: 48, sm: 56 }, 
+                            height: { xs: 48, sm: 56 }, 
                             bgcolor: alpha(SKY, 0.1),
                             color: SKY,
-                            fontSize: '1.25rem',
+                            fontSize: { xs: '1rem', sm: '1.25rem' },
                             fontWeight: 700,
                           }}
                         >
@@ -561,7 +565,7 @@ const OwnerApplications = () => {
                         </Avatar>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900, wordBreak: 'break-word', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                               {applicant.name}
                             </Typography>
                             {applicant.verification?.tier !== 'UNVERIFIED' && (
@@ -671,22 +675,24 @@ const OwnerApplications = () => {
 
                       {/* Actions (only for pending) */}
                       {app.status === 'pending' && (
-                        <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 'auto', flexWrap: 'wrap' }}>
                           <Button
                             variant="contained"
                             size="small"
-                            fullWidth
-                            startIcon={<CheckCircle />}
+                            sx={{ 
+                              flex: 1,
+                              minWidth: { xs: 0, sm: 'auto' },
+                              bgcolor: TEAL, 
+                              fontWeight: 600,
+                              '&:hover': { bgcolor: TEAL_LIGHT },
+                              fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                            }}
+                            startIcon={<CheckCircle sx={{ fontSize: { xs: 16, sm: 18 } }} />}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRespond(app.id, 'accept');
                             }}
                             disabled={responding === app.id}
-                            sx={{ 
-                              bgcolor: TEAL, 
-                              fontWeight: 600,
-                              '&:hover': { bgcolor: TEAL_LIGHT },
-                            }}
                           >
                             {responding === app.id ? <CircularProgress size={16} color="inherit" /> : 'Accept'}
                           </Button>
@@ -749,10 +755,10 @@ const OwnerApplications = () => {
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    minHeight: 280,
+                    minHeight: { xs: 240, sm: 280 },
                   }}
                 >
-                  <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                  <CardContent sx={{ textAlign: 'center', py: { xs: 3, sm: 4 }, px: { xs: 2, sm: 3 } }}>
                     <Box
                       sx={{
                         width: 56,
@@ -819,13 +825,20 @@ const OwnerApplications = () => {
         onClose={() => setDetailDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 1, sm: 3 },
+            width: { xs: 'calc(100% - 16px)', sm: '100%' },
+            maxHeight: { xs: '95vh', sm: '90vh' },
+          } 
+        }}
       >
         {selectedApp && (
           <>
-            <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200, pb: 2 }}>
+            <DialogTitle sx={{ borderBottom: '1px solid', borderColor: SLATE_200, pb: 2, px: { xs: 2, sm: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Application Details
                 </Typography>
                 <IconButton onClick={() => setDetailDialogOpen(false)} size="small">
@@ -833,18 +846,18 @@ const OwnerApplications = () => {
                 </IconButton>
               </Box>
             </DialogTitle>
-            <DialogContent sx={{ pt: 3 }}>
+            <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
               {/* Applicant Header */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'center', sm: 'flex-start' }, gap: { xs: 2, sm: 3 }, mb: 3 }}>
                 <Avatar
                   src={selectedApp.applicant?.profile_picture_url}
-                  sx={{ width: 80, height: 80, bgcolor: alpha(SKY, 0.1), color: SKY, fontSize: '2rem' }}
+                  sx={{ width: { xs: 64, sm: 80 }, height: { xs: 64, sm: 80 }, bgcolor: alpha(SKY, 0.1), color: SKY, fontSize: { xs: '1.5rem', sm: '2rem' } }}
                 >
                   {selectedApp.applicant?.name?.split(' ').map(n => n[0]).join('')}
                 </Avatar>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' }, gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, wordBreak: 'break-word', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                       {selectedApp.applicant?.name}
                     </Typography>
                     {selectedApp.applicant?.verification?.tier !== 'UNVERIFIED' && (
@@ -857,7 +870,7 @@ const OwnerApplications = () => {
                     </Typography>
                   )}
                   {selectedApp.applicant?.location && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' }, gap: 0.5 }}>
                       <LocationOn sx={{ fontSize: 16, color: SLATE_400 }} />
                       <Typography variant="body2" sx={{ color: SLATE_500 }}>
                         {selectedApp.applicant.location}
@@ -949,7 +962,7 @@ const OwnerApplications = () => {
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: SLATE_900 }}>
                     Personal Introduction
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {selectedApp.video_intro_url && (
                       <Button
                         variant="outlined"
@@ -958,7 +971,7 @@ const OwnerApplications = () => {
                         href={selectedApp.video_intro_url}
                         target="_blank"
                         startIcon={<Videocam />}
-                        sx={{ borderColor: alpha(SKY, 0.3), color: SKY }}
+                        sx={{ borderColor: alpha(SKY, 0.3), color: SKY, flex: { xs: 1, sm: 'none' } }}
                       >
                         Watch Video
                       </Button>
@@ -971,7 +984,7 @@ const OwnerApplications = () => {
                         href={selectedApp.voice_intro_url}
                         target="_blank"
                         startIcon={<Mic />}
-                        sx={{ borderColor: alpha(TEAL, 0.3), color: TEAL }}
+                        sx={{ borderColor: alpha(TEAL, 0.3), color: TEAL, flex: { xs: 1, sm: 'none' } }}
                       >
                         Listen to Voice
                       </Button>
@@ -1088,7 +1101,14 @@ const OwnerApplications = () => {
             </DialogContent>
             
             {selectedApp.status === 'pending' && (
-              <DialogActions sx={{ px: 3, pb: 2, borderTop: '1px solid', borderColor: SLATE_200, gap: 1 }}>
+              <DialogActions sx={{ 
+                px: { xs: 2, sm: 3 }, 
+                pb: 2, 
+                borderTop: '1px solid', 
+                borderColor: SLATE_200, 
+                gap: 1,
+                flexDirection: { xs: 'column', sm: 'row' },
+              }}>
                 <Button
                   variant="outlined"
                   startIcon={<Close />}
@@ -1096,7 +1116,8 @@ const OwnerApplications = () => {
                     setDetailDialogOpen(false);
                     handleOpenRejectDialog(selectedApp);
                   }}
-                  sx={{ flex: 1, borderColor: SLATE_200, color: SLATE_500, '&:hover': { borderColor: '#ef4444', color: '#ef4444' } }}
+                  fullWidth
+                  sx={{ flex: 1, borderColor: SLATE_200, color: SLATE_500, '&:hover': { borderColor: '#ef4444', color: '#ef4444' }, order: { xs: 2, sm: 1 } }}
                 >
                   Reject
                 </Button>
@@ -1105,7 +1126,8 @@ const OwnerApplications = () => {
                   startIcon={responding === selectedApp.id ? <CircularProgress size={16} color="inherit" /> : <CheckCircle />}
                   onClick={() => handleRespond(selectedApp.id, 'accept')}
                   disabled={responding === selectedApp.id}
-                  sx={{ flex: 1, bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
+                  fullWidth
+                  sx={{ flex: 1, bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT }, order: { xs: 1, sm: 2 } }}
                 >
                   Accept
                 </Button>
@@ -1121,14 +1143,20 @@ const OwnerApplications = () => {
         onClose={() => setRejectDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 2,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          } 
+        }}
       >
-        <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Reject Application
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
           <Typography variant="body2" sx={{ color: SLATE_500, mb: 2 }}>
             Would you like to provide feedback? (optional)
           </Typography>
@@ -1142,15 +1170,25 @@ const OwnerApplications = () => {
             placeholder="This helps the applicant improve their next application..."
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setRejectDialogOpen(false)} sx={{ color: SLATE_500 }}>
+        <DialogActions sx={{ 
+          px: { xs: 2, sm: 3 }, 
+          pb: 2,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+        }}>
+          <Button 
+            onClick={() => setRejectDialogOpen(false)} 
+            sx={{ color: SLATE_500, order: { xs: 2, sm: 1 } }}
+            fullWidth
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
             onClick={() => handleRespond(appToReject?.id, 'reject', rejectionReason)}
             disabled={responding === appToReject?.id}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' }, order: { xs: 1, sm: 2 } }}
+            fullWidth
           >
             {responding === appToReject?.id ? <CircularProgress size={16} color="inherit" /> : 'Reject Application'}
           </Button>

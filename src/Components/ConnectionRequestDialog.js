@@ -99,8 +99,10 @@ const ConnectionRequestDialog = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          maxHeight: '90vh',
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          maxHeight: { xs: '90vh', sm: '85vh' },
         }
       }}
     >
@@ -110,34 +112,36 @@ const ConnectionRequestDialog = ({
         justifyContent: 'space-between',
         borderBottom: '1px solid',
         borderColor: SLATE_200,
-        pb: 2,
+        pb: { xs: 1.5, sm: 2 },
+        px: { xs: 2, sm: 3 },
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, flex: 1, minWidth: 0 }}>
           <Box sx={{
-            p: 1,
+            p: { xs: 0.75, sm: 1 },
             borderRadius: '10px',
             bgcolor: alpha(TEAL, 0.1),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexShrink: 0,
           }}>
-            <Send sx={{ color: TEAL, fontSize: 20 }} />
+            <Send sx={{ color: TEAL, fontSize: { xs: 18, sm: 20 } }} />
           </Box>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               Send Connection Request
             </Typography>
-            <Typography variant="caption" sx={{ color: SLATE_500 }}>
+            <Typography variant="caption" sx={{ color: SLATE_500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               to {founderName}'s project: {project?.title}
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={handleClose} size="small" disabled={loading}>
+        <IconButton onClick={handleClose} size="small" disabled={loading} sx={{ flexShrink: 0 }}>
           <Close />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 } }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError(null)}>
             {error}
@@ -249,7 +253,7 @@ const ConnectionRequestDialog = ({
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -259,11 +263,14 @@ const ConnectionRequestDialog = ({
                   onChange={(e) => setVideoUrl(e.target.value)}
                   disabled={loading}
                   InputProps={{
-                    startAdornment: <Videocam sx={{ color: SLATE_400, mr: 1, fontSize: 20 }} />,
+                    startAdornment: <Videocam sx={{ color: SLATE_400, mr: 1, fontSize: { xs: 18, sm: 20 } }} />,
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '10px',
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
                     },
                   }}
                 />
@@ -276,11 +283,14 @@ const ConnectionRequestDialog = ({
                   onChange={(e) => setVoiceUrl(e.target.value)}
                   disabled={loading}
                   InputProps={{
-                    startAdornment: <Mic sx={{ color: SLATE_400, mr: 1, fontSize: 20 }} />,
+                    startAdornment: <Mic sx={{ color: SLATE_400, mr: 1, fontSize: { xs: 18, sm: 20 } }} />,
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '10px',
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
                     },
                   }}
                 />
@@ -290,7 +300,14 @@ const ConnectionRequestDialog = ({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, pt: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+      <DialogActions sx={{ 
+        p: { xs: 1.5, sm: 3 }, 
+        pt: { xs: 1.5, sm: 2 }, 
+        borderTop: '1px solid', 
+        borderColor: SLATE_200,
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 1,
+      }}>
         <Button 
           onClick={handleClose}
           disabled={loading}
@@ -298,6 +315,8 @@ const ConnectionRequestDialog = ({
             textTransform: 'none', 
             color: SLATE_500,
             fontWeight: 600,
+            order: { xs: 2, sm: 1 },
+            width: { xs: '100%', sm: 'auto' },
             '&:hover': { bgcolor: alpha(SLATE_400, 0.1) },
           }}
         >
@@ -314,6 +333,8 @@ const ConnectionRequestDialog = ({
             fontWeight: 600,
             px: 3,
             borderRadius: '10px',
+            order: { xs: 1, sm: 2 },
+            width: { xs: '100%', sm: 'auto' },
             '&:hover': { bgcolor: TEAL_LIGHT },
           }}
         >

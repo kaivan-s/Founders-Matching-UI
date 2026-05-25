@@ -282,7 +282,7 @@ const ProfilePage = () => {
   }
 
   const renderBasicInfo = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -400,7 +400,7 @@ const ProfilePage = () => {
   );
 
   const renderSkillsInterests = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: SLATE_900 }}>Your Skills</Typography>
@@ -474,7 +474,7 @@ const ProfilePage = () => {
   );
 
   const renderExperience = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
@@ -529,8 +529,8 @@ const ProfilePage = () => {
   );
 
   const renderPastProjects = () => (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900 }}>
           Your Previous Projects & Startups
         </Typography>
@@ -665,12 +665,12 @@ const ProfilePage = () => {
   );
 
   const renderPreferences = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: SLATE_900 }}>
         Work Style Preferences
       </Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={4}>
           <FormControl fullWidth>
             <InputLabel>Commitment Level</InputLabel>
             <Select
@@ -687,7 +687,7 @@ const ProfilePage = () => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={4}>
           <FormControl fullWidth>
             <InputLabel>Location Preference</InputLabel>
             <Select
@@ -704,7 +704,7 @@ const ProfilePage = () => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Timezone"
             fullWidth
@@ -823,11 +823,11 @@ const ProfilePage = () => {
   };
 
   const renderVerification = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       {/* Current Verification Status */}
       <Box sx={{ 
         mb: 4, 
-        p: 3, 
+        p: { xs: 2, sm: 3 }, 
         borderRadius: 2, 
         bgcolor: verification?.tier !== 'UNVERIFIED' ? alpha(getTierColor(verification?.tier), 0.08) : alpha(SLATE_400, 0.08),
         border: '1px solid',
@@ -867,7 +867,7 @@ const ProfilePage = () => {
         {/* LinkedIn */}
         <Grid item xs={12} md={6}>
           <Box sx={{ 
-            p: 3, 
+            p: { xs: 2, sm: 3 }, 
             borderRadius: 2, 
             border: '1px solid',
             borderColor: verification?.linkedin?.verified ? '#0077b5' : SLATE_200,
@@ -951,7 +951,7 @@ const ProfilePage = () => {
         {/* GitHub */}
         <Grid item xs={12} md={6}>
           <Box sx={{ 
-            p: 3, 
+            p: { xs: 2, sm: 3 }, 
             borderRadius: 2, 
             border: '1px solid',
             borderColor: verification?.github?.verified ? '#333' : SLATE_200,
@@ -1082,7 +1082,7 @@ const ProfilePage = () => {
   );
 
   const renderLinks = () => (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: SLATE_900 }}>
         Social Profiles & Links
       </Typography>
@@ -1191,13 +1191,13 @@ const ProfilePage = () => {
   };
 
   const renderAccount = () => (
-    <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, mb: 3 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, mb: 3, wordBreak: 'break-word' }}>
         Account Settings
       </Typography>
       
       {/* Account Info */}
-      <Box sx={{ mb: 4, p: 3, bgcolor: SLATE_50, borderRadius: 2 }}>
+      <Box sx={{ mb: 4, p: { xs: 2, sm: 3 }, bgcolor: SLATE_50, borderRadius: 2 }}>
         <Typography variant="subtitle2" sx={{ color: SLATE_500, mb: 1 }}>
           Email
         </Typography>
@@ -1208,7 +1208,7 @@ const ProfilePage = () => {
       
       {/* Danger Zone */}
       <Box sx={{ 
-        p: 3, 
+        p: { xs: 2, sm: 3 }, 
         border: '1px solid #fecaca', 
         borderRadius: 2, 
         bgcolor: '#fef2f2' 
@@ -1265,10 +1265,10 @@ const ProfilePage = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Your Profile
           </Typography>
-          <Typography variant="body2" sx={{ color: SLATE_500 }}>
+          <Typography variant="body2" sx={{ color: SLATE_500, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             This information will be visible to project owners when you apply to connect
           </Typography>
         </Box>
@@ -1421,32 +1421,35 @@ const ProfilePage = () => {
         fullWidth
         PaperProps={{
           sx: { 
-            borderRadius: 3, 
+            borderRadius: { xs: 2, sm: 3 }, 
             bgcolor: '#fff',
             border: '1px solid',
             borderColor: SLATE_200,
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
           }
         }}
       >
-        <DialogTitle sx={{ pb: 1, borderBottom: '1px solid', borderColor: SLATE_200 }}>
+        <DialogTitle sx={{ pb: 1, borderBottom: '1px solid', borderColor: SLATE_200, px: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box sx={{
-              width: 36,
-              height: 36,
+              width: { xs: 32, sm: 36 },
+              height: { xs: 32, sm: 36 },
               borderRadius: 2,
               bgcolor: alpha('#fbbf24', 0.15),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}>
-              <LightbulbOutlined sx={{ color: '#f59e0b', fontSize: 20 }} />
+              <LightbulbOutlined sx={{ color: '#f59e0b', fontSize: { xs: 18, sm: 20 } }} />
             </Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, fontSize: { xs: '1rem', sm: '1.25rem' }, wordBreak: 'break-word' }}>
               {selectedTemplate?.archetype}
             </Typography>
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
+        <DialogContent sx={{ pt: 3, px: { xs: 2, sm: 3 } }}>
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ color: SLATE_500, fontWeight: 600, mb: 1 }}>
               Template (fill in the brackets):
@@ -1480,7 +1483,7 @@ const ProfilePage = () => {
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: SLATE_200 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2, borderTop: '1px solid', borderColor: SLATE_200, flexWrap: 'wrap', gap: 1 }}>
           <Button 
             onClick={() => setTemplateDialogOpen(false)}
             sx={{ color: SLATE_500, textTransform: 'none' }}
@@ -1532,11 +1535,18 @@ const ProfilePage = () => {
         }}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+            borderRadius: { xs: 2, sm: 3 },
+          }
+        }}
       >
-        <DialogTitle sx={{ color: '#dc2626', fontWeight: 700 }}>
+        <DialogTitle sx={{ color: '#dc2626', fontWeight: 700, fontSize: { xs: '1.1rem', sm: '1.25rem' }, px: { xs: 2, sm: 3 } }}>
           Delete Your Account
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
           <Alert severity="error" sx={{ mb: 3 }}>
             This action cannot be undone. All your data will be permanently deleted.
           </Alert>
@@ -1565,7 +1575,7 @@ const ProfilePage = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
+        <DialogActions sx={{ p: { xs: 2, sm: 2 }, pt: 0, flexWrap: 'wrap', gap: 1 }}>
           <Button 
             onClick={() => {
               setDeleteDialogOpen(false);

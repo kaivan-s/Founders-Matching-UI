@@ -150,40 +150,44 @@ const AdvisorMarketplace = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ px: { xs: 0, sm: 0 } }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+      <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, wordBreak: 'break-word' }}>
           Project Marketplace
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           Explore projects looking for advisors
         </Typography>
       </Box>
 
       {/* Search and Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} alignItems="center">
+          <Grid item xs={12} sm={6} md={6}>
             <TextField
               fullWidth
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              size="small"
               InputProps={{
                 startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
+              sx={{ '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={6} sm={3} md={3}>
             <TextField
               fullWidth
               select
+              size="small"
               value={filters.stage || ''}
               onChange={(e) => setFilters({ ...filters, stage: e.target.value })}
               SelectProps={{
                 native: true,
               }}
+              sx={{ '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } } }}
             >
               <option value="">All Stages</option>
               <option value="idea">Idea</option>
@@ -192,13 +196,15 @@ const AdvisorMarketplace = () => {
               <option value="scaling">Scaling</option>
             </TextField>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={6} sm={3} md={3}>
             <TextField
               fullWidth
               label="Location"
               placeholder="City, Country"
+              size="small"
               value={filters.location}
               onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+              sx={{ '& .MuiInputBase-root': { fontSize: { xs: '0.875rem', sm: '1rem' } } }}
             />
           </Grid>
         </Grid>
@@ -206,15 +212,15 @@ const AdvisorMarketplace = () => {
 
       {/* Projects Grid */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3 } }}>
           {error}
         </Alert>
       )}
 
       {projects.length === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Business sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">
+        <Box sx={{ textAlign: 'center', py: { xs: 6, sm: 8 } }}>
+          <Business sx={{ fontSize: { xs: 48, sm: 64 }, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             No projects found
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -222,7 +228,7 @@ const AdvisorMarketplace = () => {
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {projects.map((project, index) => (
             <Grid item xs={12} sm={6} md={4} key={project.id || index}>
               <motion.div
@@ -277,9 +283,9 @@ const AdvisorMarketplace = () => {
                       />
                     </Box>
                   )}
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
+                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: { xs: 2, sm: 2 } }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-start' }, mb: 2, gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, flex: 1, fontSize: { xs: '1rem', sm: '1.125rem' }, wordBreak: 'break-word' }}>
                         {project.projects?.[0]?.title || 'Untitled Project'}
                       </Typography>
                       {project.projects?.[0]?.stage && (
@@ -339,22 +345,26 @@ const AdvisorMarketplace = () => {
         maxWidth="md"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 },
+          sx: { 
+            borderRadius: { xs: 2, sm: 3 },
+            mx: { xs: 2, sm: 3 },
+            width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          },
         }}
       >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' }, wordBreak: 'break-word', flex: 1 }}>
               {selectedProject?.projects?.[0]?.title || 'Project Details'}
             </Typography>
-            <IconButton onClick={() => setDialogOpen(false)} size="small">
+            <IconButton onClick={() => setDialogOpen(false)} size="small" sx={{ flexShrink: 0 }}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
           {selectedProject && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
                   STAGE
@@ -415,10 +425,11 @@ const AdvisorMarketplace = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Close</Button>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: { xs: 1.5, sm: 2 }, flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
+          <Button onClick={() => setDialogOpen(false)} sx={{ width: { xs: '100%', sm: 'auto' } }}>Close</Button>
           <Button
             variant="contained"
+            fullWidth
             onClick={() => {
               // Handle request advisor action
               handleRequestAdvisor(selectedProject?.workspace_id);
@@ -426,6 +437,7 @@ const AdvisorMarketplace = () => {
             }}
             sx={{
               background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             Request to Advise

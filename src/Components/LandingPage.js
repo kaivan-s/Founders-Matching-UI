@@ -423,10 +423,10 @@ const LandingPage = () => {
 
           <Grid container spacing={2.5} justifyContent="center">
             {features.map((f, index) => (
-              <Grid item xs={6} sm={4} md={4} key={f.title}>
+              <Grid item xs={12} sm={6} md={4} key={f.title}>
                 <Box sx={{
                   perspective: '1000px',
-                  height: 200,
+                  height: { xs: 180, sm: 200 },
                   opacity: 0,
                   animation: `fadeInUp 0.6s ease forwards`,
                   animationDelay: `${index * 0.1}s`,
@@ -645,7 +645,7 @@ const LandingPage = () => {
           {/* ─ Card 1: Discovery Carousel (wide, 8 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 8' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -676,14 +676,14 @@ const LandingPage = () => {
               ))}
             </Box>
             {/* Carousel / daily batch mockup */}
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, alignItems: 'center', justifyContent: 'center', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
               {[
                 { name: 'Alex Chen', loc: 'San Francisco', project: 'FinTech SaaS', stage: 'MVP', skills: ['React', 'Node.js', 'AWS'], match: 92, scale: 0.88, opacity: 0.6 },
                 { name: 'Sarah Kim', loc: 'New York', project: 'AI Health Platform', stage: 'Pre-seed', skills: ['Python', 'ML', 'Product'], match: 87, scale: 1, opacity: 1 },
                 { name: 'James Liu', loc: 'London', project: 'EdTech Marketplace', stage: 'Idea', skills: ['Sales', 'Growth', 'Finance'], match: 78, scale: 0.88, opacity: 0.6 },
               ].map((p, i) => (
                 <Box key={i} sx={{
-                  flex: i === 1 ? '0 0 200px' : '0 0 160px', p: 2, borderRadius: 2.5, position: 'relative',
+                  flex: { xs: i === 1 ? '0 0 180px' : '0 0 140px', sm: i === 1 ? '0 0 200px' : '0 0 160px' }, p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, position: 'relative',
                   bgcolor: BG, border: i === 1 ? `2px solid ${alpha(TEAL, 0.3)}` : '1px solid', borderColor: i === 1 ? alpha(TEAL, 0.3) : SLATE_200,
                   transform: `scale(${p.scale})`, opacity: p.opacity,
                   boxShadow: i === 1 ? `0 8px 24px ${alpha(TEAL, 0.12)}` : 'none',
@@ -762,7 +762,7 @@ const LandingPage = () => {
           {/* ─ Card 2: Apply to Connect (4 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 4' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -834,7 +834,7 @@ const LandingPage = () => {
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 4' },
             gridRow: { xs: 'auto', md: 'span 2' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden', display: 'flex', flexDirection: 'column',
             transition: 'all 0.3s ease',
@@ -938,7 +938,7 @@ const LandingPage = () => {
           {/* ─ Card 4: Rich Profiles (4 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 4' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -1007,7 +1007,7 @@ const LandingPage = () => {
           {/* ─ Card 5: Video & Voice Intros (4 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 4' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -1086,7 +1086,7 @@ const LandingPage = () => {
           {/* ─ Card 6: Advisor Marketplace (5 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 5' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -1159,7 +1159,7 @@ const LandingPage = () => {
           {/* ─ Card 4: Partnership Health (3 cols) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 3' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -1220,7 +1220,7 @@ const LandingPage = () => {
           {/* ─ Card 5: Check-ins & Roles (full width) ─ */}
           <Box sx={{
             gridColumn: { xs: '1', md: 'span 12' },
-            p: 3, borderRadius: 3, bgcolor: '#fff',
+            p: { xs: 2, sm: 3 }, borderRadius: 3, bgcolor: '#fff',
             border: '1px solid', borderColor: SLATE_200,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
@@ -1354,7 +1354,7 @@ const LandingPage = () => {
             { step: '2', title: 'Set your discovery preferences', desc: 'For builders who want seats on teams, answer a focused two-step questionnaire once. Your preferences power the matching algorithm so you see opportunities ranked by compatibility, skills, and what matters to you.' },
             { step: '3', title: 'Browse opportunities & build partnerships', desc: 'Explore personalized opportunities ranked by your preferences. Apply with context, message in workspace chat, get first-match coaching after acceptance, then align on equity and add advisors when you need them.' },
           ].map((s, idx) => (
-            <Box key={s.step} sx={{ display: 'flex', gap: 3, py: 4, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
+            <Box key={s.step} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 3 }, py: { xs: 3, sm: 4 }, borderBottom: idx < 2 ? '1px solid' : 'none', borderColor: SLATE_200 }}>
               <Box sx={{
                 width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1363,10 +1363,10 @@ const LandingPage = () => {
                 {s.step}
               </Box>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5, fontSize: { xs: '1rem', sm: '1.125rem' } }}>
                   {s.title}
                 </Typography>
-                <Typography variant="body2" sx={{ color: SLATE_500, lineHeight: 1.75, maxWidth: 480 }}>
+                <Typography variant="body2" sx={{ color: SLATE_500, lineHeight: 1.75, maxWidth: { xs: '100%', sm: 480 }, fontSize: { xs: '0.875rem', sm: '0.9375rem' } }}>
                   {s.desc}
                 </Typography>
               </Box>
@@ -1477,9 +1477,9 @@ const LandingPage = () => {
         {/* Subscription Plans */}
         <Grid container spacing={3} sx={{ maxWidth: 1000, mx: 'auto', mb: 5 }}>
           {subscriptionPlans.map((plan) => (
-            <Grid item xs={12} md={4} key={plan.name}>
+            <Grid item xs={12} sm={6} md={4} key={plan.name}>
               <Box sx={{
-                p: 3, borderRadius: 3, height: '100%', position: 'relative',
+                p: { xs: 2.5, sm: 3 }, borderRadius: 3, height: '100%', position: 'relative',
                 border: plan.popular ? '2px solid' : '1px solid',
                 borderColor: plan.popular ? TEAL : SLATE_200,
                 bgcolor: '#fff',
@@ -1576,7 +1576,7 @@ const LandingPage = () => {
           <Grid container spacing={3} sx={{mb:5}}>
             <Grid item xs={12} md={6}>
               <Box sx={{
-                p: 3.5, borderRadius: 3, height: '100%',
+                p: { xs: 2.5, sm: 3.5 }, borderRadius: 3, height: '100%',
                 bgcolor: '#fff', border: '1px solid', borderColor: SLATE_200,
                 transition: 'all 0.25s ease',
                 '&:hover': { borderColor: alpha(TEAL, 0.4), boxShadow: `0 8px 24px ${alpha(TEAL, 0.08)}` },
@@ -1611,7 +1611,7 @@ const LandingPage = () => {
 
             <Grid item xs={12} md={6}>
               <Box sx={{
-                p: 3.5, borderRadius: 3, height: '100%',
+                p: { xs: 2.5, sm: 3.5 }, borderRadius: 3, height: '100%',
                 bgcolor: '#fff', border: '2px solid', borderColor: TEAL,
                 position: 'relative',
                 transition: 'all 0.25s ease',
@@ -1746,34 +1746,37 @@ const LandingPage = () => {
 
       {/* ─── Footer ─── */}
       <Divider sx={{ borderColor: SLATE_200 }} />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 } }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'center', sm: 'center' }, gap: { xs: 2, sm: 2 } }}>
           <Typography variant="body2" sx={{ color: SLATE_400, fontWeight: 600 }}>
             Guild Space
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Button
               onClick={() => navigate('/privacy-policy')}
               sx={{
-                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                textTransform: 'none', color: SLATE_400, fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                px: { xs: 1, sm: 2 }, minWidth: 'auto',
                 '&:hover': { color: TEAL },
               }}
             >
-              Privacy Policy
+              Privacy
             </Button>
             <Button
               onClick={() => navigate('/terms-and-conditions')}
               sx={{
-                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                textTransform: 'none', color: SLATE_400, fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                px: { xs: 1, sm: 2 }, minWidth: 'auto',
                 '&:hover': { color: TEAL },
               }}
             >
-              Terms & Conditions
+              Terms
             </Button>
             <Button
               onClick={() => navigate('/faq')}
               sx={{
-                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                textTransform: 'none', color: SLATE_400, fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                px: { xs: 1, sm: 2 }, minWidth: 'auto',
                 '&:hover': { color: TEAL },
               }}
             >
@@ -1781,7 +1784,8 @@ const LandingPage = () => {
             </Button>
             {isSignedIn && (
               <Button onClick={() => setFeedbackDialogOpen(true)} sx={{
-                textTransform: 'none', color: SLATE_400, fontSize: '0.8rem',
+                textTransform: 'none', color: SLATE_400, fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                px: { xs: 1, sm: 2 }, minWidth: 'auto',
                 '&:hover': { color: TEAL },
               }}>
                 Feedback
@@ -1800,7 +1804,7 @@ const LandingPage = () => {
             >
               <Instagram sx={{ fontSize: 18 }} />
             </Button>
-            <Typography variant="caption" sx={{ color: SLATE_400 }}>
+            <Typography variant="caption" sx={{ color: SLATE_400, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               &copy; {new Date().getFullYear()} Guild Space
             </Typography>
           </Box>

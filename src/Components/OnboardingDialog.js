@@ -200,11 +200,11 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
         return (
           <Fade in timeout={300}>
             <Box>
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1 }}>
+              <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   Welcome to Guild Space! 👋
                 </Typography>
-                <Typography variant="body1" sx={{ color: SLATE_500 }}>
+                <Typography variant="body1" sx={{ color: SLATE_500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Let's get to know you better to find your perfect co-founder
                 </Typography>
               </Box>
@@ -326,7 +326,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
               </Typography>
               
               <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                   <TextField
                     fullWidth
                     placeholder="Type a skill and press Enter or click Add"
@@ -346,6 +346,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                       '&:hover': { bgcolor: TEAL_LIGHT },
                       textTransform: 'none',
                       px: 3,
+                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
                     Add
@@ -430,8 +431,10 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
       }}
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          maxHeight: '90vh',
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          maxHeight: { xs: '95vh', sm: '90vh' },
         }
       }}
     >
@@ -452,7 +455,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
           />
         )}
         
-        <DialogContent sx={{ p: 4 }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 4 } }}>
           {userType === 'founder' && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
               <Typography variant="caption" sx={{ color: SLATE_500, fontWeight: 500 }}>
@@ -461,44 +464,35 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
             </Box>
           )}
           
-          <Box sx={{ minHeight: 400 }}>
+          <Box sx={{ minHeight: { xs: 'auto', sm: 400 } }}>
             {renderStepContent()}
           </Box>
           
           {userType === 'founder' && (
             <Box sx={{ 
               display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
               justifyContent: 'space-between', 
-              mt: 4, 
-              pt: 3, 
+              gap: { xs: 1.5, sm: 0 },
+              mt: { xs: 3, sm: 4 }, 
+              pt: { xs: 2, sm: 3 }, 
               borderTop: '1px solid',
               borderColor: SLATE_200,
             }}>
-              <Button
-                startIcon={<ArrowBack />}
-                onClick={handleBack}
-                disabled={currentStep === 0}
-                sx={{ 
-                  textTransform: 'none',
-                  color: currentStep === 0 ? SLATE_400 : SLATE_500,
-                  '&:hover': {
-                    bgcolor: alpha(SLATE_200, 0.5),
-                  },
-                }}
-              >
-                Back
-              </Button>
-              
               {currentStep === totalSteps - 1 ? (
                 <Button
                   variant="contained"
                   onClick={handleComplete}
                   disabled={loading}
+                  fullWidth
                   sx={{
                     bgcolor: TEAL,
                     '&:hover': { bgcolor: TEAL_LIGHT },
                     textTransform: 'none',
-                    px: 4,
+                    px: { xs: 2, sm: 4 },
+                    py: { xs: 1.5, sm: 1 },
+                    order: { xs: 1, sm: 2 },
+                    width: { xs: '100%', sm: 'auto' },
                   }}
                 >
                   {loading ? 'Saving...' : 'Complete Setup'}
@@ -509,6 +503,7 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                   endIcon={<ArrowForward />}
                   onClick={handleNext}
                   disabled={!canProceed()}
+                  fullWidth
                   sx={{
                     bgcolor: TEAL,
                     '&:hover': { bgcolor: TEAL_LIGHT },
@@ -517,12 +512,30 @@ const OnboardingDialog = ({ open, onComplete, onSelectAdvisorFlow }) => {
                       color: SLATE_400,
                     },
                     textTransform: 'none',
-                    px: 4,
+                    px: { xs: 2, sm: 4 },
+                    py: { xs: 1.5, sm: 1 },
+                    order: { xs: 1, sm: 2 },
+                    width: { xs: '100%', sm: 'auto' },
                   }}
                 >
                   Next
                 </Button>
               )}
+              <Button
+                startIcon={<ArrowBack />}
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                sx={{ 
+                  textTransform: 'none',
+                  color: currentStep === 0 ? SLATE_400 : SLATE_500,
+                  order: { xs: 2, sm: 1 },
+                  '&:hover': {
+                    bgcolor: alpha(SLATE_200, 0.5),
+                  },
+                }}
+              >
+                Back
+              </Button>
             </Box>
           )}
         </DialogContent>

@@ -108,12 +108,15 @@ const FeedbackDialog = ({ open, onClose, workspaceId = null }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          maxHeight: { xs: '90vh', sm: '85vh' },
         },
       }}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a' }}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, px: { xs: 2, sm: 3 } }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e3a8a', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           Give Feedback
         </Typography>
         <IconButton onClick={onClose} size="small" sx={{ color: '#64748b' }}>
@@ -122,7 +125,7 @@ const FeedbackDialog = ({ open, onClose, workspaceId = null }) => {
       </DialogTitle>
 
       <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ pt: 2 }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 2 } }}>
           {success && (
             <Alert 
               severity="success" 
@@ -198,7 +201,7 @@ const FeedbackDialog = ({ open, onClose, workspaceId = null }) => {
             onChange={(e) => setDescription(e.target.value)}
             required
             multiline
-            rows={6}
+            rows={{ xs: 4, sm: 6 }}
             disabled={loading}
             placeholder="Explain the problem, why it matters, and any examples..."
             inputProps={{ maxLength: 5000 }}
@@ -219,8 +222,22 @@ const FeedbackDialog = ({ open, onClose, workspaceId = null }) => {
           )}
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
-          <Button onClick={onClose} disabled={loading} sx={{ color: '#64748b' }}>
+        <DialogActions sx={{ 
+          px: { xs: 2, sm: 3 }, 
+          pb: { xs: 2, sm: 2.5 }, 
+          pt: 1,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 1,
+        }}>
+          <Button 
+            onClick={onClose} 
+            disabled={loading} 
+            sx={{ 
+              color: '#64748b',
+              order: { xs: 2, sm: 1 },
+              width: { xs: '100%', sm: 'auto' },
+            }}
+          >
             Cancel
           </Button>
           <Button
@@ -230,6 +247,8 @@ const FeedbackDialog = ({ open, onClose, workspaceId = null }) => {
             startIcon={loading ? <CircularProgress size={16} /> : <Send />}
             sx={{
               bgcolor: '#0d9488',
+              order: { xs: 1, sm: 2 },
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
                 bgcolor: '#14b8a6',
               },

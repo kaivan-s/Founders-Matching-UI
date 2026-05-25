@@ -982,9 +982,9 @@ const SwipeInterface = () => {
             px: { xs: 1, sm: 2 },
             width: '100%',
           }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: { xs: 0.5, sm: 1 }, flexWrap: 'wrap', mb: 1 }}>
               {/* Left: Projects count */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'wrap' }}>
                 {filtering && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <CircularProgress size={14} />
@@ -1015,8 +1015,8 @@ const SwipeInterface = () => {
                   }}
                 />
               )}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                <Box data-tutorial-id="filter-bar">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.5 }, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+                <Box data-tutorial-id="filter-bar" sx={{ display: { xs: 'none', sm: 'block' } }}>
                   <FilterBar 
                     onFilterChange={handleFilterChange} 
                     activeFilters={filters} 
@@ -1043,6 +1043,9 @@ const SwipeInterface = () => {
                     fontWeight: (filters.verification_tier || filters.time_commitment) 
                       ? 600 
                       : 400,
+                    fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                    px: { xs: 1.5, sm: 2 },
+                    minWidth: { xs: 'auto', sm: 'inherit' },
                     '&:hover': {
                       borderColor: '#0d9488',
                       bgcolor: 'rgba(13, 148, 136, 0.08)',
@@ -1169,6 +1172,9 @@ const SwipeInterface = () => {
                     fontWeight: preferences && Object.keys(preferences).filter(k => preferences[k]).length > 0 
                       ? 600 
                       : 400,
+                    fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                    px: { xs: 1.5, sm: 2 },
+                    minWidth: { xs: 'auto', sm: 'inherit' },
                     '&:hover': {
                       borderColor: '#1e3a8a',
                       bgcolor: 'rgba(30, 58, 138, 0.08)',
@@ -1186,6 +1192,10 @@ const SwipeInterface = () => {
                   sx={{
                     borderColor: plan?.id === 'PRO_PLUS' ? '#7c3aed' : '#e2e8f0',
                     color: plan?.id === 'PRO_PLUS' ? '#7c3aed' : '#64748b',
+                    fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                    px: { xs: 1.5, sm: 2 },
+                    minWidth: { xs: 'auto', sm: 'inherit' },
+                    display: { xs: 'none', sm: 'inline-flex' },
                     '&:hover': {
                       borderColor: plan?.id === 'PRO_PLUS' ? '#6d28d9' : '#cbd5e1',
                       bgcolor: plan?.id === 'PRO_PLUS' ? 'rgba(124, 58, 237, 0.04)' : 'rgba(100, 116, 139, 0.04)',

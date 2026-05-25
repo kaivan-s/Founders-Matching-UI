@@ -496,7 +496,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   // Show the wizard for new setups or when explicitly requested
   if (showWizard) {
     return (
-      <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 2 }}>
+      <Box sx={{ maxWidth: { xs: '100%', md: '1200px' }, mx: 'auto', p: { xs: 1, sm: 2 } }}>
         {/* Header with toggle back to legacy view */}
         {hasCompletedSetup && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
@@ -543,18 +543,18 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
   return (
     <>
     {/* CTA to start/edit equity setup wizard */}
-    <Box sx={{ mb: 3 }}>
+    <Box sx={{ mb: { xs: 2, sm: 3 } }}>
       <Card sx={{ 
         border: '2px solid #0ea5e9', 
-        borderRadius: '16px', 
+        borderRadius: { xs: '12px', sm: '16px' }, 
         background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%)'
       }}>
-        <CardContent sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+          <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 0.5, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
               {hasCompletedSetup ? 'Equity Setup Complete' : 'Complete Your Equity Setup'}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
               {hasCompletedSetup 
                 ? 'Your equity split has been approved by both founders.' 
                 : 'Use our guided questionnaire to calculate fair equity splits.'}
@@ -568,6 +568,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
               bgcolor: '#0ea5e9', 
               '&:hover': { bgcolor: '#0284c7' },
               px: 3,
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             {hasCompletedSetup ? 'Edit Agreement' : 'Start Setup'}
@@ -576,14 +577,14 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
       </Card>
     </Box>
 
-    <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
+    <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ alignItems: 'stretch' }}>
       {/* Left Column: Equity Scenarios */}
       <Grid item xs={12} md={6}>
-        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: { xs: '12px', sm: '16px' }, height: '100%', display: 'flex', flexDirection: 'column' }}>
           <CardContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Tabs */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3, pt: 2 }}>
-              <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 2, sm: 3 }, pt: 2 }}>
+              <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} variant="scrollable" scrollButtons="auto">
                 <Tab label="Calculator" />
                 <Tab label="Saved Scenarios" />
               </Tabs>
@@ -592,7 +593,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
             {/* Tab Content */}
             <Box 
               sx={{ 
-                p: 3, 
+                p: { xs: 2, sm: 3 }, 
                 flex: 1, 
                 overflow: 'auto',
                 '&::-webkit-scrollbar': {
@@ -1046,14 +1047,14 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
 
       {/* Right Column: Roles & Responsibilities (View Only) */}
       <Grid item xs={12} md={6} id="roles-section">
-        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: '16px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: { xs: '12px', sm: '16px' }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 }, flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0f172a', letterSpacing: '-0.01em' }}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, color: '#0f172a', letterSpacing: '-0.01em', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Roles & Responsibilities
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b' }}>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                 Current roles assigned. Edit in the Home tab.
               </Typography>
             </Box>
@@ -1117,14 +1118,14 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
 
       {/* Generate Agreement Draft */}
       <Grid item xs={12}>
-        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: '16px', bgcolor: '#f8fafc' }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1, letterSpacing: '-0.01em' }}>
+        <Card sx={{ border: '1px solid #e2e8f0', borderRadius: { xs: '12px', sm: '16px' }, bgcolor: '#f8fafc' }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+              <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: '#0f172a', mb: 1, letterSpacing: '-0.01em', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Founders' Agreement Draft
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                   This is not a legal contract. It summarizes your current equity and roles for your lawyer.
                 </Typography>
               </Box>
@@ -1137,6 +1138,7 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
                   bgcolor: '#0ea5e9',
                   '&:hover': { bgcolor: '#0284c7' },
                   textTransform: 'none',
+                  width: { xs: '100%', sm: 'auto' },
                 }}
               >
                 {loadingDraft ? <CircularProgress size={20} /> : 'Generate Draft'}
@@ -1148,7 +1150,19 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
     </Grid>
 
     {/* Agreement Draft Modal */}
-    <Dialog open={draftDialogOpen} onClose={() => setDraftDialogOpen(false)} maxWidth="md" fullWidth>
+    <Dialog 
+      open={draftDialogOpen} 
+      onClose={() => setDraftDialogOpen(false)} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
+          borderRadius: { xs: 2, sm: 3 },
+        }
+      }}
+    >
       <DialogTitle sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -1270,7 +1284,9 @@ const WorkspaceEquityRoles = ({ workspaceId }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 2, sm: 3 },
+          mx: { xs: 2, sm: 3 },
+          width: { xs: 'calc(100% - 32px)', sm: '100%' },
         }
       }}
     >
