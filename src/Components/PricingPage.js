@@ -79,8 +79,11 @@ const PricingPage = () => {
     }
   }, [searchParams]);
 
-  // Countdown and redirect for success state
+  // Countdown and redirect for success state (desktop only - mobile shows "Open App" button)
   useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) return;
+    
     if (subscriptionSuccess && countdown > 0) {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
@@ -204,7 +207,81 @@ const PricingPage = () => {
   // Show success screen if subscription was successful
   if (subscriptionSuccess) {
     const planDisplayName = successPlan === 'PRO' ? 'Pro' : successPlan === 'PRO_PLUS' ? 'Pro+' : successPlan;
+    const isMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const appUrl = `guildspace://pricing?subscription=success&plan=${successPlan}`;
     
+    // For iOS users, show a simple "Open in App" screen
+    if (isMobile) {
+      return (
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: '100vh',
+            bgcolor: '#f8fafc'
+          }}
+        >
+          <Card 
+            sx={{ 
+              maxWidth: { xs: '100%', sm: 400 }, 
+              mx: { xs: 2, sm: 3 }, 
+              p: { xs: 4, sm: 5 }, 
+              textAlign: 'center',
+              borderRadius: 4,
+              boxShadow: '0 12px 32px rgba(13, 148, 136, 0.15)',
+            }}
+          >
+            <Box 
+              sx={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: '50%', 
+                bgcolor: '#d1fae5', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}
+            >
+              <CheckCircle sx={{ fontSize: 48, color: '#10b981' }} />
+            </Box>
+            
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1e3a8a' }}>
+              Payment Successful!
+            </Typography>
+            
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+              Your {planDisplayName} subscription is now active.
+            </Typography>
+            
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={() => { window.location.href = appUrl; }}
+              sx={{
+                bgcolor: '#0d9488',
+                color: 'white',
+                py: 1.5,
+                borderRadius: 3,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                '&:hover': {
+                  bgcolor: '#14b8a6',
+                },
+              }}
+            >
+              Open Guild Space App
+            </Button>
+          </Card>
+        </Box>
+      );
+    }
+    
+    // For desktop users, show the full success screen with countdown
     return (
       <Box 
         sx={{ 
