@@ -799,6 +799,13 @@ const SeekerDiscovery = () => {
         
         if (!response.ok) {
           const errorData = await response.json();
+          // Check if it's a swipe/browse limit error
+          if (errorData.error?.toLowerCase().includes('browse limit') || 
+              errorData.error?.toLowerCase().includes('swipe limit')) {
+            setUpgradeLimitType('swipe');
+            setUpgradeLimitDialogOpen(true);
+            return;
+          }
           console.error('Failed to skip project:', errorData.error);
         }
       } catch (err) {
@@ -2042,6 +2049,8 @@ const SeekerDiscovery = () => {
               ? "Preferences locked for today" 
               : upgradeLimitType === 'skipped'
               ? "Revisit skipped opportunities"
+              : upgradeLimitType === 'swipe'
+              ? "Daily browse limit reached"
               : "You've used today's application"
             }
           </Typography>
@@ -2050,6 +2059,8 @@ const SeekerDiscovery = () => {
               ? "Upgrade to Pro to change preferences anytime"
               : upgradeLimitType === 'skipped'
               ? "Upgrade to Pro to view projects you passed on"
+              : upgradeLimitType === 'swipe'
+              ? "Upgrade to Pro for unlimited browsing"
               : "Upgrade to Pro for unlimited applications"
             }
           </Typography>

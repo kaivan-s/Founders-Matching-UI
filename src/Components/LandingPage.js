@@ -238,20 +238,20 @@ const LandingPage = () => {
     {
       name: 'Free', price: '$0', popular: false,
       features: [
-        '5 personalized opportunities',
-        '1 application per day',
+        '3 personalized opportunities',
+        '10 swipes & 1 application per day',
         '1 project & 1 workspace',
-        'All workspace tools',
+        'Basic workspace tools',
       ],
     },
     {
       name: 'Pro', price: '$15/mo', popular: true,
       features: [
-        '25 personalized opportunities (5x more)',
-        'Unlimited applications',
-        'Up to 3 projects',
-        'Unlimited workspaces',
-        'AI project insights on creation (3/month)',
+        '25 personalized opportunities',
+        'Unlimited swipes & applications',
+        'Up to 3 projects & workspaces',
+        'Full tools (Slack, Notion, equity)',
+        'AI project insights (3/month)',
         'Revisit passed opportunities',
         'Advisor marketplace',
       ],
@@ -259,7 +259,7 @@ const LandingPage = () => {
     {
       name: 'Pro+', price: '$35/mo', popular: false,
       features: [
-        '50 personalized opportunities (10x more)',
+        '50 personalized opportunities',
         'AI project insights (10/month)',
         '30-day post-match support',
         'Priority support',
