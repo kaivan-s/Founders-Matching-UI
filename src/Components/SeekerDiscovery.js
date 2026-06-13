@@ -1066,23 +1066,24 @@ const SeekerDiscovery = () => {
                           </Box>
                           <Typography sx={{ fontWeight: 700, color: SLATE_900, mb: 1, fontSize: { xs: '1.25rem', sm: '2rem' } }}>
                             {discoveryMeta?.results_cached 
-                              ? "Today's results locked" 
-                              : `${moreCount}+ More Ideas`
+                              ? "Someone's building your idea" 
+                              : `${moreCount}+ founders waiting`
                             }
                           </Typography>
-                          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3, maxWidth: 300, mx: 'auto', fontSize: { xs: '0.85rem', sm: '1rem' } }}>
+                          <Typography variant="body1" sx={{ color: SLATE_500, mb: 3, maxWidth: 340, mx: 'auto', fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                             {discoveryMeta?.results_cached 
-                              ? "Upgrade to refresh and see 5x more" 
-                              : "Your next big opportunity awaits"
+                              ? <>Explore <Box component="span" sx={{ color: TEAL, fontWeight: 700 }}>25+ opportunities</Box> with <Box component="span" sx={{ color: TEAL, fontWeight: 700 }}>unlimited</Box> applications</> 
+                              : <>Explore <Box component="span" sx={{ color: TEAL, fontWeight: 700 }}>25+ matches</Box> & apply to <Box component="span" sx={{ color: TEAL, fontWeight: 700 }}>as many as you want</Box></>
                             }
                           </Typography>
                           {isCenter && (
                             <Button
                               variant="contained"
                               size="large"
+                              disabled={checkoutLoading}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate('/pricing');
+                                handleDirectCheckout();
                               }}
                               sx={{
                                 bgcolor: TEAL,
@@ -1094,7 +1095,7 @@ const SeekerDiscovery = () => {
                                 '&:hover': { bgcolor: TEAL_LIGHT },
                               }}
                             >
-                              Unlock for $15/mo
+                              {checkoutLoading ? 'Redirecting...' : 'Unlock Pro → $15/mo'}
                             </Button>
                           )}
                         </CardContent>
@@ -1846,9 +1847,10 @@ const SeekerDiscovery = () => {
                 <Button
                   size="small"
                   variant="contained"
+                  disabled={checkoutLoading}
                   onClick={() => {
                     setApplyDialogOpen(false);
-                    navigate('/pricing');
+                    handleDirectCheckout();
                   }}
                   sx={{ 
                     textTransform: 'none', 
@@ -1859,7 +1861,7 @@ const SeekerDiscovery = () => {
                     flexShrink: 0,
                   }}
                 >
-                  Upgrade
+                  {checkoutLoading ? 'Redirecting...' : 'Upgrade'}
                 </Button>
               </Box>
             </Alert>
