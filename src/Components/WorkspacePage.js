@@ -21,6 +21,9 @@ import {
   FormControl,
   InputLabel,
   Tooltip,
+  Menu,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import { API_BASE } from '../config/api';
 import { 
@@ -35,6 +38,11 @@ import {
   ChatBubbleOutline,
   InfoOutlined,
   AutoAwesome,
+  MoreVert,
+  ExitToApp,
+  Warning,
+  Archive,
+  Cancel,
 } from '@mui/icons-material';
 import { useWorkspace, useWorkspaceParticipants, useWorkspaceRoles } from '../hooks/useWorkspace';
 import { WorkspaceProvider } from '../contexts/WorkspaceContext';
@@ -58,6 +66,15 @@ const WorkspacePage = () => {
   const [workspacePlan, setWorkspacePlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
   const [setupBannerDismissed, setSetupBannerDismissed] = useState(false);
+  
+  // Dissolution state
+  const [settingsMenuAnchor, setSettingsMenuAnchor] = useState(null);
+  const [dissolutionDialogOpen, setDissolutionDialogOpen] = useState(false);
+  const [dissolutionConfirmDialogOpen, setDissolutionConfirmDialogOpen] = useState(false);
+  const [dissolutionCancelDialogOpen, setDissolutionCancelDialogOpen] = useState(false);
+  const [dissolutionReason, setDissolutionReason] = useState('');
+  const [dissolutionLoading, setDissolutionLoading] = useState(false);
+  const [dissolutionError, setDissolutionError] = useState(null);
   
   // Use React Router's useMatch to properly detect active route
   const overviewMatch = useMatch(`/workspaces/${workspaceId}/overview`);
@@ -202,6 +219,113 @@ const WorkspacePage = () => {
     if (days === 0) return 'Today';
     if (days === 1) return '1 day ago';
     return `${days} days ago`;
+  };
+
+  // Dissolution handlers
+  const handleRequestDissolution = async () => {
+    if (!workspace?.match_id || !user?.id) return;
+    
+    setDissolutionLoading(true);
+    setDissolutionError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE}/matches/${workspace.match_id}/dissolution`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+        body: JSON.stringify({ reason: dissolutionReason }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to request dissolution');
+      }
+      
+      setDissolutionDialogOpen(false);
+      setDissolutionReason('');
+      // Refresh workspace to show updated status
+      window.location.reload();
+    } catch (err) {
+      setDissolutionError(err.message);
+    } finally {
+      setDissolutionLoading(false);
+    }
+  };
+
+  const handleConfirmDissolution = async () => {
+    if (!workspace?.match_id || !user?.id) return;
+    
+    setDissolutionLoading(true);
+    setDissolutionError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE}/matches/${workspace.match_id}/dissolution/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to confirm dissolution');
+      }
+      
+      setDissolutionConfirmDialogOpen(false);
+      // Redirect to workspaces list
+      navigate('/workspaces');
+    } catch (err) {
+      setDissolutionError(err.message);
+    } finally {
+      setDissolutionLoading(false);
+    }
+  };
+
+  const handleCancelDissolution = async () => {
+    if (!workspace?.match_id || !user?.id) return;
+    
+    setDissolutionLoading(true);
+    setDissolutionError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE}/matches/${workspace.match_id}/dissolution/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Clerk-User-Id': user.id,
+        },
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to cancel dissolution');
+      }
+      
+      setDissolutionCancelDialogOpen(false);
+      // Refresh workspace to show updated status
+      window.location.reload();
+    } catch (err) {
+      setDissolutionError(err.message);
+    } finally {
+      setDissolutionLoading(false);
+    }
+  };
+
+  // Check if current user initiated the dissolution
+  const isCurrentUserDissolutionRequester = useMemo(() => {
+    if (!workspace || !participants || !user?.id) return false;
+    const currentUserParticipant = participants.find(p => p.user?.clerk_user_id === user.id);
+    return workspace.dissolution_requested_by === currentUserParticipant?.user_id;
+  }, [workspace, participants, user?.id]);
+
+  // Format cooloff end date
+  const formatCooloffDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   const getStageLabel = (stage) => {
@@ -450,6 +574,44 @@ const WorkspacePage = () => {
                     >
                       Updated {getLastUpdated()}
                     </Typography>
+                    
+                    {/* Settings Menu */}
+                    {!workspace?.is_archived && workspace?.dissolution_status !== 'requested' && (
+                      <>
+                        <Tooltip title="Workspace settings">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => setSettingsMenuAnchor(e.currentTarget)}
+                            sx={{ 
+                              color: '#94a3b8',
+                              '&:hover': { color: '#64748b', bgcolor: '#f1f5f9' }
+                            }}
+                          >
+                            <MoreVert fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Menu
+                          anchorEl={settingsMenuAnchor}
+                          open={Boolean(settingsMenuAnchor)}
+                          onClose={() => setSettingsMenuAnchor(null)}
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        >
+                          <MenuItem 
+                            onClick={() => {
+                              setSettingsMenuAnchor(null);
+                              setDissolutionDialogOpen(true);
+                            }}
+                            sx={{ color: '#dc2626' }}
+                          >
+                            <ListItemIcon>
+                              <ExitToApp fontSize="small" sx={{ color: '#dc2626' }} />
+                            </ListItemIcon>
+                            <ListItemText primary="End Partnership" />
+                          </MenuItem>
+                        </Menu>
+                      </>
+                    )}
                   </>
                 )}
               </Box>
@@ -590,6 +752,85 @@ const WorkspacePage = () => {
         </Box>
       )}
 
+      {/* Archived Workspace Banner */}
+      {workspace?.is_archived && (
+        <Box sx={{ 
+          bgcolor: '#fef2f2',
+          borderBottom: '1px solid #fecaca',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+        }}>
+          <Archive sx={{ color: '#dc2626', fontSize: 24 }} />
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body1" sx={{ color: '#991b1b', fontWeight: 600 }}>
+              This workspace has been archived
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#b91c1c' }}>
+              The partnership was dissolved on {formatCooloffDate(workspace.archived_at)}. This workspace is now read-only.
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      {/* Dissolution Pending Banner */}
+      {workspace?.dissolution_status === 'requested' && !workspace?.is_archived && (
+        <Box sx={{ 
+          bgcolor: '#fef3c7',
+          borderBottom: '1px solid #fcd34d',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          flexWrap: 'wrap',
+        }}>
+          <Warning sx={{ color: '#d97706', fontSize: 24 }} />
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body1" sx={{ color: '#92400e', fontWeight: 600 }}>
+              Partnership dissolution requested
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#a16207' }}>
+              {isCurrentUserDissolutionRequester 
+                ? `You requested to end this partnership. It will be dissolved on ${formatCooloffDate(workspace.dissolution_cooloff_ends_at)} unless you cancel.`
+                : `Your partner has requested to end this partnership. It will be dissolved on ${formatCooloffDate(workspace.dissolution_cooloff_ends_at)}.`
+              }
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {isCurrentUserDissolutionRequester ? (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Cancel />}
+                onClick={() => setDissolutionCancelDialogOpen(true)}
+                sx={{ 
+                  borderColor: '#d97706',
+                  color: '#92400e',
+                  '&:hover': { borderColor: '#b45309', bgcolor: '#fef3c7' }
+                }}
+              >
+                Cancel Request
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => setDissolutionConfirmDialogOpen(true)}
+                sx={{ 
+                  bgcolor: '#dc2626',
+                  '&:hover': { bgcolor: '#b91c1c' }
+                }}
+              >
+                Confirm End
+              </Button>
+            )}
+          </Box>
+        </Box>
+      )}
+
       {/* Content Area with smooth transitions */}
       <Box sx={{ 
         flex: 1, 
@@ -643,6 +884,151 @@ const WorkspacePage = () => {
           </WorkspaceProvider>
         </Box>
       </Box>
+
+      {/* Request Dissolution Dialog */}
+      <Dialog 
+        open={dissolutionDialogOpen} 
+        onClose={() => !dissolutionLoading && setDissolutionDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: '#dc2626', fontWeight: 600 }}>
+          End Partnership
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to end this partnership? This will start a <strong>7-day cooling-off period</strong>.
+          </Typography>
+          <Box sx={{ bgcolor: '#fef3c7', p: 2, borderRadius: 1, mb: 3 }}>
+            <Typography variant="body2" sx={{ color: '#92400e', fontWeight: 500, mb: 1 }}>
+              What happens next:
+            </Typography>
+            <ul style={{ margin: 0, paddingLeft: 20, color: '#a16207' }}>
+              <li>Your partner will be notified immediately</li>
+              <li>They can confirm to end the partnership right away</li>
+              <li>Or it will automatically end after 7 days</li>
+              <li>You can cancel this request anytime during the 7 days</li>
+              <li>Your workspace data will be preserved in read-only mode</li>
+            </ul>
+          </Box>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Reason (optional)"
+            placeholder="Share why you want to end this partnership..."
+            value={dissolutionReason}
+            onChange={(e) => setDissolutionReason(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          {dissolutionError && (
+            <Alert severity="error" sx={{ mb: 2 }}>{dissolutionError}</Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setDissolutionDialogOpen(false)}
+            disabled={dissolutionLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleRequestDissolution}
+            variant="contained"
+            disabled={dissolutionLoading}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#b91c1c' } }}
+          >
+            {dissolutionLoading ? 'Requesting...' : 'Request Dissolution'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm Dissolution Dialog (for the other party) */}
+      <Dialog 
+        open={dissolutionConfirmDialogOpen} 
+        onClose={() => !dissolutionLoading && setDissolutionConfirmDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ color: '#dc2626', fontWeight: 600 }}>
+          Confirm End Partnership
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Your partner has requested to end this partnership. If you confirm, the partnership will end <strong>immediately</strong>.
+          </Typography>
+          <Box sx={{ bgcolor: '#fef2f2', p: 2, borderRadius: 1, mb: 2 }}>
+            <Typography variant="body2" sx={{ color: '#991b1b' }}>
+              <strong>Note:</strong> Your workspace will become read-only, but all data (equity records, documents, chat history) will be preserved and accessible.
+            </Typography>
+          </Box>
+          {workspace?.dissolution_reason && (
+            <Box sx={{ bgcolor: '#f1f5f9', p: 2, borderRadius: 1, mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500 }}>
+                Their reason:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#334155', mt: 0.5 }}>
+                {workspace.dissolution_reason}
+              </Typography>
+            </Box>
+          )}
+          {dissolutionError && (
+            <Alert severity="error" sx={{ mb: 2 }}>{dissolutionError}</Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setDissolutionConfirmDialogOpen(false)}
+            disabled={dissolutionLoading}
+          >
+            Wait (Let it expire)
+          </Button>
+          <Button 
+            onClick={handleConfirmDissolution}
+            variant="contained"
+            disabled={dissolutionLoading}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#b91c1c' } }}
+          >
+            {dissolutionLoading ? 'Confirming...' : 'Confirm End Partnership'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cancel Dissolution Dialog (for the requester) */}
+      <Dialog 
+        open={dissolutionCancelDialogOpen} 
+        onClose={() => !dissolutionLoading && setDissolutionCancelDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Cancel Dissolution Request
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Are you sure you want to cancel your dissolution request? Your partnership will continue as normal.
+          </Typography>
+          {dissolutionError && (
+            <Alert severity="error" sx={{ mb: 2 }}>{dissolutionError}</Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setDissolutionCancelDialogOpen(false)}
+            disabled={dissolutionLoading}
+          >
+            Keep Request
+          </Button>
+          <Button 
+            onClick={handleCancelDissolution}
+            variant="contained"
+            disabled={dissolutionLoading}
+            color="primary"
+          >
+            {dissolutionLoading ? 'Cancelling...' : 'Cancel Dissolution Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

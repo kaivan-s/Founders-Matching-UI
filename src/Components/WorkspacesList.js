@@ -16,7 +16,7 @@ import {
   Button,
   IconButton,
 } from '@mui/material';
-import { Business, Work, ArrowForward, Notifications } from '@mui/icons-material';
+import { Business, Work, ArrowForward, Notifications, Archive, Warning } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import WorkspaceNotificationsDialog from './WorkspaceNotificationsDialog';
 import { supabase } from '../config/supabase';
@@ -428,6 +428,40 @@ const WorkspacesList = () => {
                             fontWeight: 600,
                             fontSize: '0.75rem',
                             height: 24,
+                          }}
+                        />
+                      )}
+
+                      {/* Archived Badge */}
+                      {workspace.is_archived && (
+                        <Chip
+                          icon={<Archive sx={{ fontSize: 14 }} />}
+                          label="Archived"
+                          size="small"
+                          sx={{
+                            bgcolor: '#fef2f2',
+                            color: '#dc2626',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            height: 24,
+                            '& .MuiChip-icon': { color: '#dc2626' },
+                          }}
+                        />
+                      )}
+
+                      {/* Dissolution Pending Badge */}
+                      {workspace.dissolution_status === 'requested' && !workspace.is_archived && (
+                        <Chip
+                          icon={<Warning sx={{ fontSize: 14 }} />}
+                          label="Ending Soon"
+                          size="small"
+                          sx={{
+                            bgcolor: '#fef3c7',
+                            color: '#d97706',
+                            fontWeight: 600,
+                            fontSize: '0.75rem',
+                            height: 24,
+                            '& .MuiChip-icon': { color: '#d97706' },
                           }}
                         />
                       )}
