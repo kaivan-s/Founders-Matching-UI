@@ -571,6 +571,22 @@ const OwnerApplications = () => {
                             {applicant.verification?.tier !== 'UNVERIFIED' && (
                               <Verified sx={{ fontSize: 16, color: TEAL }} />
                             )}
+                            {app.is_pro_applicant && (
+                              <Chip
+                                size="small"
+                                label="PRO"
+                                icon={<AutoAwesome sx={{ fontSize: '12px !important' }} />}
+                                sx={{
+                                  height: 20,
+                                  bgcolor: alpha(SKY, 0.15),
+                                  color: SKY,
+                                  fontWeight: 700,
+                                  fontSize: '0.65rem',
+                                  border: `1px solid ${alpha(SKY, 0.3)}`,
+                                  '& .MuiChip-icon': { color: SKY },
+                                }}
+                              />
+                            )}
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                             <Typography variant="caption" sx={{ color: SLATE_400 }}>
@@ -862,6 +878,22 @@ const OwnerApplications = () => {
                     </Typography>
                     {selectedApp.applicant?.verification?.tier !== 'UNVERIFIED' && (
                       <Verified sx={{ color: TEAL }} />
+                    )}
+                    {selectedApp.is_pro_applicant && (
+                      <Chip
+                        size="small"
+                        label="PRO Member"
+                        icon={<AutoAwesome sx={{ fontSize: '14px !important' }} />}
+                        sx={{
+                          height: 24,
+                          bgcolor: alpha(SKY, 0.15),
+                          color: SKY,
+                          fontWeight: 700,
+                          fontSize: '0.75rem',
+                          border: `1px solid ${alpha(SKY, 0.3)}`,
+                          '& .MuiChip-icon': { color: SKY },
+                        }}
+                      />
                     )}
                   </Box>
                   {selectedApp.applicant?.headline && (

@@ -166,6 +166,14 @@ const SeekerDiscovery = () => {
   const [normalMatches, setNormalMatches] = useState([]); // Store normal matches when viewing skipped
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   
+  // Pre-apply preview (Pro feature)
+  const [previewData, setPreviewData] = useState({}); // keyed by project_id
+  const [loadingPreview, setLoadingPreview] = useState(null); // project_id of currently loading preview
+  
+  // Pro upgrade preview dialog
+  const [upgradePreviewOpen, setUpgradePreviewOpen] = useState(false);
+  const [upgradePreviewType, setUpgradePreviewType] = useState('match_reasons'); // 'match_reasons' or 'project_insights'
+  
   // Mobile detection for responsive carousel
   const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' && window.innerWidth < 600);
   
@@ -436,6 +444,48 @@ const SeekerDiscovery = () => {
       } else if (data && data.matches?.length === 0) {
         setSuccess('No skipped projects to show');
       }
+    }
+  };
+
+  // Pre-apply preview for Pro users
+  const fetchProjectPreview = async (projectId) => {
+    if (!user?.id) return;
+    
+    // Check if already cached
+    if (previewData[projectId]) return;
+    
+    setLoadingPreview(projectId);
+    try {
+      const response = await fetch(`${API_BASE}/seeker/project/${projectId}/preview`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setPreviewData(prev => ({ ...prev, [projectId]: data }));
+      } else {
+        // Store error state so we don't retry endlessly
+        setPreviewData(prev => ({ 
+          ...prev, 
+          [projectId]: { 
+            accessible: false, 
+            message: data.error || 'Could not load preview' 
+          } 
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch preview:', err);
+      // Store error state
+      setPreviewData(prev => ({ 
+        ...prev, 
+        [projectId]: { 
+          accessible: false, 
+          message: 'Network error' 
+        } 
+      }));
+    } finally {
+      setLoadingPreview(null);
     }
   };
 
@@ -865,8 +915,8 @@ const SeekerDiscovery = () => {
         {/* Carousel of project cards - Full width */}
         <Box sx={{ 
           position: 'relative', 
-          height: { xs: 'auto', sm: 540, md: 580 },
-          minHeight: { xs: 520, sm: 540, md: 580 },
+          height: { xs: 'auto', sm: 600, md: 650 },
+          minHeight: { xs: 560, sm: 600, md: 650 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1268,15 +1318,177 @@ const SeekerDiscovery = () => {
                           <Typography variant="caption" sx={{ fontWeight: 600, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                             Why this matches
                           </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mt: 1 }}>
-                            {(cardProject.match_reasons?.length > 0 ? cardProject.match_reasons : ['Good fit based on your preferences']).slice(0, 3).map((reason, idx) => (
-                              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <CheckCircle sx={{ fontSize: { xs: 12, sm: 14 }, color: TEAL }} />
-                                <Typography variant="caption" sx={{ color: SLATE_900, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{reason}</Typography>
-                              </Box>
-                            ))}
-                          </Box>
+                          {cardProject.match_reasons_locked ? (
+                            <Box 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUpgradePreviewType('match_reasons');
+                                setUpgradePreviewOpen(true);
+                              }}
+                              sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 1, 
+                                mt: 1, 
+                                cursor: 'pointer',
+                                p: 1,
+                                borderRadius: 1,
+                                bgcolor: alpha(TEAL, 0.08),
+                                border: `1px dashed ${alpha(TEAL, 0.3)}`,
+                                transition: 'all 0.2s',
+                                '&:hover': { bgcolor: alpha(TEAL, 0.12), borderColor: TEAL }
+                              }}
+                            >
+                              <Lock sx={{ fontSize: 16, color: TEAL }} />
+                              <Typography variant="caption" sx={{ color: SLATE_500, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
+                                <span style={{ fontWeight: 600, color: TEAL }}>{cardProject.match_reasons_count || 3} reasons</span> why you're a great fit — <span style={{ fontWeight: 600, color: TEAL, textDecoration: 'underline' }}>Unlock with Pro</span>
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mt: 1 }}>
+                              {(cardProject.match_reasons?.length > 0 ? cardProject.match_reasons : ['Good fit based on your preferences']).slice(0, 3).map((reason, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <CheckCircle sx={{ fontSize: { xs: 12, sm: 14 }, color: TEAL }} />
+                                  <Typography variant="caption" sx={{ color: SLATE_900, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{reason}</Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
                         </Box>
+
+                        {/* Pre-apply Preview (Pro feature) */}
+                        {discoveryMeta?.user_plan !== 'FREE' ? (
+                          <Box sx={{ mb: { xs: 2, sm: 2.5 } }}>
+                            {previewData[cardProject.id]?.accessible === false ? (
+                              // Project no longer available or not seeking
+                              <Typography variant="caption" sx={{ color: SLATE_500, fontStyle: 'italic', fontSize: '0.7rem' }}>
+                                {previewData[cardProject.id].message || 'Preview unavailable'}
+                              </Typography>
+                            ) : previewData[cardProject.id]?.accessible ? (
+                              <Box sx={{ 
+                                bgcolor: alpha(SKY, 0.04), 
+                                borderRadius: 1.5, 
+                                p: { xs: 1, sm: 1.25 },
+                                border: `1px solid ${alpha(SKY, 0.12)}`,
+                              }}>
+                                <Typography variant="caption" sx={{ fontWeight: 600, color: SKY, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: { xs: '0.6rem', sm: '0.65rem' }, lineHeight: 1 }}>
+                                  Pre-Apply Insights
+                                </Typography>
+                                {previewData[cardProject.id].metrics ? (
+                                  <>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+                                      {previewData[cardProject.id].metrics.activity?.label && (
+                                        <Chip 
+                                          size="small"
+                                          label={previewData[cardProject.id].metrics.activity.label}
+                                          sx={{ 
+                                            height: 18,
+                                            '& .MuiChip-label': { px: 0.75, fontSize: '0.65rem' },
+                                            bgcolor: previewData[cardProject.id].metrics.activity.level === 'high' 
+                                              ? alpha(TEAL, 0.12) 
+                                              : previewData[cardProject.id].metrics.activity.level === 'medium'
+                                                ? alpha('#f59e0b', 0.12)
+                                                : alpha(SLATE_400, 0.12),
+                                            color: previewData[cardProject.id].metrics.activity.level === 'high' 
+                                              ? TEAL 
+                                              : previewData[cardProject.id].metrics.activity.level === 'medium'
+                                                ? '#d97706'
+                                                : SLATE_500,
+                                          }}
+                                        />
+                                      )}
+                                      {previewData[cardProject.id].metrics.competition?.label && (
+                                        <Chip 
+                                          size="small"
+                                          label={previewData[cardProject.id].metrics.competition.label}
+                                          sx={{ 
+                                            height: 18,
+                                            '& .MuiChip-label': { px: 0.75, fontSize: '0.65rem' },
+                                            bgcolor: previewData[cardProject.id].metrics.competition.level === 'low' 
+                                              ? alpha(TEAL, 0.12) 
+                                              : previewData[cardProject.id].metrics.competition.level === 'medium'
+                                                ? alpha('#f59e0b', 0.12)
+                                                : alpha('#ef4444', 0.12),
+                                            color: previewData[cardProject.id].metrics.competition.level === 'low' 
+                                              ? TEAL 
+                                              : previewData[cardProject.id].metrics.competition.level === 'medium'
+                                                ? '#d97706'
+                                                : '#dc2626',
+                                          }}
+                                        />
+                                      )}
+                                      {previewData[cardProject.id].metrics.response_rate?.label && (
+                                        <Chip 
+                                          size="small"
+                                          label={previewData[cardProject.id].metrics.response_rate.label}
+                                          sx={{ 
+                                            height: 18,
+                                            '& .MuiChip-label': { px: 0.75, fontSize: '0.65rem' },
+                                            bgcolor: alpha(SKY, 0.1),
+                                            color: SKY,
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                    {previewData[cardProject.id].summary && (
+                                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: SLATE_500, fontStyle: 'italic', fontSize: { xs: '0.6rem', sm: '0.65rem' }, lineHeight: 1.3 }}>
+                                        {previewData[cardProject.id].summary}
+                                      </Typography>
+                                    )}
+                                  </>
+                                ) : (
+                                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: SLATE_500, fontSize: '0.65rem' }}>
+                                    Loading insights...
+                                  </Typography>
+                                )}
+                              </Box>
+                            ) : (
+                              <Button
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  fetchProjectPreview(cardProject.id);
+                                }}
+                                disabled={loadingPreview === cardProject.id}
+                                startIcon={loadingPreview === cardProject.id ? <CircularProgress size={14} /> : <InfoOutlined sx={{ fontSize: 14 }} />}
+                                sx={{ 
+                                  color: SKY, 
+                                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                  textTransform: 'none',
+                                  '&:hover': { bgcolor: alpha(SKY, 0.08) },
+                                }}
+                              >
+                                {loadingPreview === cardProject.id ? 'Loading...' : 'View project insights before applying'}
+                              </Button>
+                            )}
+                          </Box>
+                        ) : (
+                          <Box 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUpgradePreviewType('project_insights');
+                              setUpgradePreviewOpen(true);
+                            }}
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1, 
+                              mb: { xs: 2, sm: 2.5 },
+                              cursor: 'pointer',
+                              p: 1,
+                              borderRadius: 1,
+                              bgcolor: alpha(SKY, 0.05),
+                              border: `1px dashed ${alpha(SKY, 0.2)}`,
+                              transition: 'all 0.2s',
+                              '&:hover': { bgcolor: alpha(SKY, 0.1), borderColor: SKY }
+                            }}
+                          >
+                            <Lock sx={{ fontSize: 14, color: SKY }} />
+                            <Typography variant="caption" sx={{ color: SLATE_500, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                              <span style={{ fontWeight: 600, color: SKY }}>Pro:</span> See project activity & response rates before applying
+                            </Typography>
+                          </Box>
+                        )}
 
                         {/* Founder info */}
                         {cardProject.founder && (
@@ -1338,6 +1550,30 @@ const SeekerDiscovery = () => {
                                 {cardProject.founder.headline || cardProject.founder.location || 'Founder'}
                               </Typography>
                             </Box>
+                          </Box>
+                        )}
+
+                        {/* Click for details hint - only on center card */}
+                        {isCenter && (
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              gap: 0.5, 
+                              mb: 2,
+                              py: 0.75,
+                              borderRadius: 1,
+                              bgcolor: alpha(SKY, 0.06),
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              '&:hover': { bgcolor: alpha(SKY, 0.1) },
+                            }}
+                          >
+                            <ExpandMore sx={{ fontSize: 16, color: SKY }} />
+                            <Typography variant="caption" sx={{ color: SKY, fontWeight: 500, fontSize: '0.75rem' }}>
+                              Click anywhere for full project details
+                            </Typography>
                           </Box>
                         )}
 
@@ -1666,48 +1902,61 @@ const SeekerDiscovery = () => {
         maxWidth={false}
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            width: { xs: 'calc(100vw - 24px)', sm: 680 },
-            height: { xs: 'min(90vh, 620px)', sm: 600 },
-            maxHeight: '90vh',
+            borderRadius: 3,
+            width: { xs: 'calc(100vw - 32px)', sm: 720, md: 840 },
+            height: { xs: 'min(92vh, 700px)', sm: 'min(88vh, 680px)' },
+            maxHeight: '92vh',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            boxShadow: `0 24px 48px ${alpha(SLATE_900, 0.15)}`,
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            borderBottom: '1px solid',
-            borderColor: SLATE_200,
-            pb: 1.5,
-            flexShrink: 0,
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {detailProject?.title}
-              </Typography>
-              <Typography variant="caption" sx={{ color: SLATE_500 }}>
-                Overview and founder answers from project setup (compatibility questionnaire)
-              </Typography>
-            </Box>
-            <IconButton onClick={() => setProjectDetailOpen(false)} size="small" aria-label="Close">
-              <Close />
+        {/* Clean header */}
+        <Box sx={{ 
+          px: { xs: 2.5, sm: 3.5 }, 
+          pt: { xs: 2.5, sm: 3 }, 
+          pb: 0,
+          flexShrink: 0,
+        }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, lineHeight: 1.3 }}>
+              {detailProject?.title}
+            </Typography>
+            <IconButton 
+              onClick={() => setProjectDetailOpen(false)} 
+              size="small" 
+              aria-label="Close"
+              sx={{ 
+                bgcolor: alpha(SLATE_400, 0.08), 
+                '&:hover': { bgcolor: alpha(SLATE_400, 0.15) },
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
             </IconButton>
           </Box>
+          
+          {/* Tabs - minimal style */}
           <Tabs
             value={detailTab}
             onChange={(e, v) => setDetailTab(v)}
             variant="scrollable"
             scrollButtons="auto"
             sx={{
-              mt: 2,
-              minHeight: 40,
-              '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, fontSize: '0.78rem', minHeight: 40 },
-              '& .MuiTabs-indicator': { bgcolor: TEAL },
-              '& .Mui-selected': { color: TEAL },
+              minHeight: 44,
+              borderBottom: '1px solid',
+              borderColor: alpha(SLATE_200, 0.8),
+              '& .MuiTab-root': { 
+                textTransform: 'none', 
+                fontWeight: 500, 
+                fontSize: '0.9rem', 
+                minHeight: 44,
+                color: SLATE_500,
+                px: { xs: 1.5, sm: 2 },
+                '&.Mui-selected': { color: SLATE_900, fontWeight: 600 },
+              },
+              '& .MuiTabs-indicator': { bgcolor: TEAL, height: 2 },
             }}
           >
             <Tab label="Overview" />
@@ -1715,50 +1964,85 @@ const SeekerDiscovery = () => {
               <Tab key={c} label={c} />
             ))}
           </Tabs>
-        </DialogTitle>
+        </Box>
+        
+        {/* Content area */}
         <DialogContent
-          dividers
           sx={{
-            pt: 2,
+            px: { xs: 2.5, sm: 3.5 },
+            py: 3,
             flex: '1 1 auto',
             minHeight: 0,
             overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
+            bgcolor: '#fafbfc',
           }}
         >
           {detailProject && detailTab === 0 && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Tags row */}
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                 <Chip
                   label={`${detailProject.match_score}% match`}
                   size="small"
                   sx={{
                     fontWeight: 700,
-                    bgcolor:
-                      detailProject.match_score >= 80
-                        ? alpha(TEAL, 0.15)
-                        : detailProject.match_score >= 60
-                          ? alpha(SKY, 0.15)
-                          : alpha(SLATE_400, 0.12),
+                    fontSize: '0.8rem',
+                    height: 28,
+                    bgcolor: detailProject.match_score >= 80
+                      ? alpha(TEAL, 0.12)
+                      : detailProject.match_score >= 60
+                        ? alpha(SKY, 0.12)
+                        : alpha(SLATE_400, 0.1),
+                    color: detailProject.match_score >= 80
+                      ? TEAL
+                      : detailProject.match_score >= 60
+                        ? SKY
+                        : SLATE_500,
                   }}
                 />
                 {detailProject.stage && (
-                  <Chip label={detailProject.stage.replace('_', ' ')} size="small" sx={{ textTransform: 'capitalize' }} />
+                  <Chip 
+                    label={detailProject.stage.replace('_', ' ')} 
+                    size="small" 
+                    sx={{ textTransform: 'capitalize', height: 28, bgcolor: '#fff', border: `1px solid ${SLATE_200}` }} 
+                  />
                 )}
-                {detailProject.genre && <Chip label={detailProject.genre} size="small" />}
+                {detailProject.genre && (
+                  <Chip 
+                    label={detailProject.genre} 
+                    size="small" 
+                    sx={{ height: 28, bgcolor: '#fff', border: `1px solid ${SLATE_200}` }} 
+                  />
+                )}
               </Box>
-              <Typography variant="body1" sx={{ color: SLATE_500, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                {detailProject.description || 'No description provided.'}
-              </Typography>
+              
+              {/* Description */}
+              <Box sx={{ bgcolor: '#fff', borderRadius: 2, p: 2.5, border: `1px solid ${alpha(SLATE_200, 0.8)}` }}>
+                <Typography variant="body1" sx={{ color: SLATE_900, lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                  {detailProject.description || 'No description provided.'}
+                </Typography>
+              </Box>
+              
+              {/* Skills */}
               {detailProject.needed_skills?.length > 0 && (
                 <Box>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: SLATE_500, display: 'block', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: SLATE_900, mb: 1.5 }}>
                     Skills they&apos;re looking for
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {detailProject.needed_skills.map((s) => (
-                      <Chip key={s} label={typeof s === 'string' ? s : s?.skill || s} size="small" variant="outlined" />
+                      <Chip 
+                        key={s} 
+                        label={typeof s === 'string' ? s : s?.skill || s} 
+                        size="small" 
+                        sx={{ 
+                          height: 30,
+                          bgcolor: '#fff',
+                          border: `1px solid ${SLATE_200}`,
+                          fontWeight: 500,
+                          '&:hover': { bgcolor: alpha(TEAL, 0.04), borderColor: alpha(TEAL, 0.3) },
+                        }} 
+                      />
                     ))}
                   </Box>
                 </Box>
@@ -1772,24 +2056,53 @@ const SeekerDiscovery = () => {
             />
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, flexShrink: 0, borderTop: '1px solid', borderColor: SLATE_200 }}>
-          <Button onClick={() => setProjectDetailOpen(false)} sx={{ color: SLATE_500 }}>
+        
+        {/* Actions - clean and spacious */}
+        <Box sx={{ 
+          px: { xs: 2.5, sm: 3.5 }, 
+          py: 2.5, 
+          flexShrink: 0, 
+          borderTop: '1px solid', 
+          borderColor: alpha(SLATE_200, 0.8),
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 1.5,
+          bgcolor: '#fff',
+        }}>
+          <Button 
+            onClick={() => setProjectDetailOpen(false)} 
+            sx={{ 
+              color: SLATE_500, 
+              fontWeight: 500,
+              px: 3,
+              '&:hover': { bgcolor: alpha(SLATE_400, 0.08) },
+            }}
+          >
             Close
           </Button>
           <Button
             variant="contained"
-            endIcon={<Send />}
+            endIcon={<Send sx={{ fontSize: 18 }} />}
             onClick={() => {
               setProjectDetailOpen(false);
               setSelectedProject(detailProject);
               setApplyDialogOpen(true);
             }}
             disabled={!detailProject}
-            sx={{ bgcolor: TEAL, '&:hover': { bgcolor: TEAL_LIGHT } }}
+            sx={{ 
+              bgcolor: TEAL, 
+              fontWeight: 600,
+              px: 3,
+              py: 1.25,
+              borderRadius: 2,
+              textTransform: 'none',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: TEAL_LIGHT, boxShadow: 'none' },
+            }}
           >
             Apply to join
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       {/* Apply Dialog - Simplified for open projects */}
@@ -2213,6 +2526,200 @@ const SeekerDiscovery = () => {
           >
             Stay on current matches
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pro Feature Preview Dialog */}
+      <Dialog
+        open={upgradePreviewOpen}
+        onClose={() => setUpgradePreviewOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+            mx: { xs: 2, sm: 3 },
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ 
+            bgcolor: alpha(TEAL, 0.08), 
+            p: 3, 
+            textAlign: 'center',
+            borderBottom: `1px solid ${alpha(TEAL, 0.15)}`,
+          }}>
+            <Box sx={{ 
+              width: 56, height: 56, borderRadius: '50%', 
+              bgcolor: alpha(TEAL, 0.15), display: 'flex', 
+              alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 
+            }}>
+              <AutoAwesome sx={{ fontSize: 28, color: TEAL }} />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
+              {upgradePreviewType === 'match_reasons' ? 'See Why You Match' : 'Pre-Apply Intelligence'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: SLATE_500 }}>
+              {upgradePreviewType === 'match_reasons' 
+                ? 'Understand exactly why each project is right for you'
+                : 'Know before you apply — make smarter decisions'
+              }
+            </Typography>
+          </Box>
+
+          {/* Before/After Comparison */}
+          <Box sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              {/* FREE Column */}
+              <Box sx={{ flex: 1, p: 2, bgcolor: alpha(SLATE_400, 0.08), borderRadius: 2, border: `1px solid ${alpha(SLATE_400, 0.2)}` }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: SLATE_500, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Free Plan
+                </Typography>
+                <Box sx={{ mt: 1.5 }}>
+                  {upgradePreviewType === 'match_reasons' ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>Match score only</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>Hidden insights</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>Guessing game</Typography>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>No founder activity</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>No response rates</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>Apply blind</Typography>
+                      </Box>
+                    </>
+                  )}
+                </Box>
+              </Box>
+
+              {/* PRO Column */}
+              <Box sx={{ flex: 1, p: 2, bgcolor: alpha(TEAL, 0.08), borderRadius: 2, border: `1px solid ${alpha(TEAL, 0.25)}` }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Pro Plan
+                  </Typography>
+                  <AutoAwesome sx={{ fontSize: 14, color: TEAL }} />
+                </Box>
+                <Box sx={{ mt: 1.5 }}>
+                  {upgradePreviewType === 'match_reasons' ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Detailed match reasons</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Skill alignment info</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Targeted applications</Typography>
+                      </Box>
+                    </>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Founder activity level</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Response rate & time</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Competition insights</Typography>
+                      </Box>
+                    </>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Price */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              gap: 1,
+              mb: 3,
+              py: 1.5,
+              px: 2,
+              bgcolor: alpha(TEAL, 0.04),
+              borderRadius: 2,
+              border: `1px solid ${alpha(TEAL, 0.1)}`,
+            }}>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 800, color: TEAL }}>
+                $15
+              </Typography>
+              <Typography sx={{ fontSize: '0.85rem', color: SLATE_500 }}>
+                /mo — Unlock everything
+              </Typography>
+            </Box>
+
+            {/* CTA */}
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={() => {
+                setUpgradePreviewOpen(false);
+                handleDirectCheckout();
+              }}
+              disabled={checkoutLoading}
+              startIcon={checkoutLoading ? <CircularProgress size={18} color="inherit" /> : <AutoAwesome />}
+              sx={{
+                bgcolor: TEAL,
+                color: '#fff',
+                fontWeight: 600,
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1rem',
+                textTransform: 'none',
+                boxShadow: `0 4px 12px ${alpha(TEAL, 0.3)}`,
+                '&:hover': { 
+                  bgcolor: TEAL_LIGHT,
+                  boxShadow: `0 6px 16px ${alpha(TEAL, 0.4)}`,
+                },
+              }}
+            >
+              {checkoutLoading ? 'Redirecting...' : 'Upgrade to Pro'}
+            </Button>
+            
+            <Button
+              fullWidth
+              onClick={() => setUpgradePreviewOpen(false)}
+              sx={{ 
+                mt: 1.5,
+                color: SLATE_400,
+                fontWeight: 500,
+                textTransform: 'none',
+                '&:hover': { bgcolor: 'transparent', color: SLATE_500 },
+              }}
+            >
+              Maybe later
+            </Button>
+          </Box>
         </DialogContent>
       </Dialog>
     </Box>
