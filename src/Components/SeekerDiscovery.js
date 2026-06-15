@@ -97,12 +97,13 @@ const PRIORITY_OPTIONS = [
 ];
 
 const PRO_UPGRADE_BENEFITS = [
-  'Unlimited applications',
-  '5× more personalized opportunities',
-  'AI competitor & SWOT analysis for projects',
-  'Revisit passed opportunities',
-  'Up to 3 projects & unlimited workspaces',
-  'Pro badge on your profile',
+  '25 opportunities + unlimited applications',
+  'Match insights (see why you matched)',
+  'Pre-apply intel (activity, response, competition)',
+  'Skill market analysis',
+  'Browse & book advisors',
+  '3 projects + full tools (Slack, Notion, equity)',
+  'AI project insights + revisit passed',
 ];
 
 const DEALBREAKER_OPTIONS = [

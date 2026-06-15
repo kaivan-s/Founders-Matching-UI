@@ -196,25 +196,37 @@ const AppLayout = ({ children }) => {
               ) : (
                 <>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Pro at <span style={{ fontWeight: 800 }}>$15/mo</span>
+                    25+ opportunities
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    5x more personalized opportunities
+                    Unlimited applications
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Instant preference updates
+                    Match & pre-apply insights
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Apply without daily limits
+                    Skill market analysis
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Browse advisors
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    AI project insights
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
@@ -226,31 +238,43 @@ const AppLayout = ({ children }) => {
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    AI project insights on creation
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
-                    •
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Pro at <span style={{ fontWeight: 800 }}>$15/mo</span>
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    5x more personalized opportunities
+                    25+ opportunities
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Instant preference updates
+                    Unlimited applications
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Apply without daily limits
+                    Match & pre-apply insights
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Skill market analysis
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Browse advisors
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
+                    •
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    AI project insights
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' }, opacity: 0.9 }}>
                     •

@@ -247,13 +247,12 @@ const LandingPage = () => {
     {
       name: 'Pro', price: '$15/mo', popular: true,
       features: [
-        '25 personalized opportunities',
-        'Unlimited swipes & applications',
-        'Up to 3 projects & workspaces',
-        'Full tools (Slack, Notion, equity)',
-        'AI project insights (3/month)',
-        'Revisit passed opportunities',
-        'Advisor marketplace',
+        '25 opportunities + unlimited apps',
+        'Match insights & pre-apply intel',
+        'Skill market analysis',
+        'Browse & book advisors',
+        '3 projects + full workspace tools',
+        'AI insights (3/mo) + revisit passed',
       ],
     },
     {
