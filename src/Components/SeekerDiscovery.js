@@ -172,7 +172,12 @@ const SeekerDiscovery = () => {
   
   // Pro upgrade preview dialog
   const [upgradePreviewOpen, setUpgradePreviewOpen] = useState(false);
-  const [upgradePreviewType, setUpgradePreviewType] = useState('match_reasons'); // 'match_reasons' or 'project_insights'
+  const [upgradePreviewType, setUpgradePreviewType] = useState('match_reasons'); // 'match_reasons', 'project_insights', or 'skill_insights'
+  
+  // Skill Market Insights (Pro feature)
+  const [skillInsights, setSkillInsights] = useState(null);
+  const [skillInsightsLoading, setSkillInsightsLoading] = useState(false);
+  const [skillInsightsExpanded, setSkillInsightsExpanded] = useState(false)
   
   // Mobile detection for responsive carousel
   const [isMobileView, setIsMobileView] = useState(typeof window !== 'undefined' && window.innerWidth < 600);
@@ -488,6 +493,37 @@ const SeekerDiscovery = () => {
       setLoadingPreview(null);
     }
   };
+
+  // Fetch skill market insights (Pro feature)
+  const fetchSkillInsights = useCallback(async () => {
+    if (!user?.id || skillInsights !== null) return;
+    
+    setSkillInsightsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/market/skill-insights`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setSkillInsights(data);
+      } else {
+        setSkillInsights({ error: data.error || 'Failed to load insights' });
+      }
+    } catch (err) {
+      console.error('Failed to fetch skill insights:', err);
+      setSkillInsights({ error: 'Network error' });
+    } finally {
+      setSkillInsightsLoading(false);
+    }
+  }, [user?.id, skillInsights]);
+
+  // Load skill insights when results view is shown
+  useEffect(() => {
+    if (view === 'results' && user?.id && !skillInsights) {
+      fetchSkillInsights();
+    }
+  }, [view, user?.id, skillInsights, fetchSkillInsights]);
 
   const handleApply = async () => {
     if (!selectedProject) return;
@@ -1761,6 +1797,32 @@ const SeekerDiscovery = () => {
               >
                 {viewingSkipped ? 'Back to Feed' : 'See Skipped'}
               </Button>
+
+              {/* Skill Market Insights Button */}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<TrendingUp />}
+                onClick={() => {
+                  setSkillInsightsExpanded(true);
+                  if (!skillInsights) fetchSkillInsights();
+                }}
+                sx={{ 
+                  borderColor: '#8b5cf6',
+                  color: '#8b5cf6',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flex: { xs: 1, sm: 'none' },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                  '&:hover': {
+                    borderColor: '#7c3aed',
+                    bgcolor: alpha('#8b5cf6', 0.05),
+                  },
+                }}
+              >
+                Market Insights
+              </Button>
             </Box>
           </Box>
         )}
@@ -2559,12 +2621,18 @@ const SeekerDiscovery = () => {
               <AutoAwesome sx={{ fontSize: 28, color: TEAL }} />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700, color: SLATE_900, mb: 0.5 }}>
-              {upgradePreviewType === 'match_reasons' ? 'See Why You Match' : 'Pre-Apply Intelligence'}
+              {upgradePreviewType === 'match_reasons' 
+                ? 'See Why You Match' 
+                : upgradePreviewType === 'skill_insights'
+                  ? 'Skill Market Intelligence'
+                  : 'Pre-Apply Intelligence'}
             </Typography>
             <Typography variant="body2" sx={{ color: SLATE_500 }}>
               {upgradePreviewType === 'match_reasons' 
                 ? 'Understand exactly why each project is right for you'
-                : 'Know before you apply — make smarter decisions'
+                : upgradePreviewType === 'skill_insights'
+                  ? 'Know which of your skills are most valuable in the market'
+                  : 'Know before you apply — make smarter decisions'
               }
             </Typography>
           </Box>
@@ -2591,6 +2659,21 @@ const SeekerDiscovery = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
                         <Typography variant="body2" sx={{ color: SLATE_400 }}>Guessing game</Typography>
+                      </Box>
+                    </>
+                  ) : upgradePreviewType === 'skill_insights' ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>Basic percentile only</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>No skill breakdown</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Lock sx={{ fontSize: 14, color: SLATE_400 }} />
+                        <Typography variant="body2" sx={{ color: SLATE_400 }}>No market advice</Typography>
                       </Box>
                     </>
                   ) : (
@@ -2634,6 +2717,21 @@ const SeekerDiscovery = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
                         <Typography variant="body2" sx={{ color: SLATE_900 }}>Targeted applications</Typography>
+                      </Box>
+                    </>
+                  ) : upgradePreviewType === 'skill_insights' ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Full skill-by-skill analysis</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Hot skills you're missing</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle sx={{ fontSize: 14, color: TEAL }} />
+                        <Typography variant="body2" sx={{ color: SLATE_900 }}>Personalized positioning tips</Typography>
                       </Box>
                     </>
                   ) : (
@@ -2720,6 +2818,317 @@ const SeekerDiscovery = () => {
               Maybe later
             </Button>
           </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Skill Market Insights Modal */}
+      <Dialog
+        open={skillInsightsExpanded}
+        onClose={() => setSkillInsightsExpanded(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: '85vh',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: `1px solid ${alpha('#8b5cf6', 0.15)}`,
+          bgcolor: alpha('#8b5cf6', 0.03),
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{
+              width: 40, height: 40, borderRadius: 2,
+              bgcolor: alpha('#8b5cf6', 0.12),
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <TrendingUp sx={{ fontSize: 22, color: '#8b5cf6' }} />
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                Skill Market Insights
+              </Typography>
+              <Typography variant="caption" sx={{ color: SLATE_500 }}>
+                How your skills compare to market demand
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton onClick={() => setSkillInsightsExpanded(false)} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ p: 3 }}>
+          {skillInsightsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress sx={{ color: '#8b5cf6' }} />
+            </Box>
+          ) : skillInsights?.error ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body1" sx={{ color: SLATE_500 }}>
+                {skillInsights.error}
+              </Typography>
+            </Box>
+          ) : !skillInsights?.has_skills ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body1" sx={{ color: SLATE_500, mb: 3 }}>
+                Add skills to your profile to see how you compare to the market
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setSkillInsightsExpanded(false);
+                  navigate('/profile');
+                }}
+                sx={{ 
+                  bgcolor: '#8b5cf6',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#7c3aed' },
+                }}
+              >
+                Update Profile
+              </Button>
+            </Box>
+          ) : skillInsights?.preview_locked ? (
+            /* FREE user - Teaser view */
+            <Box>
+              {/* Position indicator - Hero */}
+              <Box sx={{ 
+                textAlign: 'center', mb: 3, p: 3,
+                bgcolor: alpha('#8b5cf6', 0.06), borderRadius: 2,
+                border: `1px solid ${alpha('#8b5cf6', 0.12)}`,
+              }}>
+                <Typography variant="h2" sx={{ fontWeight: 800, color: '#8b5cf6', mb: 0.5 }}>
+                  Top {100 - (skillInsights.percentile || 50)}%
+                </Typography>
+                <Typography variant="body1" sx={{ color: SLATE_500 }}>
+                  of founders by skill demand on Guild Space
+                </Typography>
+              </Box>
+
+              {/* Stats row */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Box sx={{ flex: 1, p: 2, bgcolor: alpha(TEAL, 0.06), borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: TEAL }}>
+                    {skillInsights.skill_count}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_500 }}>Skills Listed</Typography>
+                </Box>
+                <Box sx={{ flex: 1, p: 2, bgcolor: alpha('#f59e0b', 0.08), borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: '#d97706' }}>
+                    {skillInsights.high_demand_skills_count || 0}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_500 }}>High-Demand Skills</Typography>
+                </Box>
+              </Box>
+
+              {/* Teaser message */}
+              <Alert 
+                severity="info" 
+                icon={<AutoAwesome sx={{ color: '#f59e0b' }} />}
+                sx={{ mb: 3, bgcolor: alpha('#f59e0b', 0.08), border: `1px solid ${alpha('#f59e0b', 0.2)}` }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {skillInsights.teaser}
+                </Typography>
+              </Alert>
+
+              {/* Locked features */}
+              <Box sx={{ 
+                p: 2, bgcolor: alpha(SLATE_400, 0.06), borderRadius: 2, mb: 3,
+                border: `1px dashed ${alpha(SLATE_400, 0.3)}`,
+              }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: SLATE_500, mb: 1.5 }}>
+                  Unlock with Pro
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Lock sx={{ fontSize: 16, color: SLATE_400 }} />
+                    <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                      Full breakdown of which skills are most valuable
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Lock sx={{ fontSize: 16, color: SLATE_400 }} />
+                    <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                      Hot skills you're missing that founders need
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Lock sx={{ fontSize: 16, color: SLATE_400 }} />
+                    <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                      Personalized advice to improve your matches
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Upgrade CTA */}
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={<AutoAwesome />}
+                onClick={() => {
+                  setSkillInsightsExpanded(false);
+                  setUpgradePreviewType('skill_insights');
+                  setUpgradePreviewOpen(true);
+                }}
+                sx={{
+                  bgcolor: '#8b5cf6',
+                  color: '#fff',
+                  fontWeight: 600,
+                  py: 1.5,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#7c3aed' },
+                }}
+              >
+                Unlock Full Analysis — $15/mo
+              </Button>
+            </Box>
+          ) : (
+            /* PRO user - Full view */
+            <Box>
+              {/* Position summary - Hero */}
+              <Box sx={{ 
+                display: 'flex', alignItems: 'center', gap: 2, mb: 3, p: 2.5,
+                bgcolor: alpha('#8b5cf6', 0.06), borderRadius: 2,
+                border: `1px solid ${alpha('#8b5cf6', 0.12)}`,
+              }}>
+                <Box sx={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  bgcolor: alpha('#8b5cf6', 0.15),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#8b5cf6' }}>
+                    {100 - (skillInsights.percentile || 50)}%
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: SLATE_900 }}>
+                    {skillInsights.position_label}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                    {skillInsights.position_message}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Two-column layout */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                {/* Your Skills */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: SLATE_500, mb: 1.5, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: 0.5 }}>
+                    Your Skills
+                  </Typography>
+                  {skillInsights.skills?.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {skillInsights.skills.slice(0, 6).map((skill, idx) => (
+                        <Box 
+                          key={idx}
+                          sx={{ 
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            p: 1.5, borderRadius: 1.5, bgcolor: alpha(SLATE_200, 0.4),
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: SLATE_900 }}>
+                            {skill.skill}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={skill.status_label}
+                            sx={{
+                              height: 24,
+                              fontSize: '0.7rem',
+                              fontWeight: 600,
+                              bgcolor: skill.status === 'critical_shortage' || skill.status === 'high_demand'
+                                ? alpha('#22c55e', 0.15)
+                                : skill.status === 'oversupplied' 
+                                  ? alpha('#f59e0b', 0.15)
+                                  : alpha(SLATE_400, 0.15),
+                              color: skill.status === 'critical_shortage' || skill.status === 'high_demand'
+                                ? '#16a34a'
+                                : skill.status === 'oversupplied'
+                                  ? '#d97706'
+                                  : SLATE_500,
+                            }}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: SLATE_400 }}>No skills listed</Typography>
+                  )}
+                </Box>
+
+                {/* Hot Skills You're Missing */}
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: SLATE_500, mb: 1.5, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: 0.5 }}>
+                    Hot Skills You're Missing
+                  </Typography>
+                  {skillInsights.missing_opportunities?.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {skillInsights.missing_opportunities.slice(0, 6).map((opp, idx) => (
+                        <Chip
+                          key={idx}
+                          size="small"
+                          label={`${opp.skill} (${opp.demand} projects)`}
+                          sx={{
+                            height: 28,
+                            fontSize: '0.75rem',
+                            bgcolor: alpha('#f97316', 0.1),
+                            color: '#ea580c',
+                            border: `1px solid ${alpha('#f97316', 0.2)}`,
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: SLATE_400 }}>
+                      You have all the top skills covered!
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Pro Tips */}
+              {skillInsights.advice?.length > 0 && (
+                <Box sx={{ 
+                  p: 2, bgcolor: alpha('#3b82f6', 0.06), borderRadius: 2,
+                  border: `1px solid ${alpha('#3b82f6', 0.12)}`,
+                }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2563eb', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                    <Lightbulb sx={{ fontSize: 18 }} /> Pro Tips
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {skillInsights.advice.map((tip, idx) => (
+                      <Typography key={idx} variant="body2" sx={{ color: SLATE_900, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <CheckCircle sx={{ fontSize: 16, color: '#3b82f6', mt: 0.25, flexShrink: 0 }} />
+                        {tip}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Market summary footer */}
+              {skillInsights.market_summary && (
+                <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${SLATE_200}`, display: 'flex', justifyContent: 'center', gap: 4 }}>
+                  <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                    Based on {skillInsights.market_summary.total_projects_seeking} active projects
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                    {skillInsights.market_summary.total_founders} founders
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
     </Box>

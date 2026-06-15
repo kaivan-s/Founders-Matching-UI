@@ -27,6 +27,7 @@ import PrivacyPolicy from './Components/PrivacyPolicy';
 import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
 import AdminAdvisors from './Components/AdminAdvisors';
+import AdvisorMarketplacePage from './Components/AdvisorMarketplacePage';
 import ProfilePage from './Components/ProfilePage';
 import FounderDatePage from './Components/FounderDatePage';
 import ConsultationsPage from './Components/ConsultationsPage';
@@ -632,6 +633,24 @@ function AppContent() {
             onSelectAdvisorFlow={handleSelectAdvisorFlow}
           >
             <WorkspacePage />
+          </RouteWrapper>
+        } />
+        <Route path="/advisors" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <AdvisorMarketplacePage />
+            </Box>
           </RouteWrapper>
         } />
         <Route path="/consultations" element={

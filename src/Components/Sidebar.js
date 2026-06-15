@@ -187,14 +187,14 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
 
   const secondaryNavItems = [
     {
-      id: 'advisors',
-      label: 'Advisor hub',
+      id: 'browse-advisors',
+      label: 'Browse Advisors',
       icon: <People />,
-      path: '/advisor/dashboard',
+      path: '/advisors',
     },
     {
       id: 'consultations',
-      label: 'Consultations',
+      label: 'My Bookings',
       icon: <CalendarMonth />,
       path: '/consultations',
     },
@@ -445,7 +445,7 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
               fontSize: '0.65rem',
             }}
           >
-            Resources
+            Expert Help
           </Typography>
         )}
         <List disablePadding>
