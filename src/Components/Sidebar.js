@@ -33,6 +33,7 @@ import {
   ExpandMore,
   Send,
   CallReceived,
+  Sell,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
@@ -201,6 +202,12 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
   ];
 
   const bottomNavItems = [
+    {
+      id: 'pricing',
+      label: 'Pricing',
+      icon: <Sell />,
+      path: '/pricing',
+    },
     {
       id: 'payments',
       label: 'Payments',
