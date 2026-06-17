@@ -1559,16 +1559,16 @@ const SeekerDiscovery = () => {
                                 {cardProject.founder.verification?.tier !== 'UNVERIFIED' && (
                                   <Verified sx={{ fontSize: { xs: 12, sm: 14 }, color: TEAL }} />
                                 )}
-                                {['PRO', 'PRO_PLUS'].includes(founderPlan) && (
+                                {['PRO', 'PRO_PLUS', 'PRO_TRIAL'].includes(founderPlan) && (
                                   <Chip 
-                                    label={founderPlan === 'PRO_PLUS' ? 'Pro+' : 'Pro'} 
+                                    label={founderPlan === 'PRO_PLUS' ? 'Pro+' : founderPlan === 'PRO_TRIAL' ? 'Trial' : 'Pro'} 
                                     size="small" 
                                     sx={{ 
                                       height: { xs: 16, sm: 18 }, 
                                       fontSize: { xs: '0.6rem', sm: '0.65rem' }, 
                                       fontWeight: 700,
-                                      bgcolor: alpha(NAVY, 0.1), 
-                                      color: NAVY,
+                                      bgcolor: founderPlan === 'PRO_TRIAL' ? alpha(TEAL, 0.1) : alpha(NAVY, 0.1), 
+                                      color: founderPlan === 'PRO_TRIAL' ? TEAL : NAVY,
                                     }} 
                                   />
                                 )}

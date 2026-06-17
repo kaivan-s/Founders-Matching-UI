@@ -43,7 +43,7 @@ const WorkspaceAdvisors = ({ workspaceId }) => {
     fetchPlan();
   }, [fetchPlan]);
 
-  const canAccessAdvisors = plan && (plan.id === 'PRO' || plan.id === 'PRO_PLUS');
+  const canAccessAdvisors = plan && (plan.id === 'PRO' || plan.id === 'PRO_PLUS' || plan.id === 'PRO_TRIAL');
 
   return (
     <Box sx={{ p: { xs: 0, sm: 0 } }}>

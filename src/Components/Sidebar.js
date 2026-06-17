@@ -34,6 +34,7 @@ import {
   Send,
   CallReceived,
   Sell,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { API_BASE } from '../config/api';
 
@@ -221,6 +222,14 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
       path: '/my-feedback',
     },
   ];
+
+  const proUpgradeItem = {
+    id: 'go-pro',
+    label: 'Go Pro',
+    icon: <AutoAwesome />,
+    path: '/pro',
+    highlighted: true,
+  };
 
   const NavItem = ({ item, nested = false }) => {
     const active = isActive(item.path);
@@ -460,6 +469,46 @@ const Sidebar = ({ mobileOpen, onMobileClose, collapsed, onToggleCollapse }) => 
             <NavItem key={item.id} item={item} />
           ))}
         </List>
+      </Box>
+
+      {/* Go Pro CTA */}
+      <Box sx={{ px: 1, pb: 1 }}>
+        <ListItem disablePadding sx={{ display: 'block' }}>
+          <ListItemButton
+            onClick={() => handleNavigate('/pro')}
+            sx={{
+              minHeight: 44,
+              px: collapsed && !isMobile ? 2 : 2.5,
+              py: 1,
+              borderRadius: 2,
+              bgcolor: alpha(TEAL, 0.1),
+              color: TEAL,
+              border: `1px solid ${alpha(TEAL, 0.2)}`,
+              '&:hover': {
+                bgcolor: alpha(TEAL, 0.15),
+              },
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: collapsed && !isMobile ? 0 : 36,
+                color: TEAL,
+                justifyContent: 'center',
+              }}
+            >
+              <AutoAwesome />
+            </ListItemIcon>
+            {(!collapsed || isMobile) && (
+              <ListItemText 
+                primary="Go Pro" 
+                primaryTypographyProps={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                }}
+              />
+            )}
+          </ListItemButton>
+        </ListItem>
       </Box>
 
       {/* Bottom section */}

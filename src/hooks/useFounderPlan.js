@@ -4,6 +4,7 @@ import { API_BASE } from '../config/api';
 export function planIdToLabel(id) {
   if (id === 'PRO') return 'Pro';
   if (id === 'PRO_PLUS') return 'Pro+';
+  if (id === 'PRO_TRIAL') return 'Pro Trial';
   return 'Free';
 }
 

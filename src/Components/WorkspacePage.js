@@ -551,16 +551,16 @@ const WorkspacePage = () => {
                     </Tooltip>
                     {!planLoading && workspacePlan && workspacePlan !== 'FREE' && (
                       <Chip
-                        label={workspacePlan === 'PRO' ? 'Pro Workspace' : 'Pro+ Workspace'}
+                        label={workspacePlan === 'PRO_TRIAL' ? 'Pro Trial' : workspacePlan === 'PRO' ? 'Pro Workspace' : 'Pro+ Workspace'}
                         size="small"
                         sx={{
-                          bgcolor: workspacePlan === 'PRO_PLUS' ? '#7c3aed' : '#1e3a8a',
+                          bgcolor: workspacePlan === 'PRO_PLUS' ? '#7c3aed' : workspacePlan === 'PRO_TRIAL' ? '#0d9488' : '#1e3a8a',
                           color: '#ffffff',
                           fontWeight: 600,
                           fontSize: '0.75rem',
                           height: 24,
                           '&:hover': {
-                            bgcolor: workspacePlan === 'PRO_PLUS' ? '#6d28d9' : '#1e40af',
+                            bgcolor: workspacePlan === 'PRO_PLUS' ? '#6d28d9' : workspacePlan === 'PRO_TRIAL' ? '#0f766e' : '#1e40af',
                           }
                         }}
                       />

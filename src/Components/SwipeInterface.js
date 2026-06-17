@@ -2522,7 +2522,7 @@ const SwipeInterface = () => {
           fetchFounders(filters, prefs, 0, false);
         }}
         initialPreferences={preferences}
-        isPaidUser={plan?.id === 'PRO' || plan?.id === 'PRO_PLUS'}
+        isPaidUser={plan?.id === 'PRO' || plan?.id === 'PRO_PLUS' || plan?.id === 'PRO_TRIAL'}
       />
 
       {/* Request Access Dialog */}

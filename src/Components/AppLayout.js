@@ -145,6 +145,10 @@ const AppLayout = ({ children }) => {
                 <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                   Investor Marketplace — Coming soon for Pro+ members
                 </Typography>
+              ) : planId === 'PRO_TRIAL' ? (
+                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  🎉 Pro Trial Active — Enjoy all Pro features
+                </Typography>
               ) : planId === 'PRO' ? (
                 <>
                   <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
@@ -291,7 +295,7 @@ const AppLayout = ({ children }) => {
                 </>
               )}
             </Box>
-            {planId !== 'PRO_PLUS' && (
+            {planId !== 'PRO_PLUS' && planId !== 'PRO_TRIAL' && (
               <Button
                 size="small"
                 onClick={() => navigate('/pricing')}

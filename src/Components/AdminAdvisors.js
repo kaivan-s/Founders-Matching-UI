@@ -53,6 +53,7 @@ import {
   DesignServices,
   PriceChange,
   MoreHoriz,
+  CardGiftcard,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config/api';
@@ -94,6 +95,72 @@ const AdminAdvisors = () => {
   const [feedbackFilter, setFeedbackFilter] = useState({ status: '', category: '' });
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [updatingFeedback, setUpdatingFeedback] = useState(false);
+
+  // Trial states
+  const [trialRequests, setTrialRequests] = useState([]);
+  const [trialsLoading, setTrialsLoading] = useState(false);
+  const [trialsError, setTrialsError] = useState(null);
+  const [trialActioning, setTrialActioning] = useState(null);
+
+  const fetchTrialRequests = async () => {
+    if (!user?.id) return;
+    setTrialsLoading(true);
+    setTrialsError(null);
+    try {
+      const response = await fetch(`${API_BASE}/admin/trials/pending`, {
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (!response.ok) throw new Error('Failed to fetch trial requests');
+      const data = await response.json();
+      setTrialRequests(data);
+    } catch (err) {
+      setTrialsError(err.message);
+    } finally {
+      setTrialsLoading(false);
+    }
+  };
+
+  const handleApproveTrial = async (requestId) => {
+    setTrialActioning(requestId);
+    try {
+      const response = await fetch(`${API_BASE}/admin/trials/${requestId}/approve`, {
+        method: 'POST',
+        headers: { 'X-Clerk-User-Id': user.id },
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to approve');
+      }
+      setTrialRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      setTrialsError(err.message);
+    } finally {
+      setTrialActioning(null);
+    }
+  };
+
+  const handleRejectTrial = async (requestId) => {
+    setTrialActioning(requestId);
+    try {
+      const response = await fetch(`${API_BASE}/admin/trials/${requestId}/reject`, {
+        method: 'POST',
+        headers: { 
+          'X-Clerk-User-Id': user.id,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: 'Request declined' }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to reject');
+      }
+      setTrialRequests(prev => prev.filter(r => r.id !== requestId));
+    } catch (err) {
+      setTrialsError(err.message);
+    } finally {
+      setTrialActioning(null);
+    }
+  };
 
   const fetchFeedback = async () => {
     if (!user?.id) return;
@@ -148,6 +215,9 @@ const AdminAdvisors = () => {
   useEffect(() => {
     if (activeTab === 1) {
       fetchFeedback();
+    }
+    if (activeTab === 2) {
+      fetchTrialRequests();
     }
   }, [activeTab, feedbackFilter, user?.id]);
 
@@ -293,6 +363,7 @@ const AdminAdvisors = () => {
         >
           <Tab icon={<People sx={{ fontSize: 20 }} />} iconPosition="start" label={`Advisors (${advisors.length})`} />
           <Tab icon={<Feedback sx={{ fontSize: 20 }} />} iconPosition="start" label="Product Feedback" />
+          <Tab icon={<CardGiftcard sx={{ fontSize: 20 }} />} iconPosition="start" label={`Pro Trials${trialRequests.length > 0 ? ` (${trialRequests.length})` : ''}`} />
         </Tabs>
 
         {/* Advisors Tab */}
@@ -432,6 +503,144 @@ const AdminAdvisors = () => {
             updatingFeedback={updatingFeedback}
             setError={setFeedbackError}
           />
+        )}
+
+        {/* Pro Trials Tab */}
+        {activeTab === 2 && (
+          <Box>
+            {trialsError && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setTrialsError(null)}>
+                {trialsError}
+              </Alert>
+            )}
+
+            {trialsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress sx={{ color: TEAL }} />
+              </Box>
+            ) : trialRequests.length === 0 ? (
+              <Box
+                sx={{
+                  p: 6,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: SLATE_200,
+                  bgcolor: '#fff',
+                }}
+              >
+                <CardGiftcard sx={{ fontSize: 48, color: SLATE_400, mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: SLATE_900, mb: 1 }}>
+                  No pending trial requests
+                </Typography>
+                <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                  Trial requests will appear here when users apply.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {trialRequests.map((req) => (
+                  <Box
+                    key={req.id}
+                    sx={{
+                      p: 3,
+                      borderRadius: 2.5,
+                      border: '1px solid',
+                      borderColor: SLATE_200,
+                      bgcolor: '#fff',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: SLATE_900 }}>
+                          {req.founder?.name || 'Unknown'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: SLATE_500 }}>
+                          {req.founder?.email}
+                        </Typography>
+                        {req.founder?.location && (
+                          <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                            {req.founder.location}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Typography variant="caption" sx={{ color: SLATE_400 }}>
+                        {new Date(req.created_at).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+
+                    {req.founder?.skills?.length > 0 && (
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+                        {req.founder.skills.slice(0, 5).map((skill, i) => (
+                          <Chip
+                            key={i}
+                            label={skill}
+                            size="small"
+                            sx={{
+                              bgcolor: alpha(TEAL, 0.08),
+                              color: TEAL,
+                              fontSize: '0.7rem',
+                              height: 24,
+                            }}
+                          />
+                        ))}
+                        {req.founder.skills.length > 5 && (
+                          <Chip
+                            label={`+${req.founder.skills.length - 5}`}
+                            size="small"
+                            sx={{ bgcolor: SLATE_200, color: SLATE_500, fontSize: '0.7rem', height: 24 }}
+                          />
+                        )}
+                      </Box>
+                    )}
+
+                    <Box sx={{ p: 2, bgcolor: alpha(TEAL, 0.03), borderRadius: 2, mb: 2 }}>
+                      <Typography variant="caption" sx={{ color: SLATE_400, fontWeight: 600, display: 'block', mb: 0.5 }}>
+                        WHY THEY WANT PRO
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: SLATE_900, lineHeight: 1.6 }}>
+                        {req.reason}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleApproveTrial(req.id)}
+                        disabled={trialActioning === req.id}
+                        startIcon={trialActioning === req.id ? <CircularProgress size={14} color="inherit" /> : <CheckCircle />}
+                        sx={{
+                          bgcolor: TEAL,
+                          '&:hover': { bgcolor: alpha(TEAL, 0.9) },
+                          textTransform: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Approve (7 days)
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleRejectTrial(req.id)}
+                        disabled={trialActioning === req.id}
+                        startIcon={<Cancel />}
+                        sx={{
+                          borderColor: SLATE_200,
+                          color: SLATE_500,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          '&:hover': { borderColor: '#ef4444', color: '#ef4444' },
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
 

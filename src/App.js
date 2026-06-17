@@ -28,6 +28,7 @@ import TermsAndConditions from './Components/TermsAndConditions';
 import FAQ from './Components/FAQ';
 import AdminAdvisors from './Components/AdminAdvisors';
 import AdvisorMarketplacePage from './Components/AdvisorMarketplacePage';
+import ProFeaturesPage from './Components/ProFeaturesPage';
 import ProfilePage from './Components/ProfilePage';
 import FounderDatePage from './Components/FounderDatePage';
 import ConsultationsPage from './Components/ConsultationsPage';
@@ -730,6 +731,24 @@ function AppContent() {
             </Box>
           </RouteWrapper>
         } />
+        <Route path="/pro" element={
+          <RouteWrapper
+            loading={loading}
+            advisorChecked={advisorChecked}
+            showAdvisorOnboarding={showAdvisorOnboarding}
+            showOnboarding={showOnboarding}
+            onboardingChecked={onboardingChecked}
+            isAdvisor={isAdvisor}
+            isFounder={isFounder}
+            onAdvisorOnboardingComplete={handleAdvisorOnboardingComplete}
+            onOnboardingComplete={handleOnboardingComplete}
+            onSelectAdvisorFlow={handleSelectAdvisorFlow}
+          >
+            <Box sx={{ height: '100%', overflow: 'auto' }}>
+              <ProFeaturesPage />
+            </Box>
+          </RouteWrapper>
+        } />
         <Route path="/feedback" element={
           <RouteWrapper
             loading={loading}
@@ -884,8 +903,8 @@ function App() {
 function AppWithHeader() {
   const location = useLocation();
 
-  // Full-width pages only: home chooser, advisor marketing, legal. In-app pages (including advisor onboarding) use sidebar.
-  const noLayoutRoutes = ['/home', '/advisor/landing', '/privacy-policy', '/terms-and-conditions', '/faq'];
+  // Full-width pages only: home chooser, advisor marketing, legal, pro features. In-app pages (including advisor onboarding) use sidebar.
+  const noLayoutRoutes = ['/home', '/advisor/landing', '/privacy-policy', '/terms-and-conditions', '/faq', '/pro'];
   const isNoLayoutRoute = noLayoutRoutes.includes(location.pathname);
 
   // For routes without sidebar layout

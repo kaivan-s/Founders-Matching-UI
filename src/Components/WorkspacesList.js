@@ -420,10 +420,10 @@ const WorkspacesList = () => {
                       {/* Workspace Plan Badge */}
                       {workspacePlans[workspace.id] && workspacePlans[workspace.id] !== 'FREE' && (
                         <Chip
-                          label={workspacePlans[workspace.id] === 'PRO' ? 'Pro' : 'Pro+'}
+                          label={workspacePlans[workspace.id] === 'PRO_TRIAL' ? 'Trial' : workspacePlans[workspace.id] === 'PRO' ? 'Pro' : 'Pro+'}
                           size="small"
                           sx={{
-                            bgcolor: workspacePlans[workspace.id] === 'PRO_PLUS' ? '#7c3aed' : '#1e3a8a',
+                            bgcolor: workspacePlans[workspace.id] === 'PRO_PLUS' ? '#7c3aed' : workspacePlans[workspace.id] === 'PRO_TRIAL' ? '#0d9488' : '#1e3a8a',
                             color: '#ffffff',
                             fontWeight: 600,
                             fontSize: '0.75rem',
